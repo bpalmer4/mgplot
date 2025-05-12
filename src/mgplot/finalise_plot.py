@@ -1,15 +1,19 @@
-""" 
+"""
 finalise_plot.py:
 This module provides a function to finalise and save plots to the file system.
 """
 
-# imports
+# --- imports
 import re
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+from mgplot.settings import get_setting
 
-# filename limitations - used to map the plot title to a filename
-_remove = re.compile(r"[^0-9A-Za-z]")  # make sensible file names
+
+# --- constants
+# filename limitations - regex used to map the plot title to a filename
+_remove = re.compile(r"[^0-9A-Za-z]")  # sensible file names from alphamum title
 _reduce = re.compile(r"[-]+")  # eliminate multiple hyphens
 
 # map of the acceptable kwargs for finalise_plot()
@@ -71,7 +75,7 @@ def _apply_annotations(axes, **kwargs) -> None:
     """Set figure size and apply chart annotations."""
 
     fig = axes.figure
-    fig_size = DEFAULT_FIG_SIZE if "figsize" not in kwargs else kwargs["figsize"]
+    fig_size = get_setting("figsize") if "figsize" not in kwargs else kwargs["figsize"]
     fig.set_size_inches(*fig_size)
 
     annotations = {
@@ -129,14 +133,14 @@ def _apply_kwargs(axes, **kwargs) -> None:
             axes.axvline(x=0, lw=0.66, c="#555555")
 
 
-def _save_to_file(fig, **kwargs) -> None:
+def _save_to_file(fig: plt.Figure, **kwargs) -> None:
     """Save the figure to file."""
 
     saving = not kwargs.get("dont_save", False)  # save by default
     if saving:
-        chart_dir = kwargs.get("chart_dir", None)
-        if chart_dir is None:
-            chart_dir = _chart_dir.get()
+        chart_dir = kwargs.get("chart_dir", get_setting("chart_dir"))
+        if not chart_dir.endswith("/"):
+            chart_dir += "/"
 
         title = "" if "title" not in kwargs else kwargs["title"]
         max_title_len = 150  # avoid overly long file names
@@ -145,8 +149,8 @@ def _save_to_file(fig, **kwargs) -> None:
         tag = kwargs.get("tag", "")
         file_title = re.sub(_remove, "-", shorter).lower()
         file_title = re.sub(_reduce, "-", file_title)
-        file_type = kwargs.get("file_type", DEFAULT_FILE_TYPE).lower()  # png or svg
-        dpi = kwargs.get("dpi", DEFAULT_DPI)
+        file_type = kwargs.get("file_type", get_setting("file_type")).lower()
+        dpi = kwargs.get("dpi", get_setting("file_dpi"))
         fig.savefig(f"{chart_dir}{pre_tag}{file_title}-{tag}.{file_type}", dpi=dpi)
 
 
@@ -154,44 +158,48 @@ def _save_to_file(fig, **kwargs) -> None:
 
 
 def get_possible_kwargs() -> list[str]:
-    """Return a list of possible kwargs for finalise_plot()."""
+    """
+    Return a list of possible kwargs for finalise_plot().
+    """
+
     return list(_ACCEPTABLE_KWARGS)
 
 
 def finalise_plot(axes: plt.Axes, **kwargs) -> None:
-    """A function to finalise and save plots to the file system. The filename
-    for the saved plot is constructed from the chart_dir, the plot's title,
+    """
+    A function to finalise and save plots to the file system. The filename
+    for the saved plot is constructed from the global chart_dir, the plot's title,
     any specified tag text, and the file_type for the plot.
      Arguments:
        - axes - matplotlib axes object - required
       kwargs
-       - title - string - plot title, also used to save the file
-       - xlabel - string - label for the x-axis
-       - ylabel - string - label for the y-axis
-       - pre_tag - string - text before the title in file name
-       - tag - string - text after the title - used in file name
-         to make similar plots have unique file names
-       - chart_dir - string - location of the chartr directory
-       - file_type - string - specify a file type - eg. 'png' or 'svg'
-       - lfooter - string - text to display on bottom left of plot
-       - rfooter - string - text to display of bottom right of plot
-       - lheader - string - text to display on top left of plot
-       - rheader - string - text to display of top right of plot
-       - figsize - tuple - figure size in inches - eg. (8, 4)
-       - show - Boolean - whether to show the plot or not
-       - zero_y - bool - ensure y=0 is included in the plot.
-       - y0 - bool - highlight the y=0 line on the plot
-       - x0 - bool - highlights the x=0 line on the plot
-       - dont_save - bool - dont save the plot to the file system
-       - dont_close - bool - dont close the plot
-       - dpi - int - dots per inch for the saved chart
-       - legend - dict - arguments to pass to axes.legend()
-       - axhspan - dict - arguments to pass to axes.axhspan()
-       - axvspan - dict - arguments to pass to axes.axvspan()
-       - axhline - dict - arguments to pass to axes.axhline()
-       - axvline - dict - arguments to pass to axes.axvline()
-       - ylim - tuple[float, float] - set lower and upper y-axis limits
-       - xlim - tuple[float, float] - set lower and upper x-axis limits
+       - title: str - plot title, also used to create the save file name
+       - xlabel: str - text label for the x-axis
+       - ylabel: str - label for the y-axis
+       - pre_tag: str - text before the title in file name
+       - tag: str - text after the title in the file name 
+         (useful for ensuring that same titled charts do not over-write)
+       - chart_dir: str - location of the chart directory
+       - file_type: str - specify a file type - eg. 'png' or 'svg'
+       - lfooter: str - text to display on bottom left of plot
+       - rfooter: str - text to display of bottom right of plot
+       - lheader: str - text to display on top left of plot
+       - rheader: str - text to display of top right of plot
+       - figsize: tuple[float, float] - figure size in inches - eg. (8, 4)
+       - show: bool - whether to show the plot or not
+       - zero_y: bool - ensure y=0 is included in the plot.
+       - y0: bool - highlight the y=0 line on the plot (if in scope)
+       - x0: bool - highlights the x=0 line on the plot
+       - dont_save: bool - dont save the plot to the file system
+       - dont_close: bool - dont close the plot
+       - dpi: int - dots per inch for the saved chart
+       - legend: dict - arguments to pass to axes.legend()
+       - axhspan: dict - arguments to pass to axes.axhspan()
+       - axvspan: dict - arguments to pass to axes.axvspan()
+       - axhline: dict - arguments to pass to axes.axhline()
+       - axvline: dict - arguments to pass to axes.axvline()
+       - ylim: tuple[float, float] - set lower and upper y-axis limits
+       - xlim: tuple[float, float] - set lower and upper x-axis limits
      Returns:
        - None
     """
@@ -199,19 +207,18 @@ def finalise_plot(axes: plt.Axes, **kwargs) -> None:
     _check_kwargs(**kwargs)
 
     # margins
-    axes.use_sticky_margins = False
+    # axes.use_sticky_margins = False   ### CHECK THIS
     axes.margins(0.02)
     axes.autoscale(tight=False)  # This is problematic ...
 
     _apply_kwargs(axes, **kwargs)
 
-    # tight layout
+    # tight layout and save the figure
     fig = axes.figure
-    fig.tight_layout(pad=1.1)
-
-    _apply_late_kwargs(axes, **kwargs)
-
-    _save_to_file(fig, **kwargs)
+    if not isinstance(fig, mpl.figure.SubFigure):  # should never be a SubFigure
+        fig.tight_layout(pad=1.1)
+        _apply_late_kwargs(axes, **kwargs)
+        _save_to_file(fig, **kwargs)
 
     # show the plot in Jupyter Lab
     if "show" in kwargs and kwargs["show"]:
