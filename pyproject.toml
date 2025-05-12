@@ -1,0 +1,39 @@
+[project]
+name = "mgplot"
+version = "0.0.1"
+description = "mgplot is a frontend for matplotlib"
+readme = "README.md"
+requires-python = ">=3.13"
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    # - system
+    "typing",
+
+    # - data science 
+    "numpy",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "pathlib",
+
+    # - code
+    "black",
+    "mypy",
+    "ruff",
+    "pylint",
+    "nbqa",
+]
+
+[project.optional-dependencies]
+build = ["setuptools", "cython"]
+
+#[project.urls]
+#Homepage = "https://github.com/bpalmer4/mgplot"
+
+

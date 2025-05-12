@@ -1,0 +1,23 @@
+# python stuff to be ignored
+__pycache__/
+*.py[cod]
+*$py.class
+
+# jupyter notebooks stuff to be ignored
+.ipynb_checkpoints/
+
+# vscode stuff
+.vscode/
+
+# MacOS stuff to be ignored
+.DS_Store
+
+
+# build files
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
