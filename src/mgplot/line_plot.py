@@ -7,6 +7,7 @@ Plot a series or a dataframe over multiple (starting_point) time horizons.
 import math
 from typing import Any, cast
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from pandas import DataFrame, Series
@@ -14,6 +15,7 @@ from pandas import DataFrame, Series
 from mgplot.finalise_plot import finalise_plot
 from mgplot.settings import DataT, get_setting
 from mgplot.utilities import apply_defaults, get_color_list
+from mgplot.settings import set_chart_dir, clear_chart_dir
 
 
 # --- constants
@@ -212,14 +214,13 @@ def seas_trend_plot(data: DataFrame, **kwargs) -> None:
 
 if __name__ == "__main__":
     # test code
-    import numpy as np
-    from mgplot.settings import set_chart_dir, clear_chart_dir
 
     # set/clear the chart directory
     set_chart_dir("./test_charts")
     clear_chart_dir()
 
     # Create a sample DataFrame with a PeriodIndex
+    np.random.seed(42)
     dates = pd.period_range("2020-01", "2020-12", freq="M")
     data_ = pd.DataFrame(
         {
@@ -230,4 +231,4 @@ if __name__ == "__main__":
     )
 
     # Call the line_plot function with the sample data
-    line_plot(data_, title="Test Plot", xlabel="Date", ylabel="Value")
+    line_plot(data_, title="Test Plot", xlabel="Date", ylabel="Value", annotate=True)
