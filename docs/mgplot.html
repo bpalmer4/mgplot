@@ -212,18 +212,18 @@ Returns:</li>
 
     </div>
     <a class="headerlink" href="#get_setting"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_setting-66"><a href="#get_setting-66"><span class="linenos">66</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_setting</span><span class="p">(</span><span class="n">setting</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-</span><span id="get_setting-67"><a href="#get_setting-67"><span class="linenos">67</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="get_setting-68"><a href="#get_setting-68"><span class="linenos">68</span></a><span class="sd">    Get a setting from the global settings.</span>
-</span><span id="get_setting-69"><a href="#get_setting-69"><span class="linenos">69</span></a><span class="sd">    Raises KeyError if the setting is not found.</span>
-</span><span id="get_setting-70"><a href="#get_setting-70"><span class="linenos">70</span></a><span class="sd">    Arguments:</span>
-</span><span id="get_setting-71"><a href="#get_setting-71"><span class="linenos">71</span></a><span class="sd">        - setting: str - name of the setting to get</span>
-</span><span id="get_setting-72"><a href="#get_setting-72"><span class="linenos">72</span></a><span class="sd">    Returns:</span>
-</span><span id="get_setting-73"><a href="#get_setting-73"><span class="linenos">73</span></a><span class="sd">        - value: Any - the value of the setting</span>
-</span><span id="get_setting-74"><a href="#get_setting-74"><span class="linenos">74</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="get_setting-75"><a href="#get_setting-75"><span class="linenos">75</span></a>    <span class="k">if</span> <span class="n">setting</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_mgplot_defaults</span><span class="p">:</span>
-</span><span id="get_setting-76"><a href="#get_setting-76"><span class="linenos">76</span></a>        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting &#39;</span><span class="si">{</span><span class="n">setting</span><span class="si">}</span><span class="s2">&#39; not found in _mgplot_defaults.&quot;</span><span class="p">)</span>
-</span><span id="get_setting-77"><a href="#get_setting-77"><span class="linenos">77</span></a>    <span class="k">return</span> <span class="n">_mgplot_defaults</span><span class="p">[</span><span class="n">setting</span><span class="p">]</span>  <span class="c1"># type: ignore[literal-required]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_setting-83"><a href="#get_setting-83"><span class="linenos">83</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_setting</span><span class="p">(</span><span class="n">setting</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+</span><span id="get_setting-84"><a href="#get_setting-84"><span class="linenos">84</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="get_setting-85"><a href="#get_setting-85"><span class="linenos">85</span></a><span class="sd">    Get a setting from the global settings.</span>
+</span><span id="get_setting-86"><a href="#get_setting-86"><span class="linenos">86</span></a><span class="sd">    Raises KeyError if the setting is not found.</span>
+</span><span id="get_setting-87"><a href="#get_setting-87"><span class="linenos">87</span></a><span class="sd">    Arguments:</span>
+</span><span id="get_setting-88"><a href="#get_setting-88"><span class="linenos">88</span></a><span class="sd">        - setting: str - name of the setting to get</span>
+</span><span id="get_setting-89"><a href="#get_setting-89"><span class="linenos">89</span></a><span class="sd">    Returns:</span>
+</span><span id="get_setting-90"><a href="#get_setting-90"><span class="linenos">90</span></a><span class="sd">        - value: Any - the value of the setting</span>
+</span><span id="get_setting-91"><a href="#get_setting-91"><span class="linenos">91</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="get_setting-92"><a href="#get_setting-92"><span class="linenos">92</span></a>    <span class="k">if</span> <span class="n">setting</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_mgplot_defaults</span><span class="p">:</span>
+</span><span id="get_setting-93"><a href="#get_setting-93"><span class="linenos">93</span></a>        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting &#39;</span><span class="si">{</span><span class="n">setting</span><span class="si">}</span><span class="s2">&#39; not found in _mgplot_defaults.&quot;</span><span class="p">)</span>
+</span><span id="get_setting-94"><a href="#get_setting-94"><span class="linenos">94</span></a>    <span class="k">return</span> <span class="n">_mgplot_defaults</span><span class="p">[</span><span class="n">setting</span><span class="p">]</span>  <span class="c1"># type: ignore[literal-required]</span>
 </span></pre></div>
 
 
@@ -248,17 +248,17 @@ Returns:
 
     </div>
     <a class="headerlink" href="#set_setting"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="set_setting-80"><a href="#set_setting-80"><span class="linenos">80</span></a><span class="k">def</span><span class="w"> </span><span class="nf">set_setting</span><span class="p">(</span><span class="n">setting</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="set_setting-81"><a href="#set_setting-81"><span class="linenos">81</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="set_setting-82"><a href="#set_setting-82"><span class="linenos">82</span></a><span class="sd">    Set a setting in the global settings.</span>
-</span><span id="set_setting-83"><a href="#set_setting-83"><span class="linenos">83</span></a><span class="sd">    Raises KeyError if the setting is not found.</span>
-</span><span id="set_setting-84"><a href="#set_setting-84"><span class="linenos">84</span></a><span class="sd">    Arguments:</span>
-</span><span id="set_setting-85"><a href="#set_setting-85"><span class="linenos">85</span></a><span class="sd">        - setting: str - name of the setting to set</span>
-</span><span id="set_setting-86"><a href="#set_setting-86"><span class="linenos">86</span></a><span class="sd">        - value: Any - the value to set the setting to</span>
-</span><span id="set_setting-87"><a href="#set_setting-87"><span class="linenos">87</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="set_setting-88"><a href="#set_setting-88"><span class="linenos">88</span></a>    <span class="k">if</span> <span class="n">setting</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_mgplot_defaults</span><span class="p">:</span>
-</span><span id="set_setting-89"><a href="#set_setting-89"><span class="linenos">89</span></a>        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting &#39;</span><span class="si">{</span><span class="n">setting</span><span class="si">}</span><span class="s2">&#39; not found in _mgplot_defaults.&quot;</span><span class="p">)</span>
-</span><span id="set_setting-90"><a href="#set_setting-90"><span class="linenos">90</span></a>    <span class="n">_mgplot_defaults</span><span class="p">[</span><span class="n">setting</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>  <span class="c1"># type: ignore[literal-required]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="set_setting-97"><a href="#set_setting-97"><span class="linenos"> 97</span></a><span class="k">def</span><span class="w"> </span><span class="nf">set_setting</span><span class="p">(</span><span class="n">setting</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="set_setting-98"><a href="#set_setting-98"><span class="linenos"> 98</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="set_setting-99"><a href="#set_setting-99"><span class="linenos"> 99</span></a><span class="sd">    Set a setting in the global settings.</span>
+</span><span id="set_setting-100"><a href="#set_setting-100"><span class="linenos">100</span></a><span class="sd">    Raises KeyError if the setting is not found.</span>
+</span><span id="set_setting-101"><a href="#set_setting-101"><span class="linenos">101</span></a><span class="sd">    Arguments:</span>
+</span><span id="set_setting-102"><a href="#set_setting-102"><span class="linenos">102</span></a><span class="sd">        - setting: str - name of the setting to set</span>
+</span><span id="set_setting-103"><a href="#set_setting-103"><span class="linenos">103</span></a><span class="sd">        - value: Any - the value to set the setting to</span>
+</span><span id="set_setting-104"><a href="#set_setting-104"><span class="linenos">104</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="set_setting-105"><a href="#set_setting-105"><span class="linenos">105</span></a>    <span class="k">if</span> <span class="n">setting</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_mgplot_defaults</span><span class="p">:</span>
+</span><span id="set_setting-106"><a href="#set_setting-106"><span class="linenos">106</span></a>        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting &#39;</span><span class="si">{</span><span class="n">setting</span><span class="si">}</span><span class="s2">&#39; not found in _mgplot_defaults.&quot;</span><span class="p">)</span>
+</span><span id="set_setting-107"><a href="#set_setting-107"><span class="linenos">107</span></a>    <span class="n">_mgplot_defaults</span><span class="p">[</span><span class="n">setting</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>  <span class="c1"># type: ignore[literal-required]</span>
 </span></pre></div>
 
 

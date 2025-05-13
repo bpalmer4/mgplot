@@ -40,6 +40,8 @@ class _DefaultValues(TypedDict):
     legend_font_size: float | str
     legend_style: dict[str, Any]
 
+    colors: dict[int, list[str]]  # used by get_color_list()
+
     chart_dir: str
 
 
@@ -48,12 +50,27 @@ _mgplot_defaults = _DefaultValues(
     figsize=(9.0, 4.5),
     file_dpi=300,
     line_narrow=0.75,
-    line_normal=1.5,
-    line_wide=2.5,
+    line_normal=1.0,
+    line_wide=2.0,
     legend_font_size="small",
     legend_style={
         "loc": "best",
         "fontsize": "small",
+    },
+    colors = {
+        1: ["indianred"],
+        5: ["royalblue", "darkorange", "forestgreen", "indianred", "gray"],
+        9: [
+            "darkblue",
+            "darkorange",
+            "forestgreen",
+            "indianred",
+            "purple",
+            "gold",
+            "lightcoral",
+            "lightseagreen",
+            "gray",
+        ],
     },
     chart_dir=".",
 )

@@ -19,5 +19,8 @@ dist/
 wheels/
 *.egg-info
 
+# Test charts
+src/mgplot/test_charts/**
+
 # Virtual environments
 .venv
