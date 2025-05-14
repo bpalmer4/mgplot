@@ -1,21 +1,20 @@
 """
 line_plot.py:
-Plot a series or a dataframe over multiple (starting_point) time horizons.
+Plot a series or a dataframe with lines.
 """
 
 # --- imports
-import math
 from typing import Any, cast
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from pandas import DataFrame, Series
+from pandas import DataFrame
 
-from mgplot.finalise_plot import finalise_plot
+from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
 from mgplot.settings import DataT, get_setting
-from mgplot.utilities import apply_defaults, get_color_list
-from mgplot.settings import set_chart_dir, clear_chart_dir
+from mgplot.utilities import apply_defaults, get_color_list, get_axes, annotate_series
+from mgplot.settings import set_chart_dir
 
 
 # --- constants
@@ -29,7 +28,112 @@ MARKERSIZE = "markersize"
 
 
 # --- functions
-# private
+def _get_style_width_color_etc(
+    item_count, num_data_points, **kwargs
+) -> tuple[dict[str, list], dict]:
+    """
+    Get the plot-line attributes arguemnts.
+    Returns a dictionary of lists of attributes for each line, and
+    a modified kwargs dictionary.
+    """
+
+    data_point_thresh = 24
+    defaults: dict[str, Any] = {
+        STYLE: "-",
+        WIDTH: (
+            get_setting("line_normal")
+            if num_data_points > data_point_thresh
+            else get_setting("line_wide")
+        ),
+        COLOR: kwargs.get(COLOR, get_color_list(item_count)),
+        ALPHA: 1.0,
+        DRAWSTYLE: None,
+        MARKER: None,
+        MARKERSIZE: 10,
+        ANNOTATE: None,
+    }
+    swce, kwargs = apply_defaults(item_count, defaults, kwargs)
+
+    swce[DROPNA] = kwargs.get(DROPNA, False)
+    if DROPNA in kwargs:
+        del kwargs[DROPNA]
+
+    return swce, kwargs
+
+
+def line_plot(data: DataT, **kwargs) -> plt.Axes:
+    """
+    Build a single plot from the data passed in.
+    This can be a single or multiple line plot.
+    Return the axes object for the build.
+    Agruments:
+    - data: DataFrame | Series - data to plot
+    - kwargs:
+        - color: str | list[str] - line colors.
+        - width: float | list[float] - line widths [optional].
+        - style: str | list[str] - line styles [optional].
+        - alpha: float | list[float] - line transparencies [optional].
+        - marker: str | list[str] - line markers [optional].
+        - marker_size: float | list[float] - line marker sizes [optional].
+        - annotate: None | int | list[int] -  if not None, the number
+          of decimals with which to annotate the right-end-point of a line.
+        - dropna: bool | list[bool] - whether to delete NAs before plotting
+          [optional]
+        - ax: plt.Axes | None - axes to plot on (optional)
+        - figsize: tuple[float, float] - figure size (optional)
+    Returns:
+    - axes: plt.Axes - the axes object for the plot
+    """
+
+    # the data to be plotted:
+    df = DataFrame(data)  # really we are only plotting DataFrames
+    item_count = len(df.columns)
+    num_data_points = len(df)
+    swce, kwargs = _get_style_width_color_etc(item_count, num_data_points, **kwargs)
+
+    # Let's plot
+    axes = get_axes(kwargs)  # get the axes to plot on
+    for i, column in enumerate(df.columns):
+        series = df[column]
+        if (series.isna()).all():
+            continue
+        series = series.dropna() if DROPNA in swce and swce[DROPNA] else series
+        if series.empty or series.isna().all():
+            continue
+        axes = series.plot(
+            ls=swce[STYLE][i],
+            lw=swce[WIDTH][i],
+            color=swce[COLOR][i],
+            alpha=swce[ALPHA][i],
+            marker=swce[MARKER][i],
+            ms=swce[MARKERSIZE][i],
+            drawstyle=swce[DRAWSTYLE][i],
+            ax=axes,
+        )
+        if swce[ANNOTATE][i]:
+            rounding: int | None = (
+                swce[ANNOTATE][i] if isinstance(swce[ANNOTATE][i], int) else None
+            )
+            annotate_series(series, axes, rounding=rounding, color=swce[COLOR][i])
+
+    return axes
+
+
+def line_plot_finalise(data: DataT, **kwargs) -> None:
+    """
+    Publish a single plot from the data passed in.
+    Arguments:
+        Use the same arguments as for line_plot() and finalise_plot().
+    Returns:
+        None.
+    """
+
+    axes = line_plot(data, **kwargs)
+    keep_me = get_finalise_kwargs_list()
+    fp_kwargs = {k: v for k, v in kwargs.items() if k in keep_me}
+    finalise_plot(axes, **fp_kwargs)
+
+
 def _get_multi_starts(**kwargs) -> tuple[dict[str, list], dict]:
     """Get the multi-starting point arguments."""
 
@@ -50,147 +154,43 @@ def _get_multi_starts(**kwargs) -> tuple[dict[str, list], dict]:
     return stags, kwargs
 
 
-def _get_style_width_color_etc(
-    item_count, num_data_points, **kwargs
-) -> tuple[dict[str, list], dict]:
-    """Get the plot-line attributes arguemnts.
-    Returns a dictionary of lists of attributes for each line, and
-    a modified kwargs dictionary."""
-
-    color = kwargs.get(COLOR, get_color_list(item_count))
-
-    data_point_thresh = 24
-    defaults: dict[str, Any] = {
-        STYLE: "-",
-        WIDTH: (
-            get_setting("line_normal") if num_data_points > data_point_thresh
-            else get_setting("line_wide")
-        ),
-        COLOR: color,
-        ALPHA: 1.0,
-        DRAWSTYLE: None,
-        MARKER: None,
-        MARKERSIZE: 10,
-        ANNOTATE: False,
-    }
-    swce, kwargs = apply_defaults(item_count, defaults, kwargs)
-
-    swce[LEGEND] = kwargs.get(LEGEND, None)
-    if swce[LEGEND] is None and item_count > 1:
-        swce[LEGEND] = get_setting("legend_style")
-    if LEGEND in kwargs:
-        del kwargs[LEGEND]
-
-    swce[DROPNA] = kwargs.get(DROPNA, False)
-    if DROPNA in kwargs:
-        del kwargs[DROPNA]
-
-    return swce, kwargs
-
-
-def _annotate(
-    axes: plt.Axes,
-    series: Series,
-    color: str = "#444444",
-    fontsize: int = 10,
-) -> None:
-    """Annotate the right-hand end-point of a line-plotted series."""
-
-    x, y = series.index[-1], series.iloc[-1]
-    if y is None or math.isnan(y):
-        return
-
-    rounding: int = 0 if y >= 100 else 1 if y >= 10 else 2
-    axes.text(
-        x=x,
-        y=y,
-        s=f" {y:.{rounding}f}",
-        ha="left",
-        va="center",
-        fontsize=fontsize,
-        color=color,
-        font="Helvetica",
-    )
-
-
-# public
-def line_plot(data: DataT, **kwargs: Any) -> None:
-    """Plot a series or a dataframe over multiple (starting_point) time horizons.
-    The data must be a pandas Series or DataFrame with a PeriodIndex.
+def line_plot_multistart(data: DataT, **kwargs) -> None:
+    """
+    Publish multiple plots from the data passed in, with multiple starting
+    points, Each plot is finalised with a call to finalise_plot().
+    Note: the data must be a pandas Series or DataFrame with a PeriodIndex.
     Arguments:
-    - starts - str| pd.Period | list[str] | list[pd.Period] -
+    In addition to using much the same arguments for line_plot() and
+    finalise_plot(), the following arguments are also used:
+    - starts: str | pd.Period | list[str] | list[pd.Period] -
       starting dates for plots.
-    - tags - str | list[str] - unique file name tages for multiple plots.
-    - color - str | list[str] - line colors.
-    - width - float | list[float] - line widths.
-    - style - str | list[str] - line styles.
-    - alpha - float | list[float] - line transparencies.
-    - annotate - bool | list bool - whether to annotate the end-point of the line.
-    - legend - dict | False - arguments to splat in a call to plt.Axes.legend()
-    - drawstyle - str | list[str] - pandas drawing style
-      if False, no legend will be displayed.
-    - dropna - bool - whether to delete NAs before plotting
-    - ax - plt.Axes | None - axes to plot on (optional)
-    - Remaining arguments as for finalise_plot() [but note, the tag
-      argument to finalise_plot cannot be used. Use tags instead.]"""
+    - tags: str | list[str] - unique file name tages for multiple plots.
+    Note: cannot use the ax argument to line_plot()
+    Returns None.
+    """
 
-    # sanity checks
-    if not isinstance(data, (Series, DataFrame)) or not isinstance(
-        data.index, pd.PeriodIndex
-    ):
-        raise TypeError(
-            "The data argument must be a pandas Series or DataFrame with a PeriodIndex"
-        )
-    if AX in kwargs and kwargs[AX] is not None and STARTS in kwargs:
-        print("Caution: only one chart can be plotted with the passed axes")
+    stags, rkwargs = _get_multi_starts(**kwargs)  # time horizons
+    if AX in rkwargs:
+        print("Ignoring the ax argument to line_plot_multistart()")
+        del rkwargs[AX]
 
-    # really we are only plotting DataFrames
-    df = DataFrame(data)
-
-    # get extra plotting parameters - not passed to finalise_plot()
-    item_count = len(df.columns)
-    num_data_points = len(df)
-    stags, kwargs = _get_multi_starts(**kwargs)  # time horizons
-    swce, kwargs = _get_style_width_color_etc(
-        item_count, num_data_points, **kwargs
-    )  # lines
-
-    # And plot
+    previous_tags: set[str] = set()
+    counter = 0
     for start, tag in zip(stags[STARTS], stags[TAGS]):
         if start and not isinstance(start, pd.Period):
-            start = pd.Period(start, freq=cast(pd.PeriodIndex, df.index).freq)
-        recent = df[df.index >= start] if start else df
-        # note cammot use ax and start/tag in finalise_plot
-        axes: None | plt.Axes = kwargs.pop(AX, None)
-        for i, column in enumerate(recent):
-            if (recent[column].isna()).all():
-                continue
-            series = (
-                recent[column].dropna()
-                if DROPNA in swce and swce[DROPNA]
-                else recent[column]
-            )
-            axes = series.plot(
-                ls=swce[STYLE][i],
-                lw=swce[WIDTH][i],
-                color=swce[COLOR][i],
-                alpha=swce[ALPHA][i],
-                marker=swce[MARKER][i],
-                ms=swce[MARKERSIZE][i],
-                drawstyle=swce[DRAWSTYLE][i],
-                ax=axes,
-            )
-            if swce[ANNOTATE][i] and axes is not None:
-                _annotate(axes, series, swce[COLOR][i])
-
-        if LEGEND in swce and isinstance(swce[LEGEND], dict):
-            kwargs[LEGEND] = swce[LEGEND].copy()
-        if axes:
-            finalise_plot(axes, tag=tag, **kwargs)
+            start = pd.Period(start, freq=cast(pd.PeriodIndex, start.index).freq)
+        recent = data[data.index >= start] if start else data
+        this_kwargs = rkwargs.copy()
+        proposed_tag = tag
+        while proposed_tag in previous_tags:
+            counter += 1
+            proposed_tag = f"{tag}_{counter:05d}"
+        this_kwargs["tag"] = proposed_tag
+        line_plot_finalise(recent, **this_kwargs)
 
 
 def seas_trend_plot(data: DataFrame, **kwargs) -> None:
-    """Plot a DataFrame, where the first column is seasonally
+    """Publish a DataFrame, where the first column is seasonally
     adjusted data, and the second column is trend data."""
 
     colors = get_color_list(2)
@@ -201,34 +201,45 @@ def seas_trend_plot(data: DataFrame, **kwargs) -> None:
     if DROPNA not in kwargs:
         kwargs[DROPNA] = True
 
-    line_plot(
+    annotate = (kwargs.pop(ANNOTATE, annotations),)
+    legend = (kwargs.pop(LEGEND, get_setting("legend")),)
+    line_plot_finalise(
         data,
         width=widths,
         color=colors,
         style=styles,
-        annotate=kwargs.get(ANNOTATE, annotations),
-        legend=kwargs.get(LEGEND, get_setting("legend_style")),
+        annotate=annotate,
+        legend=legend,
         **kwargs,
     )
 
 
+# --- test code
 if __name__ == "__main__":
-    # test code
 
-    # set/clear the chart directory
+    # set the chart directory
     set_chart_dir("./test_charts")
-    clear_chart_dir()
 
     # Create a sample DataFrame with a PeriodIndex
     np.random.seed(42)
-    dates = pd.period_range("2020-01", "2020-12", freq="M")
+    dates = pd.period_range("2020-01", "2025-01", freq="M")
     data_ = pd.DataFrame(
         {
-            "Series1": np.random.rand(len(dates)),
-            "Series2": np.random.rand(len(dates)),
+            "Series 1": np.random.rand(len(dates)),
+            "Series 2": np.random.rand(len(dates)),
         },
         index=dates,
     )
 
     # Call the line_plot function with the sample data
-    line_plot(data_, title="Test Plot", xlabel="Date", ylabel="Value", annotate=True)
+    line_plot_finalise(
+        data_,
+        title="Test Line Plot",
+        xlabel=None,
+        ylabel="Value",
+        width=[3, 1.5],
+        marker=[None, "o"],
+        markersize=[None, 5],
+        legend=True,
+        annotate=3,
+    )

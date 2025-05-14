@@ -5,8 +5,11 @@ These are not intended to be used directly by the user.
 """
 
 # --- imports
+import math
 from typing import Any
 from matplotlib import cm
+from matplotlib.pyplot import Axes, subplots
+from pandas import Series
 import numpy as np
 from mgplot.settings import get_setting
 
@@ -67,6 +70,46 @@ def get_color_list(count: int) -> list[str]:
         return colors[min(options)][:count]
 
     c = cm.get_cmap("nipy_spectral")(np.linspace(0, 1, count))
-    return [
-        f"#{int(x*255):02x}{int(y*255):02x}{int(z*255):02x}" for x, y, z, _ in c
-    ]
+    return [f"#{int(x*255):02x}{int(y*255):02x}{int(z*255):02x}" for x, y, z, _ in c]
+
+
+def get_axes(kwargs: dict[str, Any]) -> Axes:
+    """Get the axes to plot on.
+    If not passed in kwargs, create a new figure and axes."""
+
+    ax = "ax"
+    if ax in kwargs and kwargs[ax] is not None:
+        axes = kwargs[ax]
+        if not isinstance(axes, Axes):
+            raise TypeError("The ax argument must be a matplotlib Axes object")
+        return axes
+
+    _fig, axes = subplots(figsize=kwargs.get("figsize", get_setting("figsize")))
+    return axes
+
+
+def annotate_series(
+    series: Series,
+    axes: Axes,
+    rounding: int | None = None,
+    color: str = "#444444",
+    fontsize: int | str = "x-small",
+) -> None:
+    """Annotate the right-hand end-point of a line-plotted series."""
+
+    x, y = series.index[-1], series.iloc[-1]
+    if y is None or math.isnan(y):
+        return
+
+    if rounding is None:
+        rounding = 0 if y >= 100 else 1 if y >= 10 else 2
+    axes.text(
+        x=x,
+        y=y,
+        s=f" {y:.{rounding}f}",
+        ha="left",
+        va="center",
+        fontsize=fontsize,
+        color=color,
+        font="Helvetica",
+    )
