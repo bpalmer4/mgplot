@@ -176,6 +176,7 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
     A function to finalise and save plots to the file system. The filename
     for the saved plot is constructed from the global chart_dir, the plot's title,
     any specified tag text, and the file_type for the plot.
+
     Arguments:
     - axes - matplotlib axes object - required
     - kwargs
@@ -207,6 +208,7 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
         - axvline: dict - arguments to pass to axes.axvline()
         - ylim: tuple[float, float] - set lower and upper y-axis limits
         - xlim: tuple[float, float] - set lower and upper x-axis limits
+
      Returns:
         - None
     """
