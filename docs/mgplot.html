@@ -26,6 +26,7 @@
             <ul>
                     <li><a href="mgplot/finalise_plot.html">finalise_plot</a></li>
                     <li><a href="mgplot/line_plot.html">line_plot</a></li>
+                    <li><a href="mgplot/growth_plot.html">growth_plot</a></li>
             </ul>
 
             <h2>API Documentation</h2>
@@ -70,10 +71,10 @@
                     <a class="function" href="#calc_growth">calc_growth</a>
             </li>
             <li>
-                    <a class="function" href="#plot_growth">plot_growth</a>
+                    <a class="function" href="#growth_plot">growth_plot</a>
             </li>
             <li>
-                    <a class="function" href="#plot_growth_from_series">plot_growth_from_series</a>
+                    <a class="function" href="#growth_plot_from_series">growth_plot_from_series</a>
             </li>
     </ul>
 
@@ -122,8 +123,8 @@ mgplot    </h1>
 </span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>    <span class="s2">&quot;seas_trend_plot&quot;</span><span class="p">,</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>    <span class="c1"># growth plot</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>    <span class="s2">&quot;calc_growth&quot;</span><span class="p">,</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="s2">&quot;plot_growth&quot;</span><span class="p">,</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>    <span class="s2">&quot;plot_growth_from_series&quot;</span><span class="p">,</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="s2">&quot;growth_plot&quot;</span><span class="p">,</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>    <span class="s2">&quot;growth_plot_from_series&quot;</span><span class="p">,</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="p">)</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="c1"># __pdoc__: dict[str, Any] = {}  # hide submodules from documentation</span>
 </span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>
@@ -137,7 +138,7 @@ mgplot    </h1>
 </span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="n">line_plot_multistart</span><span class="p">,</span>
 </span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>    <span class="n">seas_trend_plot</span><span class="p">,</span>
 </span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a><span class="p">)</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.growth_plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_growth</span><span class="p">,</span> <span class="n">plot_growth</span><span class="p">,</span> <span class="n">plot_growth_from_series</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.growth_plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_growth</span><span class="p">,</span> <span class="n">growth_plot</span><span class="p">,</span> <span class="n">growth_plot_from_series</span>
 </span></pre></div>
 
 
@@ -888,101 +889,101 @@ where the index is a PeriodIndex.</p>
 
 
                 </section>
-                <section id="plot_growth">
-                            <input id="plot_growth-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                <section id="growth_plot">
+                            <input id="growth_plot-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">plot_growth</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">annual</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span>,</span><span class="param">	<span class="n">periodic</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">) -> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_axes</span><span class="o">.</span><span class="n">Axes</span>:</span></span>
+        <span class="name">growth_plot</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">annual</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span>,</span><span class="param">	<span class="n">periodic</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">) -> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_axes</span><span class="o">.</span><span class="n">Axes</span>:</span></span>
 
-                <label class="view-source-button" for="plot_growth-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="growth_plot-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#plot_growth"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="plot_growth-111"><a href="#plot_growth-111"><span class="linenos">111</span></a><span class="k">def</span><span class="w"> </span><span class="nf">plot_growth</span><span class="p">(</span>
-</span><span id="plot_growth-112"><a href="#plot_growth-112"><span class="linenos">112</span></a>    <span class="n">annual</span><span class="p">:</span> <span class="n">Series</span><span class="p">,</span>
-</span><span id="plot_growth-113"><a href="#plot_growth-113"><span class="linenos">113</span></a>    <span class="n">periodic</span><span class="p">:</span> <span class="n">Series</span><span class="p">,</span>
-</span><span id="plot_growth-114"><a href="#plot_growth-114"><span class="linenos">114</span></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-</span><span id="plot_growth-115"><a href="#plot_growth-115"><span class="linenos">115</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Axes</span><span class="p">:</span>
-</span><span id="plot_growth-116"><a href="#plot_growth-116"><span class="linenos">116</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="plot_growth-117"><a href="#plot_growth-117"><span class="linenos">117</span></a><span class="sd">    Plot annual (as a line) and periodic (as bars) growth on the</span>
-</span><span id="plot_growth-118"><a href="#plot_growth-118"><span class="linenos">118</span></a><span class="sd">    same axes.</span>
-</span><span id="plot_growth-119"><a href="#plot_growth-119"><span class="linenos">119</span></a>
-</span><span id="plot_growth-120"><a href="#plot_growth-120"><span class="linenos">120</span></a><span class="sd">    Args:</span>
-</span><span id="plot_growth-121"><a href="#plot_growth-121"><span class="linenos">121</span></a><span class="sd">    -   annual: A pandas Series with the annual growth rate.</span>
-</span><span id="plot_growth-122"><a href="#plot_growth-122"><span class="linenos">122</span></a><span class="sd">    -   periodic: A pandas Series with the periodic growth rate.</span>
-</span><span id="plot_growth-123"><a href="#plot_growth-123"><span class="linenos">123</span></a><span class="sd">    -   kwargs:</span>
-</span><span id="plot_growth-124"><a href="#plot_growth-124"><span class="linenos">124</span></a><span class="sd">        -   line_width: The width of the line (default is 2).</span>
-</span><span id="plot_growth-125"><a href="#plot_growth-125"><span class="linenos">125</span></a><span class="sd">        -   line_color: The color of the line (default is &quot;darkblue&quot;).</span>
-</span><span id="plot_growth-126"><a href="#plot_growth-126"><span class="linenos">126</span></a><span class="sd">        -   line_style: The style of the line (default is &quot;-&quot;).</span>
-</span><span id="plot_growth-127"><a href="#plot_growth-127"><span class="linenos">127</span></a><span class="sd">        -   annotate_line: None | int | str - fontsize to annotate the line</span>
-</span><span id="plot_growth-128"><a href="#plot_growth-128"><span class="linenos">128</span></a><span class="sd">            (default is &quot;small&quot;, which means the line is annotated with</span>
-</span><span id="plot_growth-129"><a href="#plot_growth-129"><span class="linenos">129</span></a><span class="sd">            small text).</span>
-</span><span id="plot_growth-130"><a href="#plot_growth-130"><span class="linenos">130</span></a><span class="sd">        -   bar_width: The width of the bars (default is 0.8).</span>
-</span><span id="plot_growth-131"><a href="#plot_growth-131"><span class="linenos">131</span></a><span class="sd">        -   bar_color: The color of the bars (default is &quot;indianred&quot;).</span>
-</span><span id="plot_growth-132"><a href="#plot_growth-132"><span class="linenos">132</span></a><span class="sd">        -   annotate_bar: None | int | str - fontsize to annotate the bars</span>
-</span><span id="plot_growth-133"><a href="#plot_growth-133"><span class="linenos">133</span></a><span class="sd">            (default is &quot;small&quot;, which means the bars are annotated with</span>
-</span><span id="plot_growth-134"><a href="#plot_growth-134"><span class="linenos">134</span></a><span class="sd">            small text).</span>
-</span><span id="plot_growth-135"><a href="#plot_growth-135"><span class="linenos">135</span></a><span class="sd">        -   annotation_rounding: The number of decimal places to round the</span>
-</span><span id="plot_growth-136"><a href="#plot_growth-136"><span class="linenos">136</span></a><span class="sd">            annotations to (default is 1).</span>
-</span><span id="plot_growth-137"><a href="#plot_growth-137"><span class="linenos">137</span></a><span class="sd">        -   plot_from: A Period object representing the start of the plot.</span>
-</span><span id="plot_growth-138"><a href="#plot_growth-138"><span class="linenos">138</span></a><span class="sd">            (default is None, which means the entire series is plotted).</span>
-</span><span id="plot_growth-139"><a href="#plot_growth-139"><span class="linenos">139</span></a>
-</span><span id="plot_growth-140"><a href="#plot_growth-140"><span class="linenos">140</span></a><span class="sd">    Returns:</span>
-</span><span id="plot_growth-141"><a href="#plot_growth-141"><span class="linenos">141</span></a><span class="sd">    -   axes: The matplotlib Axes object.</span>
-</span><span id="plot_growth-142"><a href="#plot_growth-142"><span class="linenos">142</span></a>
-</span><span id="plot_growth-143"><a href="#plot_growth-143"><span class="linenos">143</span></a><span class="sd">    Raises:</span>
-</span><span id="plot_growth-144"><a href="#plot_growth-144"><span class="linenos">144</span></a><span class="sd">    -   TypeError if the annual and periodic arguments are not pandas Series.</span>
-</span><span id="plot_growth-145"><a href="#plot_growth-145"><span class="linenos">145</span></a><span class="sd">    -   TypeError if the annual index is not a PeriodIndex.</span>
-</span><span id="plot_growth-146"><a href="#plot_growth-146"><span class="linenos">146</span></a><span class="sd">    -   ValueError if the annual and periodic series do not have the same index.</span>
-</span><span id="plot_growth-147"><a href="#plot_growth-147"><span class="linenos">147</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="plot_growth-148"><a href="#plot_growth-148"><span class="linenos">148</span></a>
-</span><span id="plot_growth-149"><a href="#plot_growth-149"><span class="linenos">149</span></a>    <span class="c1"># --- sanity checks</span>
-</span><span id="plot_growth-150"><a href="#plot_growth-150"><span class="linenos">150</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annual</span><span class="p">,</span> <span class="n">Series</span><span class="p">):</span>
-</span><span id="plot_growth-151"><a href="#plot_growth-151"><span class="linenos">151</span></a>        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The annual argument must be a pandas Series&quot;</span><span class="p">)</span>
-</span><span id="plot_growth-152"><a href="#plot_growth-152"><span class="linenos">152</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">periodic</span><span class="p">,</span> <span class="n">Series</span><span class="p">):</span>
-</span><span id="plot_growth-153"><a href="#plot_growth-153"><span class="linenos">153</span></a>        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The periodic argument must be a pandas Series&quot;</span><span class="p">)</span>
-</span><span id="plot_growth-154"><a href="#plot_growth-154"><span class="linenos">154</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annual</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">PeriodIndex</span><span class="p">):</span>
-</span><span id="plot_growth-155"><a href="#plot_growth-155"><span class="linenos">155</span></a>        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The annual index must be a pandas PeriodIndex&quot;</span><span class="p">)</span>
-</span><span id="plot_growth-156"><a href="#plot_growth-156"><span class="linenos">156</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">annual</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">periodic</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
-</span><span id="plot_growth-157"><a href="#plot_growth-157"><span class="linenos">157</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The annual and periodic series must have the same index&quot;</span><span class="p">)</span>
-</span><span id="plot_growth-158"><a href="#plot_growth-158"><span class="linenos">158</span></a>
-</span><span id="plot_growth-159"><a href="#plot_growth-159"><span class="linenos">159</span></a>    <span class="c1"># --- plot</span>
-</span><span id="plot_growth-160"><a href="#plot_growth-160"><span class="linenos">160</span></a>    <span class="n">plot_from</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;plot_from&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-</span><span id="plot_growth-161"><a href="#plot_growth-161"><span class="linenos">161</span></a>    <span class="k">if</span> <span class="n">plot_from</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="plot_growth-162"><a href="#plot_growth-162"><span class="linenos">162</span></a>        <span class="n">annual</span> <span class="o">=</span> <span class="n">annual</span><span class="p">[</span><span class="n">annual</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="n">plot_from</span><span class="p">]</span>
-</span><span id="plot_growth-163"><a href="#plot_growth-163"><span class="linenos">163</span></a>        <span class="n">periodic</span> <span class="o">=</span> <span class="n">periodic</span><span class="p">[</span><span class="n">periodic</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="n">plot_from</span><span class="p">]</span>
-</span><span id="plot_growth-164"><a href="#plot_growth-164"><span class="linenos">164</span></a>    <span class="n">save_index</span> <span class="o">=</span> <span class="n">PeriodIndex</span><span class="p">(</span><span class="n">annual</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-</span><span id="plot_growth-165"><a href="#plot_growth-165"><span class="linenos">165</span></a>    <span class="n">annual</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">Index</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">annual</span><span class="p">)))</span>
-</span><span id="plot_growth-166"><a href="#plot_growth-166"><span class="linenos">166</span></a>    <span class="n">annual</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Annual Growth&quot;</span>
-</span><span id="plot_growth-167"><a href="#plot_growth-167"><span class="linenos">167</span></a>    <span class="n">periodic</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">annual</span><span class="o">.</span><span class="n">index</span>
-</span><span id="plot_growth-168"><a href="#plot_growth-168"><span class="linenos">168</span></a>    <span class="n">periodic</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;M&quot;</span><span class="p">:</span> <span class="s2">&quot;Monthly&quot;</span><span class="p">,</span> <span class="s2">&quot;Q&quot;</span><span class="p">:</span> <span class="s2">&quot;Quarterly&quot;</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">:</span> <span class="s2">&quot;Daily&quot;</span><span class="p">}[</span>
-</span><span id="plot_growth-169"><a href="#plot_growth-169"><span class="linenos">169</span></a>        <span class="n">PeriodIndex</span><span class="p">(</span><span class="n">save_index</span><span class="p">)</span><span class="o">.</span><span class="n">freqstr</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="plot_growth-170"><a href="#plot_growth-170"><span class="linenos">170</span></a>    <span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; Growth&quot;</span>
-</span><span id="plot_growth-171"><a href="#plot_growth-171"><span class="linenos">171</span></a>    <span class="n">axes</span> <span class="o">=</span> <span class="n">periodic</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
-</span><span id="plot_growth-172"><a href="#plot_growth-172"><span class="linenos">172</span></a>        <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bar_color&quot;</span><span class="p">,</span> <span class="s2">&quot;indianred&quot;</span><span class="p">),</span>
-</span><span id="plot_growth-173"><a href="#plot_growth-173"><span class="linenos">173</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bar_width}&quot;</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">),</span>
-</span><span id="plot_growth-174"><a href="#plot_growth-174"><span class="linenos">174</span></a>    <span class="p">)</span>
-</span><span id="plot_growth-175"><a href="#plot_growth-175"><span class="linenos">175</span></a>    <span class="n">annual</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-</span><span id="plot_growth-176"><a href="#plot_growth-176"><span class="linenos">176</span></a>        <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span>
-</span><span id="plot_growth-177"><a href="#plot_growth-177"><span class="linenos">177</span></a>        <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;line_color&quot;</span><span class="p">,</span> <span class="s2">&quot;darkblue&quot;</span><span class="p">),</span>
-</span><span id="plot_growth-178"><a href="#plot_growth-178"><span class="linenos">178</span></a>        <span class="n">lw</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;line_width&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-</span><span id="plot_growth-179"><a href="#plot_growth-179"><span class="linenos">179</span></a>        <span class="n">linestyle</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;line_style&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">),</span>
-</span><span id="plot_growth-180"><a href="#plot_growth-180"><span class="linenos">180</span></a>    <span class="p">)</span>
-</span><span id="plot_growth-181"><a href="#plot_growth-181"><span class="linenos">181</span></a>    <span class="n">_annotations</span><span class="p">(</span><span class="n">annual</span><span class="p">,</span> <span class="n">periodic</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="plot_growth-182"><a href="#plot_growth-182"><span class="linenos">182</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Per cent Growth&quot;</span><span class="p">)</span>
-</span><span id="plot_growth-183"><a href="#plot_growth-183"><span class="linenos">183</span></a>
-</span><span id="plot_growth-184"><a href="#plot_growth-184"><span class="linenos">184</span></a>    <span class="c1"># --- demangle the x-axis labels</span>
-</span><span id="plot_growth-185"><a href="#plot_growth-185"><span class="linenos">185</span></a>    <span class="n">labels</span> <span class="o">=</span> <span class="n">make_labels</span><span class="p">(</span><span class="n">save_index</span><span class="p">,</span> <span class="n">max_ticks</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-</span><span id="plot_growth-186"><a href="#plot_growth-186"><span class="linenos">186</span></a>    <span class="n">base</span> <span class="o">=</span> <span class="n">save_index</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">ordinal</span>
-</span><span id="plot_growth-187"><a href="#plot_growth-187"><span class="linenos">187</span></a>    <span class="n">ticks</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">ordinal</span> <span class="o">-</span> <span class="n">base</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
-</span><span id="plot_growth-188"><a href="#plot_growth-188"><span class="linenos">188</span></a>    <span class="n">ticklabels</span> <span class="o">=</span> <span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
-</span><span id="plot_growth-189"><a href="#plot_growth-189"><span class="linenos">189</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">)</span>
-</span><span id="plot_growth-190"><a href="#plot_growth-190"><span class="linenos">190</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">ticklabels</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">)</span>
-</span><span id="plot_growth-191"><a href="#plot_growth-191"><span class="linenos">191</span></a>
-</span><span id="plot_growth-192"><a href="#plot_growth-192"><span class="linenos">192</span></a>    <span class="c1"># --- and done ...</span>
-</span><span id="plot_growth-193"><a href="#plot_growth-193"><span class="linenos">193</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-</span><span id="plot_growth-194"><a href="#plot_growth-194"><span class="linenos">194</span></a>    <span class="k">return</span> <span class="n">axes</span>
+    <a class="headerlink" href="#growth_plot"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="growth_plot-111"><a href="#growth_plot-111"><span class="linenos">111</span></a><span class="k">def</span><span class="w"> </span><span class="nf">growth_plot</span><span class="p">(</span>
+</span><span id="growth_plot-112"><a href="#growth_plot-112"><span class="linenos">112</span></a>    <span class="n">annual</span><span class="p">:</span> <span class="n">Series</span><span class="p">,</span>
+</span><span id="growth_plot-113"><a href="#growth_plot-113"><span class="linenos">113</span></a>    <span class="n">periodic</span><span class="p">:</span> <span class="n">Series</span><span class="p">,</span>
+</span><span id="growth_plot-114"><a href="#growth_plot-114"><span class="linenos">114</span></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span id="growth_plot-115"><a href="#growth_plot-115"><span class="linenos">115</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Axes</span><span class="p">:</span>
+</span><span id="growth_plot-116"><a href="#growth_plot-116"><span class="linenos">116</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="growth_plot-117"><a href="#growth_plot-117"><span class="linenos">117</span></a><span class="sd">    Plot annual (as a line) and periodic (as bars) growth on the</span>
+</span><span id="growth_plot-118"><a href="#growth_plot-118"><span class="linenos">118</span></a><span class="sd">    same axes.</span>
+</span><span id="growth_plot-119"><a href="#growth_plot-119"><span class="linenos">119</span></a>
+</span><span id="growth_plot-120"><a href="#growth_plot-120"><span class="linenos">120</span></a><span class="sd">    Args:</span>
+</span><span id="growth_plot-121"><a href="#growth_plot-121"><span class="linenos">121</span></a><span class="sd">    -   annual: A pandas Series with the annual growth rate.</span>
+</span><span id="growth_plot-122"><a href="#growth_plot-122"><span class="linenos">122</span></a><span class="sd">    -   periodic: A pandas Series with the periodic growth rate.</span>
+</span><span id="growth_plot-123"><a href="#growth_plot-123"><span class="linenos">123</span></a><span class="sd">    -   kwargs:</span>
+</span><span id="growth_plot-124"><a href="#growth_plot-124"><span class="linenos">124</span></a><span class="sd">        -   line_width: The width of the line (default is 2).</span>
+</span><span id="growth_plot-125"><a href="#growth_plot-125"><span class="linenos">125</span></a><span class="sd">        -   line_color: The color of the line (default is &quot;darkblue&quot;).</span>
+</span><span id="growth_plot-126"><a href="#growth_plot-126"><span class="linenos">126</span></a><span class="sd">        -   line_style: The style of the line (default is &quot;-&quot;).</span>
+</span><span id="growth_plot-127"><a href="#growth_plot-127"><span class="linenos">127</span></a><span class="sd">        -   annotate_line: None | int | str - fontsize to annotate the line</span>
+</span><span id="growth_plot-128"><a href="#growth_plot-128"><span class="linenos">128</span></a><span class="sd">            (default is &quot;small&quot;, which means the line is annotated with</span>
+</span><span id="growth_plot-129"><a href="#growth_plot-129"><span class="linenos">129</span></a><span class="sd">            small text).</span>
+</span><span id="growth_plot-130"><a href="#growth_plot-130"><span class="linenos">130</span></a><span class="sd">        -   bar_width: The width of the bars (default is 0.8).</span>
+</span><span id="growth_plot-131"><a href="#growth_plot-131"><span class="linenos">131</span></a><span class="sd">        -   bar_color: The color of the bars (default is &quot;indianred&quot;).</span>
+</span><span id="growth_plot-132"><a href="#growth_plot-132"><span class="linenos">132</span></a><span class="sd">        -   annotate_bar: None | int | str - fontsize to annotate the bars</span>
+</span><span id="growth_plot-133"><a href="#growth_plot-133"><span class="linenos">133</span></a><span class="sd">            (default is &quot;small&quot;, which means the bars are annotated with</span>
+</span><span id="growth_plot-134"><a href="#growth_plot-134"><span class="linenos">134</span></a><span class="sd">            small text).</span>
+</span><span id="growth_plot-135"><a href="#growth_plot-135"><span class="linenos">135</span></a><span class="sd">        -   annotation_rounding: The number of decimal places to round the</span>
+</span><span id="growth_plot-136"><a href="#growth_plot-136"><span class="linenos">136</span></a><span class="sd">            annotations to (default is 1).</span>
+</span><span id="growth_plot-137"><a href="#growth_plot-137"><span class="linenos">137</span></a><span class="sd">        -   plot_from: A Period object representing the start of the plot.</span>
+</span><span id="growth_plot-138"><a href="#growth_plot-138"><span class="linenos">138</span></a><span class="sd">            (default is None, which means the entire series is plotted).</span>
+</span><span id="growth_plot-139"><a href="#growth_plot-139"><span class="linenos">139</span></a>
+</span><span id="growth_plot-140"><a href="#growth_plot-140"><span class="linenos">140</span></a><span class="sd">    Returns:</span>
+</span><span id="growth_plot-141"><a href="#growth_plot-141"><span class="linenos">141</span></a><span class="sd">    -   axes: The matplotlib Axes object.</span>
+</span><span id="growth_plot-142"><a href="#growth_plot-142"><span class="linenos">142</span></a>
+</span><span id="growth_plot-143"><a href="#growth_plot-143"><span class="linenos">143</span></a><span class="sd">    Raises:</span>
+</span><span id="growth_plot-144"><a href="#growth_plot-144"><span class="linenos">144</span></a><span class="sd">    -   TypeError if the annual and periodic arguments are not pandas Series.</span>
+</span><span id="growth_plot-145"><a href="#growth_plot-145"><span class="linenos">145</span></a><span class="sd">    -   TypeError if the annual index is not a PeriodIndex.</span>
+</span><span id="growth_plot-146"><a href="#growth_plot-146"><span class="linenos">146</span></a><span class="sd">    -   ValueError if the annual and periodic series do not have the same index.</span>
+</span><span id="growth_plot-147"><a href="#growth_plot-147"><span class="linenos">147</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="growth_plot-148"><a href="#growth_plot-148"><span class="linenos">148</span></a>
+</span><span id="growth_plot-149"><a href="#growth_plot-149"><span class="linenos">149</span></a>    <span class="c1"># --- sanity checks</span>
+</span><span id="growth_plot-150"><a href="#growth_plot-150"><span class="linenos">150</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annual</span><span class="p">,</span> <span class="n">Series</span><span class="p">):</span>
+</span><span id="growth_plot-151"><a href="#growth_plot-151"><span class="linenos">151</span></a>        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The annual argument must be a pandas Series&quot;</span><span class="p">)</span>
+</span><span id="growth_plot-152"><a href="#growth_plot-152"><span class="linenos">152</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">periodic</span><span class="p">,</span> <span class="n">Series</span><span class="p">):</span>
+</span><span id="growth_plot-153"><a href="#growth_plot-153"><span class="linenos">153</span></a>        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The periodic argument must be a pandas Series&quot;</span><span class="p">)</span>
+</span><span id="growth_plot-154"><a href="#growth_plot-154"><span class="linenos">154</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annual</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">PeriodIndex</span><span class="p">):</span>
+</span><span id="growth_plot-155"><a href="#growth_plot-155"><span class="linenos">155</span></a>        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The annual index must be a pandas PeriodIndex&quot;</span><span class="p">)</span>
+</span><span id="growth_plot-156"><a href="#growth_plot-156"><span class="linenos">156</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">annual</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">periodic</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
+</span><span id="growth_plot-157"><a href="#growth_plot-157"><span class="linenos">157</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The annual and periodic series must have the same index&quot;</span><span class="p">)</span>
+</span><span id="growth_plot-158"><a href="#growth_plot-158"><span class="linenos">158</span></a>
+</span><span id="growth_plot-159"><a href="#growth_plot-159"><span class="linenos">159</span></a>    <span class="c1"># --- plot</span>
+</span><span id="growth_plot-160"><a href="#growth_plot-160"><span class="linenos">160</span></a>    <span class="n">plot_from</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;plot_from&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="growth_plot-161"><a href="#growth_plot-161"><span class="linenos">161</span></a>    <span class="k">if</span> <span class="n">plot_from</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="growth_plot-162"><a href="#growth_plot-162"><span class="linenos">162</span></a>        <span class="n">annual</span> <span class="o">=</span> <span class="n">annual</span><span class="p">[</span><span class="n">annual</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="n">plot_from</span><span class="p">]</span>
+</span><span id="growth_plot-163"><a href="#growth_plot-163"><span class="linenos">163</span></a>        <span class="n">periodic</span> <span class="o">=</span> <span class="n">periodic</span><span class="p">[</span><span class="n">periodic</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="n">plot_from</span><span class="p">]</span>
+</span><span id="growth_plot-164"><a href="#growth_plot-164"><span class="linenos">164</span></a>    <span class="n">save_index</span> <span class="o">=</span> <span class="n">PeriodIndex</span><span class="p">(</span><span class="n">annual</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="growth_plot-165"><a href="#growth_plot-165"><span class="linenos">165</span></a>    <span class="n">annual</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">Index</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">annual</span><span class="p">)))</span>
+</span><span id="growth_plot-166"><a href="#growth_plot-166"><span class="linenos">166</span></a>    <span class="n">annual</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Annual Growth&quot;</span>
+</span><span id="growth_plot-167"><a href="#growth_plot-167"><span class="linenos">167</span></a>    <span class="n">periodic</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">annual</span><span class="o">.</span><span class="n">index</span>
+</span><span id="growth_plot-168"><a href="#growth_plot-168"><span class="linenos">168</span></a>    <span class="n">periodic</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;M&quot;</span><span class="p">:</span> <span class="s2">&quot;Monthly&quot;</span><span class="p">,</span> <span class="s2">&quot;Q&quot;</span><span class="p">:</span> <span class="s2">&quot;Quarterly&quot;</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">:</span> <span class="s2">&quot;Daily&quot;</span><span class="p">}[</span>
+</span><span id="growth_plot-169"><a href="#growth_plot-169"><span class="linenos">169</span></a>        <span class="n">PeriodIndex</span><span class="p">(</span><span class="n">save_index</span><span class="p">)</span><span class="o">.</span><span class="n">freqstr</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="growth_plot-170"><a href="#growth_plot-170"><span class="linenos">170</span></a>    <span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; Growth&quot;</span>
+</span><span id="growth_plot-171"><a href="#growth_plot-171"><span class="linenos">171</span></a>    <span class="n">axes</span> <span class="o">=</span> <span class="n">periodic</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
+</span><span id="growth_plot-172"><a href="#growth_plot-172"><span class="linenos">172</span></a>        <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bar_color&quot;</span><span class="p">,</span> <span class="s2">&quot;indianred&quot;</span><span class="p">),</span>
+</span><span id="growth_plot-173"><a href="#growth_plot-173"><span class="linenos">173</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bar_width}&quot;</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">),</span>
+</span><span id="growth_plot-174"><a href="#growth_plot-174"><span class="linenos">174</span></a>    <span class="p">)</span>
+</span><span id="growth_plot-175"><a href="#growth_plot-175"><span class="linenos">175</span></a>    <span class="n">annual</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+</span><span id="growth_plot-176"><a href="#growth_plot-176"><span class="linenos">176</span></a>        <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span>
+</span><span id="growth_plot-177"><a href="#growth_plot-177"><span class="linenos">177</span></a>        <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;line_color&quot;</span><span class="p">,</span> <span class="s2">&quot;darkblue&quot;</span><span class="p">),</span>
+</span><span id="growth_plot-178"><a href="#growth_plot-178"><span class="linenos">178</span></a>        <span class="n">lw</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;line_width&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+</span><span id="growth_plot-179"><a href="#growth_plot-179"><span class="linenos">179</span></a>        <span class="n">linestyle</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;line_style&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">),</span>
+</span><span id="growth_plot-180"><a href="#growth_plot-180"><span class="linenos">180</span></a>    <span class="p">)</span>
+</span><span id="growth_plot-181"><a href="#growth_plot-181"><span class="linenos">181</span></a>    <span class="n">_annotations</span><span class="p">(</span><span class="n">annual</span><span class="p">,</span> <span class="n">periodic</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="growth_plot-182"><a href="#growth_plot-182"><span class="linenos">182</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Per cent Growth&quot;</span><span class="p">)</span>
+</span><span id="growth_plot-183"><a href="#growth_plot-183"><span class="linenos">183</span></a>
+</span><span id="growth_plot-184"><a href="#growth_plot-184"><span class="linenos">184</span></a>    <span class="c1"># --- demangle the x-axis labels</span>
+</span><span id="growth_plot-185"><a href="#growth_plot-185"><span class="linenos">185</span></a>    <span class="n">labels</span> <span class="o">=</span> <span class="n">make_labels</span><span class="p">(</span><span class="n">save_index</span><span class="p">,</span> <span class="n">max_ticks</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</span><span id="growth_plot-186"><a href="#growth_plot-186"><span class="linenos">186</span></a>    <span class="n">base</span> <span class="o">=</span> <span class="n">save_index</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">ordinal</span>
+</span><span id="growth_plot-187"><a href="#growth_plot-187"><span class="linenos">187</span></a>    <span class="n">ticks</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">ordinal</span> <span class="o">-</span> <span class="n">base</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+</span><span id="growth_plot-188"><a href="#growth_plot-188"><span class="linenos">188</span></a>    <span class="n">ticklabels</span> <span class="o">=</span> <span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+</span><span id="growth_plot-189"><a href="#growth_plot-189"><span class="linenos">189</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">)</span>
+</span><span id="growth_plot-190"><a href="#growth_plot-190"><span class="linenos">190</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">ticklabels</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">)</span>
+</span><span id="growth_plot-191"><a href="#growth_plot-191"><span class="linenos">191</span></a>
+</span><span id="growth_plot-192"><a href="#growth_plot-192"><span class="linenos">192</span></a>    <span class="c1"># --- and done ...</span>
+</span><span id="growth_plot-193"><a href="#growth_plot-193"><span class="linenos">193</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</span><span id="growth_plot-194"><a href="#growth_plot-194"><span class="linenos">194</span></a>    <span class="k">return</span> <span class="n">axes</span>
 </span></pre></div>
 
 
@@ -1031,39 +1032,39 @@ annotations to (default is 1).</li>
 
 
                 </section>
-                <section id="plot_growth_from_series">
-                            <input id="plot_growth_from_series-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                <section id="growth_plot_from_series">
+                            <input id="growth_plot_from_series-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">plot_growth_from_series</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">series</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+        <span class="name">growth_plot_from_series</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">series</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
 
-                <label class="view-source-button" for="plot_growth_from_series-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="growth_plot_from_series-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#plot_growth_from_series"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="plot_growth_from_series-197"><a href="#plot_growth_from_series-197"><span class="linenos">197</span></a><span class="k">def</span><span class="w"> </span><span class="nf">plot_growth_from_series</span><span class="p">(</span>
-</span><span id="plot_growth_from_series-198"><a href="#plot_growth_from_series-198"><span class="linenos">198</span></a>    <span class="n">series</span><span class="p">:</span> <span class="n">Series</span><span class="p">,</span>
-</span><span id="plot_growth_from_series-199"><a href="#plot_growth_from_series-199"><span class="linenos">199</span></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-</span><span id="plot_growth_from_series-200"><a href="#plot_growth_from_series-200"><span class="linenos">200</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="plot_growth_from_series-201"><a href="#plot_growth_from_series-201"><span class="linenos">201</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="plot_growth_from_series-202"><a href="#plot_growth_from_series-202"><span class="linenos">202</span></a><span class="sd">    Plot annual and periodic growth from a pandas Series,</span>
-</span><span id="plot_growth_from_series-203"><a href="#plot_growth_from_series-203"><span class="linenos">203</span></a><span class="sd">    and finalise the plot.</span>
-</span><span id="plot_growth_from_series-204"><a href="#plot_growth_from_series-204"><span class="linenos">204</span></a>
-</span><span id="plot_growth_from_series-205"><a href="#plot_growth_from_series-205"><span class="linenos">205</span></a><span class="sd">    Args:</span>
-</span><span id="plot_growth_from_series-206"><a href="#plot_growth_from_series-206"><span class="linenos">206</span></a><span class="sd">    -   series: A pandas Series with an appropriate PeriodIndex.</span>
-</span><span id="plot_growth_from_series-207"><a href="#plot_growth_from_series-207"><span class="linenos">207</span></a><span class="sd">    -   kwargs:</span>
-</span><span id="plot_growth_from_series-208"><a href="#plot_growth_from_series-208"><span class="linenos">208</span></a><span class="sd">        -   takes the same kwargs as for plot_growth() and finalise_plot()</span>
-</span><span id="plot_growth_from_series-209"><a href="#plot_growth_from_series-209"><span class="linenos">209</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="plot_growth_from_series-210"><a href="#plot_growth_from_series-210"><span class="linenos">210</span></a>
-</span><span id="plot_growth_from_series-211"><a href="#plot_growth_from_series-211"><span class="linenos">211</span></a>    <span class="n">annual</span><span class="p">,</span> <span class="n">periodic</span> <span class="o">=</span> <span class="n">calc_growth</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>
-</span><span id="plot_growth_from_series-212"><a href="#plot_growth_from_series-212"><span class="linenos">212</span></a>    <span class="n">ax</span> <span class="o">=</span> <span class="n">plot_growth</span><span class="p">(</span><span class="n">annual</span><span class="p">,</span> <span class="n">periodic</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="plot_growth_from_series-213"><a href="#plot_growth_from_series-213"><span class="linenos">213</span></a>    <span class="n">fp_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">get_finalise_kwargs_list</span><span class="p">()}</span>
-</span><span id="plot_growth_from_series-214"><a href="#plot_growth_from_series-214"><span class="linenos">214</span></a>    <span class="n">fp_kwargs</span><span class="p">[</span><span class="s2">&quot;ylabel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Per cent Growth&quot;</span>
-</span><span id="plot_growth_from_series-215"><a href="#plot_growth_from_series-215"><span class="linenos">215</span></a>    <span class="n">finalise_plot</span><span class="p">(</span>
-</span><span id="plot_growth_from_series-216"><a href="#plot_growth_from_series-216"><span class="linenos">216</span></a>        <span class="n">ax</span><span class="p">,</span>
-</span><span id="plot_growth_from_series-217"><a href="#plot_growth_from_series-217"><span class="linenos">217</span></a>        <span class="o">**</span><span class="n">fp_kwargs</span><span class="p">,</span>
-</span><span id="plot_growth_from_series-218"><a href="#plot_growth_from_series-218"><span class="linenos">218</span></a>    <span class="p">)</span>
+    <a class="headerlink" href="#growth_plot_from_series"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="growth_plot_from_series-197"><a href="#growth_plot_from_series-197"><span class="linenos">197</span></a><span class="k">def</span><span class="w"> </span><span class="nf">growth_plot_from_series</span><span class="p">(</span>
+</span><span id="growth_plot_from_series-198"><a href="#growth_plot_from_series-198"><span class="linenos">198</span></a>    <span class="n">series</span><span class="p">:</span> <span class="n">Series</span><span class="p">,</span>
+</span><span id="growth_plot_from_series-199"><a href="#growth_plot_from_series-199"><span class="linenos">199</span></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span id="growth_plot_from_series-200"><a href="#growth_plot_from_series-200"><span class="linenos">200</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="growth_plot_from_series-201"><a href="#growth_plot_from_series-201"><span class="linenos">201</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="growth_plot_from_series-202"><a href="#growth_plot_from_series-202"><span class="linenos">202</span></a><span class="sd">    Plot annual and periodic growth from a pandas Series,</span>
+</span><span id="growth_plot_from_series-203"><a href="#growth_plot_from_series-203"><span class="linenos">203</span></a><span class="sd">    and finalise the plot.</span>
+</span><span id="growth_plot_from_series-204"><a href="#growth_plot_from_series-204"><span class="linenos">204</span></a>
+</span><span id="growth_plot_from_series-205"><a href="#growth_plot_from_series-205"><span class="linenos">205</span></a><span class="sd">    Args:</span>
+</span><span id="growth_plot_from_series-206"><a href="#growth_plot_from_series-206"><span class="linenos">206</span></a><span class="sd">    -   series: A pandas Series with an appropriate PeriodIndex.</span>
+</span><span id="growth_plot_from_series-207"><a href="#growth_plot_from_series-207"><span class="linenos">207</span></a><span class="sd">    -   kwargs:</span>
+</span><span id="growth_plot_from_series-208"><a href="#growth_plot_from_series-208"><span class="linenos">208</span></a><span class="sd">        -   takes the same kwargs as for growth_plot() and finalise_plot()</span>
+</span><span id="growth_plot_from_series-209"><a href="#growth_plot_from_series-209"><span class="linenos">209</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="growth_plot_from_series-210"><a href="#growth_plot_from_series-210"><span class="linenos">210</span></a>
+</span><span id="growth_plot_from_series-211"><a href="#growth_plot_from_series-211"><span class="linenos">211</span></a>    <span class="n">annual</span><span class="p">,</span> <span class="n">periodic</span> <span class="o">=</span> <span class="n">calc_growth</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>
+</span><span id="growth_plot_from_series-212"><a href="#growth_plot_from_series-212"><span class="linenos">212</span></a>    <span class="n">ax</span> <span class="o">=</span> <span class="n">growth_plot</span><span class="p">(</span><span class="n">annual</span><span class="p">,</span> <span class="n">periodic</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="growth_plot_from_series-213"><a href="#growth_plot_from_series-213"><span class="linenos">213</span></a>    <span class="n">fp_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">get_finalise_kwargs_list</span><span class="p">()}</span>
+</span><span id="growth_plot_from_series-214"><a href="#growth_plot_from_series-214"><span class="linenos">214</span></a>    <span class="n">fp_kwargs</span><span class="p">[</span><span class="s2">&quot;ylabel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Per cent Growth&quot;</span>
+</span><span id="growth_plot_from_series-215"><a href="#growth_plot_from_series-215"><span class="linenos">215</span></a>    <span class="n">finalise_plot</span><span class="p">(</span>
+</span><span id="growth_plot_from_series-216"><a href="#growth_plot_from_series-216"><span class="linenos">216</span></a>        <span class="n">ax</span><span class="p">,</span>
+</span><span id="growth_plot_from_series-217"><a href="#growth_plot_from_series-217"><span class="linenos">217</span></a>        <span class="o">**</span><span class="n">fp_kwargs</span><span class="p">,</span>
+</span><span id="growth_plot_from_series-218"><a href="#growth_plot_from_series-218"><span class="linenos">218</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 
@@ -1076,7 +1077,7 @@ and finalise the plot.</p>
 <li>series: A pandas Series with an appropriate PeriodIndex.</li>
 <li>kwargs:
 <ul>
-<li>takes the same kwargs as for plot_growth() and finalise_plot()</li>
+<li>takes the same kwargs as for growth_plot() and finalise_plot()</li>
 </ul></li>
 </ul>
 </div>
