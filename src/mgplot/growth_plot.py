@@ -4,14 +4,14 @@ plot period and annual/through-the-year growth rates on the same axes.
 """
 
 # --- imports
-from pandas import Series, Index, PeriodIndex, period_range
+from pandas import Series, Index, Period, PeriodIndex, period_range
 from numpy import nan, random
 from matplotlib.pyplot import Axes
 import matplotlib.patheffects as pe
 
 from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
-from mgplot.settings import set_chart_dir, clear_chart_dir
-from mgplot.date_utils import make_labels
+from mgplot.settings import set_chart_dir, clear_chart_dir, get_setting
+from mgplot.date_utils import set_labels
 from mgplot.utilities import annotate_series
 
 
@@ -133,8 +133,12 @@ def growth_plot(
             small text).
         -   annotation_rounding: The number of decimal places to round the
             annotations to (default is 1).
-        -   plot_from: A Period object representing the start of the plot.
-            (default is None, which means the entire series is plotted).
+        -   plot_from: None | Period | int -- if:
+            -   None: the entire series is plotted
+            -   Period: the plot starts from this period
+            -   int: the plot starts from this +/- index position
+        -   max_ticks: The maximum number of ticks to show on the x-axis
+            (default is 10).
 
     Returns:
     -   axes: The matplotlib Axes object.
@@ -156,10 +160,13 @@ def growth_plot(
         raise ValueError("The annual and periodic series must have the same index")
 
     # --- plot
-    plot_from = kwargs.get("plot_from", None)
+    plot_from: None | Period | int = kwargs.get("plot_from", None)
     if plot_from is not None:
+        if isinstance(plot_from, int):
+            plot_from = annual.index[plot_from]
         annual = annual[annual.index >= plot_from]
         periodic = periodic[periodic.index >= plot_from]
+
     save_index = PeriodIndex(annual.index).copy()
     annual.index = Index(range(len(annual)))
     annual.name = "Annual Growth"
@@ -171,22 +178,25 @@ def growth_plot(
         color=kwargs.get("bar_color", "indianred"),
         width=kwargs.get("bar_width}", 0.8),
     )
+    thin_threshold = 180
     annual.plot(
         ax=axes,
         color=kwargs.get("line_color", "darkblue"),
-        lw=kwargs.get("line_width", 2),
+        lw=kwargs.get(
+            "line_width",
+            (
+                get_setting("line_normal")
+                if len(annual) >= thin_threshold
+                else get_setting("line_wide")
+            ),
+        ),
         linestyle=kwargs.get("line_style", "-"),
     )
     _annotations(annual, periodic, axes, **kwargs)
     axes.set_ylabel("Per cent Growth")
 
-    # --- demangle the x-axis labels
-    labels = make_labels(save_index, max_ticks=10)
-    base = save_index.min().ordinal
-    ticks = [x.ordinal - base for x in sorted(labels.keys())]
-    ticklabels = [labels[x] for x in sorted(labels.keys())]
-    axes.set_xticks(ticks)
-    axes.set_xticklabels(ticklabels, rotation=0, ha="center")
+    # --- fix the x-axis labels
+    set_labels(axes, save_index, kwargs.get("max_ticks", 10))
 
     # --- and done ...
     axes.legend()
@@ -211,6 +221,9 @@ def growth_plot_from_series(
     ax = growth_plot(annual, periodic, **kwargs)
     fp_kwargs = {k: v for k, v in kwargs.items() if k in get_finalise_kwargs_list()}
     fp_kwargs["ylabel"] = "Per cent Growth"
+    if (periodic < 0).any() and (periodic > 0).any():
+        # include a y=0 line when positive and negative values are present
+        fp_kwargs["y0"] = fp_kwargs.get("y0", True)
     finalise_plot(
         ax,
         **fp_kwargs,
@@ -230,7 +243,7 @@ if __name__ == "__main__":
     data += random.normal(1, 0.02, len(index))
     growth_plot_from_series(
         data,
-        plot_from=data.index[4],
+        plot_from=4,
         title="Growth Rates Test",
         rfooter="Fake data",
     )

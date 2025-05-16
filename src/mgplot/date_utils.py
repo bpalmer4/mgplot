@@ -9,6 +9,7 @@ appropriate date-like labels.
 import calendar
 from enum import Enum
 from pandas import Period, PeriodIndex, period_range
+from matplotlib.pyplot import Axes
 
 
 class DateLike(Enum):
@@ -268,6 +269,42 @@ def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
             labels = year_labeller(labels)
 
     return labels
+
+
+def make_ilabels(p: PeriodIndex, max_ticks: int) -> tuple[list[int], list[str]]:
+    """
+    From a PeriodIndex, create a list of integer ticks and ticklabels
+
+    Parameters
+    - p: PeriodIndex - the PeriodIndex
+    - max_ticks -  the maximum number of ticks [suggestive]
+
+    Returns a tuple:
+    - list of integer ticks
+    - list of tick label strings
+    """
+
+    labels = make_labels(p, max_ticks)
+    base = p.min().ordinal
+    ticks = [x.ordinal - base for x in sorted(labels.keys())]
+    ticklabels = [labels[x] for x in sorted(labels.keys())]
+
+    return ticks, ticklabels
+
+
+def set_labels(axes: Axes, p: PeriodIndex, max_ticks: int = 10) -> None:
+    """
+    Set the x-axis labels for a date-like PeriodIndex.
+
+    Parameters
+    - axes: Axes - the axes to set the labels on
+    - p: PeriodIndex - the PeriodIndex
+    - max_ticks: int - the maximum number of ticks [suggestive]
+    """
+
+    ticks, ticklabels = make_ilabels(p, max_ticks)
+    axes.set_xticks(ticks)
+    axes.set_xticklabels(ticklabels, rotation=0, ha="center")
 
 
 # --- test ---
