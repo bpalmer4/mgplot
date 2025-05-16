@@ -159,7 +159,7 @@ Plot a series or a dataframe with lines.</p>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">          [optional]</span>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">        - ax: plt.Axes | None - axes to plot on (optional)</span>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">        - figsize: tuple[float, float] - figure size (optional)</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">    </span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="sd">    Returns:</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="sd">    - axes: plt.Axes - the axes object for the plot</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -201,10 +201,10 @@ Plot a series or a dataframe with lines.</p>
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="k">def</span><span class="w"> </span><span class="nf">line_plot_finalise</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">DataT</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd">    Publish a single plot from the data passed in.</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd">    </span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="sd">    Arguments:</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="sd">        Use the same arguments as for line_plot() and finalise_plot().</span>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="sd">    </span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="sd">    Returns:</span>
 </span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="sd">        None.</span>
 </span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -240,7 +240,7 @@ Plot a series or a dataframe with lines.</p>
 </span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a><span class="sd">    Publish multiple plots from the data passed in, with multiple starting</span>
 </span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="sd">    points, Each plot is finalised with a call to finalise_plot().</span>
 </span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="sd">    Note: the data must be a pandas Series or DataFrame with a PeriodIndex.</span>
-</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="sd">    </span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>
 </span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="sd">    Arguments:</span>
 </span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="sd">    In addition to using much the same arguments for line_plot() and</span>
 </span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd">    finalise_plot(), the following arguments are also used:</span>
@@ -248,7 +248,7 @@ Plot a series or a dataframe with lines.</p>
 </span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="sd">      starting dates for plots.</span>
 </span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="sd">    - tags: str | list[str] - unique file name tages for multiple plots.</span>
 </span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="sd">    Note: cannot use the ax argument to line_plot()</span>
-</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a><span class="sd">    </span>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>
 </span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a><span class="sd">    Returns</span>
 </span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="sd">    - None.</span>
 </span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -277,14 +277,14 @@ Plot a series or a dataframe with lines.</p>
 </span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a><span class="sd">    Publish a DataFrame, where the first column is seasonally</span>
 </span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a><span class="sd">    adjusted data, and the second column is trend data.</span>
-</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a><span class="sd">    </span>
+</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a>
 </span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a><span class="sd">    Aguments:</span>
 </span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a><span class="sd">    - data: DataFrame - the data to plot with the first column</span>
 </span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a><span class="sd">      being the seasonally adjusted data, and the second column</span>
 </span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a><span class="sd">      being the trend data.</span>
-</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a><span class="sd">    The remaining arguments are the same as those passed to </span>
+</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a><span class="sd">    The remaining arguments are the same as those passed to</span>
 </span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a><span class="sd">    (1) line_plot() and then (2) finalise_plot().</span>
-</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a><span class="sd">    </span>
+</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>
 </span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a><span class="sd">    Returns:</span>
 </span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a><span class="sd">    - None</span>
 </span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -411,7 +411,7 @@ Plot a series or a dataframe with lines.</p>
 </span><span id="line_plot-83"><a href="#line_plot-83"><span class="linenos"> 83</span></a><span class="sd">          [optional]</span>
 </span><span id="line_plot-84"><a href="#line_plot-84"><span class="linenos"> 84</span></a><span class="sd">        - ax: plt.Axes | None - axes to plot on (optional)</span>
 </span><span id="line_plot-85"><a href="#line_plot-85"><span class="linenos"> 85</span></a><span class="sd">        - figsize: tuple[float, float] - figure size (optional)</span>
-</span><span id="line_plot-86"><a href="#line_plot-86"><span class="linenos"> 86</span></a><span class="sd">    </span>
+</span><span id="line_plot-86"><a href="#line_plot-86"><span class="linenos"> 86</span></a>
 </span><span id="line_plot-87"><a href="#line_plot-87"><span class="linenos"> 87</span></a><span class="sd">    Returns:</span>
 </span><span id="line_plot-88"><a href="#line_plot-88"><span class="linenos"> 88</span></a><span class="sd">    - axes: plt.Axes - the axes object for the plot</span>
 </span><span id="line_plot-89"><a href="#line_plot-89"><span class="linenos"> 89</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -499,10 +499,10 @@ of decimals with which to annotate the right-end-point of a line.</li>
             <div class="pdoc-code codehilite"><pre><span></span><span id="line_plot_finalise-125"><a href="#line_plot_finalise-125"><span class="linenos">125</span></a><span class="k">def</span><span class="w"> </span><span class="nf">line_plot_finalise</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">DataT</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="line_plot_finalise-126"><a href="#line_plot_finalise-126"><span class="linenos">126</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="line_plot_finalise-127"><a href="#line_plot_finalise-127"><span class="linenos">127</span></a><span class="sd">    Publish a single plot from the data passed in.</span>
-</span><span id="line_plot_finalise-128"><a href="#line_plot_finalise-128"><span class="linenos">128</span></a><span class="sd">    </span>
+</span><span id="line_plot_finalise-128"><a href="#line_plot_finalise-128"><span class="linenos">128</span></a>
 </span><span id="line_plot_finalise-129"><a href="#line_plot_finalise-129"><span class="linenos">129</span></a><span class="sd">    Arguments:</span>
 </span><span id="line_plot_finalise-130"><a href="#line_plot_finalise-130"><span class="linenos">130</span></a><span class="sd">        Use the same arguments as for line_plot() and finalise_plot().</span>
-</span><span id="line_plot_finalise-131"><a href="#line_plot_finalise-131"><span class="linenos">131</span></a><span class="sd">    </span>
+</span><span id="line_plot_finalise-131"><a href="#line_plot_finalise-131"><span class="linenos">131</span></a>
 </span><span id="line_plot_finalise-132"><a href="#line_plot_finalise-132"><span class="linenos">132</span></a><span class="sd">    Returns:</span>
 </span><span id="line_plot_finalise-133"><a href="#line_plot_finalise-133"><span class="linenos">133</span></a><span class="sd">        None.</span>
 </span><span id="line_plot_finalise-134"><a href="#line_plot_finalise-134"><span class="linenos">134</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -541,7 +541,7 @@ of decimals with which to annotate the right-end-point of a line.</li>
 </span><span id="line_plot_multistart-164"><a href="#line_plot_multistart-164"><span class="linenos">164</span></a><span class="sd">    Publish multiple plots from the data passed in, with multiple starting</span>
 </span><span id="line_plot_multistart-165"><a href="#line_plot_multistart-165"><span class="linenos">165</span></a><span class="sd">    points, Each plot is finalised with a call to finalise_plot().</span>
 </span><span id="line_plot_multistart-166"><a href="#line_plot_multistart-166"><span class="linenos">166</span></a><span class="sd">    Note: the data must be a pandas Series or DataFrame with a PeriodIndex.</span>
-</span><span id="line_plot_multistart-167"><a href="#line_plot_multistart-167"><span class="linenos">167</span></a><span class="sd">    </span>
+</span><span id="line_plot_multistart-167"><a href="#line_plot_multistart-167"><span class="linenos">167</span></a>
 </span><span id="line_plot_multistart-168"><a href="#line_plot_multistart-168"><span class="linenos">168</span></a><span class="sd">    Arguments:</span>
 </span><span id="line_plot_multistart-169"><a href="#line_plot_multistart-169"><span class="linenos">169</span></a><span class="sd">    In addition to using much the same arguments for line_plot() and</span>
 </span><span id="line_plot_multistart-170"><a href="#line_plot_multistart-170"><span class="linenos">170</span></a><span class="sd">    finalise_plot(), the following arguments are also used:</span>
@@ -549,7 +549,7 @@ of decimals with which to annotate the right-end-point of a line.</li>
 </span><span id="line_plot_multistart-172"><a href="#line_plot_multistart-172"><span class="linenos">172</span></a><span class="sd">      starting dates for plots.</span>
 </span><span id="line_plot_multistart-173"><a href="#line_plot_multistart-173"><span class="linenos">173</span></a><span class="sd">    - tags: str | list[str] - unique file name tages for multiple plots.</span>
 </span><span id="line_plot_multistart-174"><a href="#line_plot_multistart-174"><span class="linenos">174</span></a><span class="sd">    Note: cannot use the ax argument to line_plot()</span>
-</span><span id="line_plot_multistart-175"><a href="#line_plot_multistart-175"><span class="linenos">175</span></a><span class="sd">    </span>
+</span><span id="line_plot_multistart-175"><a href="#line_plot_multistart-175"><span class="linenos">175</span></a>
 </span><span id="line_plot_multistart-176"><a href="#line_plot_multistart-176"><span class="linenos">176</span></a><span class="sd">    Returns</span>
 </span><span id="line_plot_multistart-177"><a href="#line_plot_multistart-177"><span class="linenos">177</span></a><span class="sd">    - None.</span>
 </span><span id="line_plot_multistart-178"><a href="#line_plot_multistart-178"><span class="linenos">178</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -614,14 +614,14 @@ Note: cannot use the ax argument to line_plot()</li>
 </span><span id="seas_trend_plot-201"><a href="#seas_trend_plot-201"><span class="linenos">201</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="seas_trend_plot-202"><a href="#seas_trend_plot-202"><span class="linenos">202</span></a><span class="sd">    Publish a DataFrame, where the first column is seasonally</span>
 </span><span id="seas_trend_plot-203"><a href="#seas_trend_plot-203"><span class="linenos">203</span></a><span class="sd">    adjusted data, and the second column is trend data.</span>
-</span><span id="seas_trend_plot-204"><a href="#seas_trend_plot-204"><span class="linenos">204</span></a><span class="sd">    </span>
+</span><span id="seas_trend_plot-204"><a href="#seas_trend_plot-204"><span class="linenos">204</span></a>
 </span><span id="seas_trend_plot-205"><a href="#seas_trend_plot-205"><span class="linenos">205</span></a><span class="sd">    Aguments:</span>
 </span><span id="seas_trend_plot-206"><a href="#seas_trend_plot-206"><span class="linenos">206</span></a><span class="sd">    - data: DataFrame - the data to plot with the first column</span>
 </span><span id="seas_trend_plot-207"><a href="#seas_trend_plot-207"><span class="linenos">207</span></a><span class="sd">      being the seasonally adjusted data, and the second column</span>
 </span><span id="seas_trend_plot-208"><a href="#seas_trend_plot-208"><span class="linenos">208</span></a><span class="sd">      being the trend data.</span>
-</span><span id="seas_trend_plot-209"><a href="#seas_trend_plot-209"><span class="linenos">209</span></a><span class="sd">    The remaining arguments are the same as those passed to </span>
+</span><span id="seas_trend_plot-209"><a href="#seas_trend_plot-209"><span class="linenos">209</span></a><span class="sd">    The remaining arguments are the same as those passed to</span>
 </span><span id="seas_trend_plot-210"><a href="#seas_trend_plot-210"><span class="linenos">210</span></a><span class="sd">    (1) line_plot() and then (2) finalise_plot().</span>
-</span><span id="seas_trend_plot-211"><a href="#seas_trend_plot-211"><span class="linenos">211</span></a><span class="sd">    </span>
+</span><span id="seas_trend_plot-211"><a href="#seas_trend_plot-211"><span class="linenos">211</span></a>
 </span><span id="seas_trend_plot-212"><a href="#seas_trend_plot-212"><span class="linenos">212</span></a><span class="sd">    Returns:</span>
 </span><span id="seas_trend_plot-213"><a href="#seas_trend_plot-213"><span class="linenos">213</span></a><span class="sd">    - None</span>
 </span><span id="seas_trend_plot-214"><a href="#seas_trend_plot-214"><span class="linenos">214</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -657,7 +657,7 @@ adjusted data, and the second column is trend data.</p>
 <li>data: DataFrame - the data to plot with the first column
 being the seasonally adjusted data, and the second column
 being the trend data.
-The remaining arguments are the same as those passed to 
+The remaining arguments are the same as those passed to
 (1) line_plot() and then (2) finalise_plot().</li>
 </ul>
 
