@@ -29,7 +29,13 @@ _annotation_kwargs = ("lfooter", "rfooter", "lheader", "rheader")
 
 _file_kwargs = ("pre_tag", "tag", "chart_dir", "file_type", "dpi")
 _fig_kwargs = ("figsize", "show")
-_oth_kwargs = ("zero_y", "y0", "x0", "dont_save", "dont_close", "concise_dates",
+_oth_kwargs = (
+    "zero_y",
+    "y0",
+    "x0",
+    "dont_save",
+    "dont_close",
+    "concise_dates",
 )
 _ACCEPTABLE_KWARGS = frozenset(
     _value_kwargs

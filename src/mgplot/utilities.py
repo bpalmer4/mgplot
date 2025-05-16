@@ -79,13 +79,13 @@ def get_axes(kwargs: dict[str, Any]) -> tuple[Axes, dict[str, Any]]:
 
     ax = "ax"
     if ax in kwargs and kwargs[ax] is not None:
-        axes = kwargs[ax]
+        axes: Axes = kwargs[ax]
         if not isinstance(axes, Axes):
             raise TypeError("The ax argument must be a matplotlib Axes object")
-        return axes
+        return axes, {}
 
-    figsize=kwargs.pop("figsize", get_setting("figsize"))
-    _fig, axes = subplots()
+    figsize = kwargs.pop("figsize", get_setting("figsize"))
+    _fig, axes = subplots(figsize=figsize)
     return axes, kwargs
 
 

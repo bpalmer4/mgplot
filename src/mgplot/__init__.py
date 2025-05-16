@@ -21,7 +21,6 @@ __all__ = (
     "line_plot_multistart",
     "seas_trend_plot",
     # growth plot
-
 )
 # __pdoc__: dict[str, Any] = {}  # hide submodules from documentation
 
@@ -30,5 +29,8 @@ __all__ = (
 from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
 from mgplot.settings import get_setting, set_setting, set_chart_dir, clear_chart_dir
 from mgplot.line_plot import (
-    line_plot, line_plot_finalise, line_plot_multistart, seas_trend_plot
+    line_plot,
+    line_plot_finalise,
+    line_plot_multistart,
+    seas_trend_plot,
 )

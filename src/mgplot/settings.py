@@ -85,7 +85,7 @@ _mgplot_defaults = _DefaultValues(
 def get_setting(setting: str) -> Any:
     """
     Get a setting from the global settings.
-    
+
     Arguments:
     - setting: str - name of the setting to get. The possible settings are:
         - file_type: str - the file type to use for saving plots
@@ -97,7 +97,7 @@ def get_setting(setting: str) -> Any:
         - bar_width: float - the width of bars in bar plots
         - legend_font_size: float | str - the font size for legends
         - legend: dict[str, Any] - the legend settings
-        - colors: dict[int, list[str]] - a dictionary of colors for 
+        - colors: dict[int, list[str]] - a dictionary of colors for
           different numbers of lines
         - chart_dir: str - the directory to save charts in
 
@@ -148,9 +148,9 @@ def set_chart_dir(chart_dir: str) -> None:
     A function to set a global chart directory for finalise_plot(),
     so that it does not need to be included as an argument in each
     call to finalise_plot(). Create the directory if it does not exist.
-    
+
     Note: Path.mkdir() may raise an exception if a directory cannot be created.
-    
+
     Note: This is a wrapper for set_setting() to set the chart_dir setting, and
     create the directory if it does not exist.
 

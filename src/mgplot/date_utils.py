@@ -1,6 +1,6 @@
 """
 date_utils.py
-This module contains functions to work with date-like 
+This module contains functions to work with date-like
 (i.e. not time-like) PeriodIndex frequencies in Pandas.
 """
 
@@ -8,57 +8,51 @@ import calendar
 from enum import Enum
 from pandas import Period, PeriodIndex, period_range
 
+
 class DateLike(Enum):
     """Recognised date-like PeriodIndex frequencies"""
+
     YEARS = 1
     QUARTERS = 2
     MONTHS = 3
     DAYS = 4
     BAD = 5
 
+
 frequencies = {
-    #freq: [Periods from smaller to larger]
+    # freq: [Periods from smaller to larger]
     "D": [DateLike.DAYS, DateLike.MONTHS, DateLike.YEARS],
     "M": [DateLike.MONTHS, DateLike.YEARS],
     "Q": [DateLike.QUARTERS, DateLike.YEARS],
-    "Y": [DateLike.YEARS]
+    "Y": [DateLike.YEARS],
 }
 
 r_freqs = {v[0]: k for k, v in frequencies.items()}
 
 intervals = {
-    DateLike.YEARS:   [1, 2, 4, 5,
-                    10, 20, 40, 50,
-                    100, 200, 400, 500,
-                    1_000, 2_000, 4_000, 5_000,
-                    10_000, 20_000, 40_000, 50_000],
-    DateLike.QUARTERS:    [1, 2],
-    DateLike.MONTHS:  [1, 2, 3, 4, 6],
-    DateLike.DAYS:    [1, 2, 4, 7, 14],
+    DateLike.YEARS: [1, 2, 4, 5, 10, 20, 40, 50, 100, 200, 400, 500, 1000],
+    DateLike.QUARTERS: [1, 2],
+    DateLike.MONTHS: [1, 2, 3, 4, 6],
+    DateLike.DAYS: [1, 2, 4, 7, 14],
 }
 
 
-def get_count(
-    p: PeriodIndex,
-    max_ticks: int
-) -> tuple[int, DateLike, int]:
+def get_count(p: PeriodIndex, max_ticks: int) -> tuple[int, DateLike, int]:
     """
-    Work out the label frequency and interval for a date-like 
-    PeriodIndex. 
+    Work out the label frequency and interval for a date-like
+    PeriodIndex.
 
     Parameters
     - p: PeriodIndex - the PeriodIndex
     - max_ticks -  the maximum number of ticks [suggestive]
 
     Returns a tuple:
-    - the total number of ticks: int
-    - the type of ticks to highlight: str
-    - the tick interval: int
+    - the roughly anticipated number of ticks to highlight: int
+    - the type of ticks to highlight (eg. days/months/quarters/years): str
+    - the tick interval (ie. number of days/months/quarters/years): int
     """
 
     # --- sanity checks
-    if max_ticks < 5:
-        max_ticks = 5
     error = (0, DateLike.BAD, 0)
     if p.empty:
         return error
@@ -67,21 +61,22 @@ def get_count(
         print("Unrecognised date-like PeriodIndex frequency {freq}")
         return error
 
-	# --- calculate
+    # --- calculate
     for test_freq in frequencies[freq]:
         r_freq = r_freqs[test_freq]
         for interval in intervals[test_freq]:
             count = (
-                p.max().asfreq(r_freq, how='end').ordinal
-                - p.min().asfreq(r_freq, how='end').ordinal
+                p.max().asfreq(r_freq, how="end").ordinal
+                - p.min().asfreq(r_freq, how="end").ordinal
                 + 1
             ) // interval
             if count <= max_ticks:
                 return count, test_freq, interval
+    return error
 
 
 def day_labeller(labels: dict[Period, str]) -> dict[Period, str]:
-    """ to do"""
+    """Label the selected days."""
 
     def add_month(label: str, month: str) -> str:
         return f"{label}\n{month}"
@@ -121,22 +116,19 @@ def day_labeller(labels: dict[Period, str]) -> dict[Period, str]:
 
 
 def month_locator(p: PeriodIndex, interval: int) -> dict[Period, str]:
-    """ to do """
+    """Select the months to label."""
 
-    subset = (
-        PeriodIndex([c for c in p if c.day == 1]) if p.freqstr[0] == "D"
-        else p
-    )
+    subset = PeriodIndex([c for c in p if c.day == 1]) if p.freqstr[0] == "D" else p
 
     start = 0
     if interval > 1:
         mod_months = [(c.month - 1) % interval for c in subset]
         start = 0 if 0 not in mod_months else mod_months.index(0)
-    return { k: "" for k in subset[start::interval] }
+    return {k: "" for k in subset[start::interval]}
 
 
 def month_labeller(labels: dict[Period, str]) -> dict[Period, str]:
-    """ to do """
+    """Label the selected months."""
 
     if not labels:
         return labels
@@ -167,7 +159,7 @@ def month_labeller(labels: dict[Period, str]) -> dict[Period, str]:
 
 
 def qtr_locator(p: PeriodIndex, interval: int) -> dict[Period, str]:
-    """ to do """
+    """Select the quarters to label."""
 
     start = 0
     if interval > 1:
@@ -177,7 +169,7 @@ def qtr_locator(p: PeriodIndex, interval: int) -> dict[Period, str]:
 
 
 def qtr_labeller(labels: dict[Period, str]) -> dict[Period, str]:
-    """ to do """
+    """Label the selected quarters."""
 
     if not labels:
         return labels
@@ -202,27 +194,27 @@ def qtr_labeller(labels: dict[Period, str]) -> dict[Period, str]:
 
 
 def year_locator(p: PeriodIndex, interval: int) -> dict[Period, str]:
-    """ to do """
+    """Select the years to label."""
 
-    subset = (
-        PeriodIndex([c for c in p if c.month == 1 and c.day == 1])
-        if p.freqstr[0] == "D"
-        else PeriodIndex([c for c in p if c.month == 1 ])
-        if p.freqstr[0] == "M"
-        else PeriodIndex([c for c in p if c.quarter == 1 ])
-        if p.freqstr[0] == "Q"
-        else p
-    )
+    match p.freqstr[0]:
+        case "D":
+            subset = PeriodIndex([c for c in p if c.month == 1 and c.day == 1])
+        case "M":
+            subset = PeriodIndex([c for c in p if c.month == 1])
+        case "Q":
+            subset = PeriodIndex([c for c in p if c.quarter == 1])
+        case _:
+            subset = p
 
     start = 0
     if interval > 1:
-        mod_years = [(c.year - 1) % interval for c in p]
+        mod_years = [(c.year) % interval for c in subset]
         start = 0 if 0 not in mod_years else mod_years.index(0)
     return {k: "" for k in subset[start::interval]}
 
 
 def year_labeller(labels: dict[Period, str]) -> dict[Period, str]:
-    """ to do """
+    """Label the selected years."""
 
     if not labels:
         return labels
@@ -233,10 +225,7 @@ def year_labeller(labels: dict[Period, str]) -> dict[Period, str]:
     return labels
 
 
-def enlabel(
-    p: PeriodIndex,
-    max_ticks: int
-) -> dict[Period, str]:
+def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
     """
     Provide a dictionary of labels for the date-like PeriodIndex.
 
@@ -249,7 +238,8 @@ def enlabel(
     - values are the labels to apply
     """
 
-    labels = {}
+    labels: dict[Period, str] = {}
+    max_ticks = max(max_ticks, 4)
     count, date_like, interval = get_count(p, max_ticks)
     if date_like == DateLike.BAD:
         return labels
@@ -257,26 +247,23 @@ def enlabel(
     target_freq = r_freqs[date_like]
     complete = period_range(start=p.min(), end=p.max(), freq=p.freqstr)
 
-    if target_freq == "D":
-        start = 0 if interval == 2 and count % 2 else interval // 2
-        labels = {k: "" for k in complete[start::interval]}
-        labels = day_labeller(labels)
-        return labels
+    match target_freq:
+        case "D":
+            start = 0 if interval == 2 and count % 2 else interval // 2
+            labels = {k: "" for k in complete[start::interval]}
+            labels = day_labeller(labels)
 
-    if target_freq == "M":
-        labels = month_locator(complete, interval)
-        labels = month_labeller(labels)
-        return labels
+        case "M":
+            labels = month_locator(complete, interval)
+            labels = month_labeller(labels)
 
-    if target_freq == "Q":
-        labels = qtr_locator(complete, interval)
-        labels = qtr_labeller(labels)
-        return labels
+        case "Q":
+            labels = qtr_locator(complete, interval)
+            labels = qtr_labeller(labels)
 
-    if target_freq == "Y":
-        labels = year_locator(complete, interval)
-        labels = year_labeller(labels)
-        return labels
+        case "Y":
+            labels = year_locator(complete, interval)
+            labels = year_labeller(labels)
 
     return labels
 
@@ -284,32 +271,15 @@ def enlabel(
 # --- test ---
 if __name__ == "__main__":
 
-    # test 1
-    pi = PeriodIndex(
-        ["2020-01-01", "2020-01-02", "2020-01-03", "2020-01-04"], freq="d"
-    )
-    print(enlabel(pi, 10), "\n")
-
-    # test 2
-    pi = period_range(
-        start="2020-01-01", end="2020-01-15", freq="D"
-    )
-    print(enlabel(pi, 10), "\n")
-
-    # test 3
-    pi = period_range(
-        start="2020-02-01", end="2022-07-15", freq="D"
-    )
-    print(enlabel(pi, 10), "\n")
-
-    # test 4
-    pi = period_range(
-        start="2020-Q2", end="2022-Q4", freq="Q"
-    )
-    print(enlabel(pi, 10), "\n")
-
-    # test 6
-    pi = period_range(
-        start="1950-01-01", end="2026-12-15", freq="D"
-    )
-    print(enlabel(pi, 10))
+    tests = [
+        PeriodIndex(["2020-01-01", "2020-01-02", "2020-01-03", "2020-01-04"], freq="D"),
+        period_range(start="2020-01-01", end="2020-01-15", freq="D"),
+        period_range(start="2020-02-01", end="2022-07-15", freq="D"),
+        period_range(start="2020-Q2", end="2022-Q4", freq="Q"),
+        period_range(start="2000-Q2", end="2022-Q4", freq="Q"),
+        period_range(start="1950-01-01", end="2026-12-15", freq="D"),
+    ]
+    for index, test in enumerate(tests):
+        print(f"Test {index + 1}")
+        print("Labels:", make_labels(test, 10), "\n")
+        print("========")

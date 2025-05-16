@@ -82,7 +82,7 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
           [optional]
         - ax: plt.Axes | None - axes to plot on (optional)
         - figsize: tuple[float, float] - figure size (optional)
-    
+
     Returns:
     - axes: plt.Axes - the axes object for the plot
     """
@@ -124,10 +124,10 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
 def line_plot_finalise(data: DataT, **kwargs) -> None:
     """
     Publish a single plot from the data passed in.
-    
+
     Arguments:
         Use the same arguments as for line_plot() and finalise_plot().
-    
+
     Returns:
         None.
     """
@@ -163,7 +163,7 @@ def line_plot_multistart(data: DataT, **kwargs) -> None:
     Publish multiple plots from the data passed in, with multiple starting
     points, Each plot is finalised with a call to finalise_plot().
     Note: the data must be a pandas Series or DataFrame with a PeriodIndex.
-    
+
     Arguments:
     In addition to using much the same arguments for line_plot() and
     finalise_plot(), the following arguments are also used:
@@ -171,7 +171,7 @@ def line_plot_multistart(data: DataT, **kwargs) -> None:
       starting dates for plots.
     - tags: str | list[str] - unique file name tages for multiple plots.
     Note: cannot use the ax argument to line_plot()
-    
+
     Returns
     - None.
     """
@@ -200,14 +200,14 @@ def seas_trend_plot(data: DataFrame, **kwargs) -> None:
     """
     Publish a DataFrame, where the first column is seasonally
     adjusted data, and the second column is trend data.
-    
+
     Aguments:
     - data: DataFrame - the data to plot with the first column
       being the seasonally adjusted data, and the second column
       being the trend data.
-    The remaining arguments are the same as those passed to 
+    The remaining arguments are the same as those passed to
     (1) line_plot() and then (2) finalise_plot().
-    
+
     Returns:
     - None
     """
