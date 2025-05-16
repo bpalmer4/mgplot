@@ -107,7 +107,7 @@ def _annotations(
             )
 
 
-def plot_growth(
+def growth_plot(
     annual: Series,
     periodic: Series,
     **kwargs,
@@ -193,7 +193,7 @@ def plot_growth(
     return axes
 
 
-def plot_growth_from_series(
+def growth_plot_from_series(
     series: Series,
     **kwargs,
 ) -> None:
@@ -204,11 +204,11 @@ def plot_growth_from_series(
     Args:
     -   series: A pandas Series with an appropriate PeriodIndex.
     -   kwargs:
-        -   takes the same kwargs as for plot_growth() and finalise_plot()
+        -   takes the same kwargs as for growth_plot() and finalise_plot()
     """
 
     annual, periodic = calc_growth(series)
-    ax = plot_growth(annual, periodic, **kwargs)
+    ax = growth_plot(annual, periodic, **kwargs)
     fp_kwargs = {k: v for k, v in kwargs.items() if k in get_finalise_kwargs_list()}
     fp_kwargs["ylabel"] = "Per cent Growth"
     finalise_plot(
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     index = PeriodIndex(period_range("2020-Q1", "2025-Q4", freq="Q"))
     data = Series([0.1] * len(index), index=index).cumsum()
     data += random.normal(1, 0.02, len(index))
-    plot_growth_from_series(
+    growth_plot_from_series(
         data,
         plot_from=data.index[4],
         title="Growth Rates Test",

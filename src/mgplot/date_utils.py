@@ -2,6 +2,8 @@
 date_utils.py
 This module contains functions to work with date-like
 (i.e. not time-like) PeriodIndex frequencies in Pandas.
+It is used to label the x-axis of a plot with the
+appropriate date-like labels.
 """
 
 import calendar

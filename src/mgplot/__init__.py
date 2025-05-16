@@ -22,8 +22,8 @@ __all__ = (
     "seas_trend_plot",
     # growth plot
     "calc_growth",
-    "plot_growth",
-    "plot_growth_from_series",
+    "growth_plot",
+    "growth_plot_from_series",
 )
 # __pdoc__: dict[str, Any] = {}  # hide submodules from documentation
 
@@ -37,4 +37,4 @@ from mgplot.line_plot import (
     line_plot_multistart,
     seas_trend_plot,
 )
-from mgplot.growth_plot import calc_growth, plot_growth, plot_growth_from_series
+from mgplot.growth_plot import calc_growth, growth_plot, growth_plot_from_series
