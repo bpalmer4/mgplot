@@ -94,7 +94,7 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
     swce, kwargs = _get_style_width_color_etc(item_count, num_data_points, **kwargs)
 
     # Let's plot
-    axes = get_axes(kwargs)  # get the axes to plot on
+    axes, kwargs = get_axes(kwargs)  # get the axes to plot on
     for i, column in enumerate(df.columns):
         series = df[column]
         if (series.isna()).all():

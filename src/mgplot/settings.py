@@ -37,6 +37,8 @@ class _DefaultValues(TypedDict):
     line_normal: float
     line_wide: float
 
+    bar_width: float
+
     legend_font_size: float | str
     legend: dict[str, Any]
 
@@ -52,6 +54,7 @@ _mgplot_defaults = _DefaultValues(
     line_narrow=0.75,
     line_normal=1.0,
     line_wide=2.0,
+    bar_width=0.8,
     legend_font_size="small",
     legend={
         "loc": "best",
@@ -91,6 +94,7 @@ def get_setting(setting: str) -> Any:
         - line_narrow: float - the line width for narrow lines
         - line_normal: float - the line width for normal lines
         - line_wide: float - the line width for wide lines
+        - bar_width: float - the width of bars in bar plots
         - legend_font_size: float | str - the font size for legends
         - legend: dict[str, Any] - the legend settings
         - colors: dict[int, list[str]] - a dictionary of colors for 

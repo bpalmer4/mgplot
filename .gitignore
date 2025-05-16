@@ -21,6 +21,7 @@ wheels/
 
 # Test charts
 src/mgplot/test_charts/**
+src/mgplot/zz-unused-code-snippets/**
 
 # Virtual environments
 .venv

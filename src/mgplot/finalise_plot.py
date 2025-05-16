@@ -9,6 +9,7 @@ import re
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import Axes, Figure
+import matplotlib.dates as mdates
 
 from mgplot.settings import get_setting
 
@@ -28,7 +29,8 @@ _annotation_kwargs = ("lfooter", "rfooter", "lheader", "rheader")
 
 _file_kwargs = ("pre_tag", "tag", "chart_dir", "file_type", "dpi")
 _fig_kwargs = ("figsize", "show")
-_oth_kwargs = ("zero_y", "y0", "x0", "dont_save", "dont_close")
+_oth_kwargs = ("zero_y", "y0", "x0", "dont_save", "dont_close", "concise_dates",
+)
 _ACCEPTABLE_KWARGS = frozenset(
     _value_kwargs
     + _splat_kwargs
@@ -61,10 +63,14 @@ def _apply_value_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
 
 
 def _apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
-    """Set matplotlib elements dynamically using setting_name and splat."""
+    """
+    Set matplotlib elements dynamically using setting_name and splat.
+    This is used for legend, axhspan, axvspan, axhline, and axvline.
+    These can be ignored if not in kwargs, or set to None in kwargs.
+    """
 
     for method_name in settings:
-        if method_name in kwargs:
+        if method_name in kwargs and kwargs[method_name] is not None:
             if method_name == "legend" and kwargs[method_name] is True:
                 # use the global default legend settings
                 kwargs[method_name] = get_setting("legend")
@@ -72,8 +78,7 @@ def _apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
                 method = getattr(axes, method_name)
                 method(**kwargs[method_name])
             else:
-                if kwargs[method_name] is not None:
-                    print(f"Warning expected dict argument: {method_name}")
+                print(f"Warning expected dict argument: {method_name}")
 
 
 def _apply_annotations(axes: Axes, **kwargs) -> None:
@@ -137,6 +142,12 @@ def _apply_kwargs(axes: Axes, **kwargs) -> None:
         low, high = axes.get_xlim()
         if low < 0 < high:
             axes.axvline(x=0, lw=0.66, c="#555555")
+
+    if check_kwargs("concise_dates"):
+        locator = mdates.AutoDateLocator()
+        formatter = mdates.ConciseDateFormatter(locator)
+        axes.xaxis.set_major_locator(locator)
+        axes.xaxis.set_major_formatter(formatter)
 
 
 def _save_to_file(fig: Figure, **kwargs) -> None:

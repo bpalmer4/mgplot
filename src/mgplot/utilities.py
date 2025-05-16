@@ -73,7 +73,7 @@ def get_color_list(count: int) -> list[str]:
     return [f"#{int(x*255):02x}{int(y*255):02x}{int(z*255):02x}" for x, y, z, _ in c]
 
 
-def get_axes(kwargs: dict[str, Any]) -> Axes:
+def get_axes(kwargs: dict[str, Any]) -> tuple[Axes, dict[str, Any]]:
     """Get the axes to plot on.
     If not passed in kwargs, create a new figure and axes."""
 
@@ -84,8 +84,9 @@ def get_axes(kwargs: dict[str, Any]) -> Axes:
             raise TypeError("The ax argument must be a matplotlib Axes object")
         return axes
 
-    _fig, axes = subplots(figsize=kwargs.get("figsize", get_setting("figsize")))
-    return axes
+    figsize=kwargs.pop("figsize", get_setting("figsize"))
+    _fig, axes = subplots()
+    return axes, kwargs
 
 
 def annotate_series(
@@ -93,7 +94,7 @@ def annotate_series(
     axes: Axes,
     rounding: int | None = None,
     color: str = "#444444",
-    fontsize: int | str = "x-small",
+    fontsize: int | str = "small",
 ) -> None:
     """Annotate the right-hand end-point of a line-plotted series."""
 
