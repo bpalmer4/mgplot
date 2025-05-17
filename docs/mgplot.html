@@ -28,6 +28,7 @@
                     <li><a href="mgplot/line_plot.html">line_plot</a></li>
                     <li><a href="mgplot/growth_plot.html">growth_plot</a></li>
                     <li><a href="mgplot/bar_plot.html">bar_plot</a></li>
+                    <li><a href="mgplot/summary_plot.html">summary_plot</a></li>
             </ul>
 
             <h2>API Documentation</h2>
@@ -95,6 +96,9 @@
             <li>
                     <a class="function" href="#bar_plot_finalise">bar_plot_finalise</a>
             </li>
+            <li>
+                    <a class="function" href="#summary_plot">summary_plot</a>
+            </li>
     </ul>
 
 
@@ -152,22 +156,24 @@ mgplot    </h1>
 </span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>    <span class="c1"># --- bar plot</span>
 </span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>    <span class="s2">&quot;bar_plot&quot;</span><span class="p">,</span>
 </span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    <span class="s2">&quot;bar_plot_finalise&quot;</span><span class="p">,</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="p">)</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="c1"># __pdoc__: dict[str, Any] = {}  # hide submodules from documentation</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>    <span class="c1"># --- summary plot</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>    <span class="s2">&quot;summary_plot&quot;</span><span class="p">,)</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a><span class="c1"># __pdoc__: dict[str, Any] = {}  # hide submodules from documentation</span>
 </span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a><span class="c1"># --- local imports</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_setting</span><span class="p">,</span> <span class="n">set_setting</span><span class="p">,</span> <span class="n">set_chart_dir</span><span class="p">,</span> <span class="n">clear_chart_dir</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_color</span><span class="p">,</span> <span class="n">get_party_palette</span><span class="p">,</span> <span class="n">colorise_list</span><span class="p">,</span> <span class="n">contrast</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.finalise_plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">finalise_plot</span><span class="p">,</span> <span class="n">get_finalise_kwargs_list</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.line_plot</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>    <span class="n">line_plot</span><span class="p">,</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>    <span class="n">line_plot_finalise</span><span class="p">,</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="n">line_plot_multistart</span><span class="p">,</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>    <span class="n">seas_trend_plot</span><span class="p">,</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="p">)</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.growth_plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_growth</span><span class="p">,</span> <span class="n">growth_plot</span><span class="p">,</span> <span class="n">growth_plot_from_series</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.bar_plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">bar_plot</span><span class="p">,</span> <span class="n">bar_plot_finalise</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="c1"># --- local imports</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_setting</span><span class="p">,</span> <span class="n">set_setting</span><span class="p">,</span> <span class="n">set_chart_dir</span><span class="p">,</span> <span class="n">clear_chart_dir</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_color</span><span class="p">,</span> <span class="n">get_party_palette</span><span class="p">,</span> <span class="n">colorise_list</span><span class="p">,</span> <span class="n">contrast</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.finalise_plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">finalise_plot</span><span class="p">,</span> <span class="n">get_finalise_kwargs_list</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.line_plot</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>    <span class="n">line_plot</span><span class="p">,</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="n">line_plot_finalise</span><span class="p">,</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>    <span class="n">line_plot_multistart</span><span class="p">,</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    <span class="n">seas_trend_plot</span><span class="p">,</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a><span class="p">)</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.growth_plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_growth</span><span class="p">,</span> <span class="n">growth_plot</span><span class="p">,</span> <span class="n">growth_plot_from_series</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.bar_plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">bar_plot</span><span class="p">,</span> <span class="n">bar_plot_finalise</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.summary_plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">summary_plot</span>
 </span></pre></div>
 
 
@@ -1460,6 +1466,119 @@ x-axis label, y-axis label, and other parameters.</p>
 <li>**kwargs: dict Additional keyword arguments for customization,
 taking the same parameters as bar_plot and finalise_plot.</li>
 </ul>
+</div>
+
+
+                </section>
+                <section id="summary_plot">
+                            <input id="summary_plot-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">summary_plot</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">summary</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span>,</span><span class="param">	<span class="n">start</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">pandas</span><span class="o">.</span><span class="n">_libs</span><span class="o">.</span><span class="n">tslibs</span><span class="o">.</span><span class="n">period</span><span class="o">.</span><span class="n">Period</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+
+                <label class="view-source-button" for="summary_plot-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#summary_plot"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="summary_plot-176"><a href="#summary_plot-176"><span class="linenos">176</span></a><span class="k">def</span><span class="w"> </span><span class="nf">summary_plot</span><span class="p">(</span>
+</span><span id="summary_plot-177"><a href="#summary_plot-177"><span class="linenos">177</span></a>    <span class="n">summary</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span>  <span class="c1"># summary data</span>
+</span><span id="summary_plot-178"><a href="#summary_plot-178"><span class="linenos">178</span></a>    <span class="n">start</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Period</span><span class="p">,</span>  <span class="c1"># starting period for z-score calculation</span>
+</span><span id="summary_plot-179"><a href="#summary_plot-179"><span class="linenos">179</span></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+</span><span id="summary_plot-180"><a href="#summary_plot-180"><span class="linenos">180</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="summary_plot-181"><a href="#summary_plot-181"><span class="linenos">181</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot a summary of historical data for a given DataFrame.</span>
+</span><span id="summary_plot-182"><a href="#summary_plot-182"><span class="linenos">182</span></a><span class="sd">    </span>
+</span><span id="summary_plot-183"><a href="#summary_plot-183"><span class="linenos">183</span></a><span class="sd">    Args:</span>
+</span><span id="summary_plot-184"><a href="#summary_plot-184"><span class="linenos">184</span></a><span class="sd">    - summary: DataFrame containing the summary data. The column names are</span>
+</span><span id="summary_plot-185"><a href="#summary_plot-185"><span class="linenos">185</span></a><span class="sd">      used as labels for the plot.</span>
+</span><span id="summary_plot-186"><a href="#summary_plot-186"><span class="linenos">186</span></a><span class="sd">    - start: starting period for z-score calculation.</span>
+</span><span id="summary_plot-187"><a href="#summary_plot-187"><span class="linenos">187</span></a><span class="sd">    - kwargs: additional arguments for the plot, including:</span>
+</span><span id="summary_plot-188"><a href="#summary_plot-188"><span class="linenos">188</span></a><span class="sd">        - verbose: if True, print the summary data.</span>
+</span><span id="summary_plot-189"><a href="#summary_plot-189"><span class="linenos">189</span></a><span class="sd">        - middle: proportion of data to highlight (default is 0.8).</span>
+</span><span id="summary_plot-190"><a href="#summary_plot-190"><span class="linenos">190</span></a><span class="sd">        - plot_types: list of plot types to generate </span>
+</span><span id="summary_plot-191"><a href="#summary_plot-191"><span class="linenos">191</span></a><span class="sd">          (default is [&quot;zscores&quot;, &quot;zscaled&quot;]).</span>
+</span><span id="summary_plot-192"><a href="#summary_plot-192"><span class="linenos">192</span></a><span class="sd">        - show: if True, display the plot.</span>
+</span><span id="summary_plot-193"><a href="#summary_plot-193"><span class="linenos">193</span></a><span class="sd">        - ylabel: y-axis label for the plot.</span>
+</span><span id="summary_plot-194"><a href="#summary_plot-194"><span class="linenos">194</span></a><span class="sd">        - legend: legend settings for the plot.</span>
+</span><span id="summary_plot-195"><a href="#summary_plot-195"><span class="linenos">195</span></a><span class="sd">        - x0: if True, set x-axis limits to include 0.</span>
+</span><span id="summary_plot-196"><a href="#summary_plot-196"><span class="linenos">196</span></a>
+</span><span id="summary_plot-197"><a href="#summary_plot-197"><span class="linenos">197</span></a>
+</span><span id="summary_plot-198"><a href="#summary_plot-198"><span class="linenos">198</span></a><span class="sd">    Returns None.</span>
+</span><span id="summary_plot-199"><a href="#summary_plot-199"><span class="linenos">199</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="summary_plot-200"><a href="#summary_plot-200"><span class="linenos">200</span></a>
+</span><span id="summary_plot-201"><a href="#summary_plot-201"><span class="linenos">201</span></a>    <span class="c1"># --- optional arguments</span>
+</span><span id="summary_plot-202"><a href="#summary_plot-202"><span class="linenos">202</span></a>    <span class="n">verbose</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</span><span id="summary_plot-203"><a href="#summary_plot-203"><span class="linenos">203</span></a>    <span class="n">middle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;middle&quot;</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">)</span>
+</span><span id="summary_plot-204"><a href="#summary_plot-204"><span class="linenos">204</span></a>    <span class="n">plot_types</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;plot_types&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">ZSCORES</span><span class="p">,</span> <span class="n">ZSCALED</span><span class="p">])</span>
+</span><span id="summary_plot-205"><a href="#summary_plot-205"><span class="linenos">205</span></a>
+</span><span id="summary_plot-206"><a href="#summary_plot-206"><span class="linenos">206</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;show&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;show&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</span><span id="summary_plot-207"><a href="#summary_plot-207"><span class="linenos">207</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;ylabel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ylabel&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="summary_plot-208"><a href="#summary_plot-208"><span class="linenos">208</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;legend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span><span id="summary_plot-209"><a href="#summary_plot-209"><span class="linenos">209</span></a>        <span class="s2">&quot;legend&quot;</span><span class="p">,</span>
+</span><span id="summary_plot-210"><a href="#summary_plot-210"><span class="linenos">210</span></a>        <span class="p">{</span>
+</span><span id="summary_plot-211"><a href="#summary_plot-211"><span class="linenos">211</span></a>            <span class="c1"># put the legend below the x-axis label</span>
+</span><span id="summary_plot-212"><a href="#summary_plot-212"><span class="linenos">212</span></a>            <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="s2">&quot;upper center&quot;</span><span class="p">,</span>
+</span><span id="summary_plot-213"><a href="#summary_plot-213"><span class="linenos">213</span></a>            <span class="s2">&quot;fontsize&quot;</span><span class="p">:</span> <span class="s2">&quot;xx-small&quot;</span><span class="p">,</span>
+</span><span id="summary_plot-214"><a href="#summary_plot-214"><span class="linenos">214</span></a>            <span class="s2">&quot;bbox_to_anchor&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.125</span><span class="p">),</span>
+</span><span id="summary_plot-215"><a href="#summary_plot-215"><span class="linenos">215</span></a>            <span class="s2">&quot;ncol&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+</span><span id="summary_plot-216"><a href="#summary_plot-216"><span class="linenos">216</span></a>        <span class="p">},</span>
+</span><span id="summary_plot-217"><a href="#summary_plot-217"><span class="linenos">217</span></a>    <span class="p">)</span>
+</span><span id="summary_plot-218"><a href="#summary_plot-218"><span class="linenos">218</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;x0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x0&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="summary_plot-219"><a href="#summary_plot-219"><span class="linenos">219</span></a>
+</span><span id="summary_plot-220"><a href="#summary_plot-220"><span class="linenos">220</span></a>    <span class="c1"># get the data, calculate z-scores and scaled scores based on the start period</span>
+</span><span id="summary_plot-221"><a href="#summary_plot-221"><span class="linenos">221</span></a>    <span class="n">subset</span> <span class="o">=</span> <span class="n">summary</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">summary</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">]</span>
+</span><span id="summary_plot-222"><a href="#summary_plot-222"><span class="linenos">222</span></a>    <span class="n">z_scores</span><span class="p">,</span> <span class="n">z_scaled</span> <span class="o">=</span> <span class="n">_calculate_z</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">middle</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+</span><span id="summary_plot-223"><a href="#summary_plot-223"><span class="linenos">223</span></a>
+</span><span id="summary_plot-224"><a href="#summary_plot-224"><span class="linenos">224</span></a>    <span class="c1"># plot as required by the plot_types argument</span>
+</span><span id="summary_plot-225"><a href="#summary_plot-225"><span class="linenos">225</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Summary at </span><span class="si">{</span><span class="n">subset</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="summary_plot-226"><a href="#summary_plot-226"><span class="linenos">226</span></a>    <span class="k">for</span> <span class="n">plot_type</span> <span class="ow">in</span> <span class="n">plot_types</span><span class="p">:</span>
+</span><span id="summary_plot-227"><a href="#summary_plot-227"><span class="linenos">227</span></a>
+</span><span id="summary_plot-228"><a href="#summary_plot-228"><span class="linenos">228</span></a>        <span class="k">if</span> <span class="n">plot_type</span> <span class="o">==</span> <span class="s2">&quot;zscores&quot;</span><span class="p">:</span>
+</span><span id="summary_plot-229"><a href="#summary_plot-229"><span class="linenos">229</span></a>            <span class="n">adjusted</span> <span class="o">=</span> <span class="n">z_scores</span>
+</span><span id="summary_plot-230"><a href="#summary_plot-230"><span class="linenos">230</span></a>            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;xlabel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Z-scores for prints since </span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="summary_plot-231"><a href="#summary_plot-231"><span class="linenos">231</span></a>            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;x0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="summary_plot-232"><a href="#summary_plot-232"><span class="linenos">232</span></a>        <span class="k">elif</span> <span class="n">plot_type</span> <span class="o">==</span> <span class="s2">&quot;zscaled&quot;</span><span class="p">:</span>
+</span><span id="summary_plot-233"><a href="#summary_plot-233"><span class="linenos">233</span></a>            <span class="n">adjusted</span> <span class="o">=</span> <span class="n">z_scaled</span>
+</span><span id="summary_plot-234"><a href="#summary_plot-234"><span class="linenos">234</span></a>            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;xlabel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;-1 to 1 scaled z-scores since </span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="summary_plot-235"><a href="#summary_plot-235"><span class="linenos">235</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="summary_plot-236"><a href="#summary_plot-236"><span class="linenos">236</span></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown plot type </span><span class="si">{</span><span class="n">plot_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="summary_plot-237"><a href="#summary_plot-237"><span class="linenos">237</span></a>            <span class="k">continue</span>
+</span><span id="summary_plot-238"><a href="#summary_plot-238"><span class="linenos">238</span></a>
+</span><span id="summary_plot-239"><a href="#summary_plot-239"><span class="linenos">239</span></a>        <span class="n">ax</span> <span class="o">=</span> <span class="n">_horizontal_bar_plot</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">adjusted</span><span class="p">,</span> <span class="n">middle</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+</span><span id="summary_plot-240"><a href="#summary_plot-240"><span class="linenos">240</span></a>
+</span><span id="summary_plot-241"><a href="#summary_plot-241"><span class="linenos">241</span></a>        <span class="c1"># finalise</span>
+</span><span id="summary_plot-242"><a href="#summary_plot-242"><span class="linenos">242</span></a>        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;pre_tag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">plot_type</span>
+</span><span id="summary_plot-243"><a href="#summary_plot-243"><span class="linenos">243</span></a>        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="s2">&quot;x-small&quot;</span><span class="p">)</span>
+</span><span id="summary_plot-244"><a href="#summary_plot-244"><span class="linenos">244</span></a>        <span class="n">finalise_plot</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="summary_plot-245"><a href="#summary_plot-245"><span class="linenos">245</span></a>
+</span><span id="summary_plot-246"><a href="#summary_plot-246"><span class="linenos">246</span></a>        <span class="c1"># prepare for next loop</span>
+</span><span id="summary_plot-247"><a href="#summary_plot-247"><span class="linenos">247</span></a>        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;xlabel&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="summary_plot-248"><a href="#summary_plot-248"><span class="linenos">248</span></a>        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;x0&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Plot a summary of historical data for a given DataFrame.</p>
+
+<p>Args:</p>
+
+<ul>
+<li>summary: DataFrame containing the summary data. The column names are
+used as labels for the plot.</li>
+<li>start: starting period for z-score calculation.</li>
+<li>kwargs: additional arguments for the plot, including:
+<ul>
+<li>verbose: if True, print the summary data.</li>
+<li>middle: proportion of data to highlight (default is 0.8).</li>
+<li>plot_types: list of plot types to generate 
+(default is ["zscores", "zscaled"]).</li>
+<li>show: if True, display the plot.</li>
+<li>ylabel: y-axis label for the plot.</li>
+<li>legend: legend settings for the plot.</li>
+<li>x0: if True, set x-axis limits to include 0.</li>
+</ul></li>
+</ul>
+
+<p>Returns None.</p>
 </div>
 
 

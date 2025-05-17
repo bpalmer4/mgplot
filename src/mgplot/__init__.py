@@ -32,7 +32,8 @@ __all__ = (
     # --- bar plot
     "bar_plot",
     "bar_plot_finalise",
-)
+    # --- summary plot
+    "summary_plot",)
 # __pdoc__: dict[str, Any] = {}  # hide submodules from documentation
 
 
@@ -48,3 +49,4 @@ from mgplot.line_plot import (
 )
 from mgplot.growth_plot import calc_growth, growth_plot, growth_plot_from_series
 from mgplot.bar_plot import bar_plot, bar_plot_finalise
+from mgplot.summary_plot import summary_plot
