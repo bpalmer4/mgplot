@@ -18,7 +18,7 @@ uv build
 
 uv pip install dist/mgplot*gz
 
-~/mgplot/build_docs.sh
+~/mgplot/build-docs.sh
 
 echo "And if everything is okay ..."
 echo "uv publish --token MY_TOKEN_HERE"

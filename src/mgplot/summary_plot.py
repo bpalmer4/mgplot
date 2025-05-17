@@ -254,7 +254,7 @@ if __name__ == "__main__":
     set_chart_dir("./test_charts")
     clear_chart_dir()
 
-    summary_ = read_csv('./zz-test-data/summary.csv', index_col=0, parse_dates=True)
+    summary_ = read_csv("./zz-test-data/summary.csv", index_col=0, parse_dates=True)
     summary_.index = PeriodIndex(summary_.index, freq="M")
     summary_plot(
         summary_,

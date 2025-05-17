@@ -126,10 +126,11 @@ def line_plot_finalise(data: DataT, **kwargs) -> None:
     Publish a single plot from the data passed in.
 
     Arguments:
-        Use the same arguments as for line_plot() and finalise_plot().
+    - data: DataFrame | Series - data to plot
+    - Use the same  keyword arguments as for line_plot()
+      and finalise_plot().
 
-    Returns:
-        None.
+    Returns None.
     """
 
     axes = line_plot(data, **kwargs)

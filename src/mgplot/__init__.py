@@ -38,6 +38,10 @@ __all__ = (
     "summary_plot",
     # --- revision plot
     "revision_plot",
+    # --- covid recovery plot
+    "covid_recovery_plot",
+    # --- multi_plot
+    "multi_plot",
 )
 # __pdoc__: dict[str, Any] = {}  # hide submodules from documentation
 
@@ -49,6 +53,8 @@ from mgplot.growth_plot import calc_growth, growth_plot, growth_plot_from_series
 from mgplot.bar_plot import bar_plot, bar_plot_finalise
 from mgplot.summary_plot import summary_plot
 from mgplot.revision_plot import revision_plot
+from mgplot.covid_recovery_plot import covid_recovery_plot
+from mgplot.multi_plot import multi_plot
 from mgplot.colors import (
     get_color,
     get_party_palette,

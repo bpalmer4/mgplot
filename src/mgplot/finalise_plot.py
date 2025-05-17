@@ -84,8 +84,10 @@ def _apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
                 method = getattr(axes, method_name)
                 method(**kwargs[method_name])
             else:
-                print(f"Warning expected dict argument: {method_name}/"
-                      + f"{type(kwargs[method_name])}.")
+                print(
+                    f"Warning expected dict argument: {method_name}/"
+                    + f"{type(kwargs[method_name])}."
+                )
 
 
 def _apply_annotations(axes: Axes, **kwargs) -> None:

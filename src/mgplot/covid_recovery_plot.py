@@ -7,7 +7,7 @@ Plot the pre-COVID trajectory against the current trend.
 from pandas import DataFrame, Series, Period, PeriodIndex
 from numpy import arange, polyfit
 
-from mgplot.finalise_plot import line_plot_finalise
+from mgplot.line_plot import line_plot_finalise
 from mgplot.settings import get_setting
 
 
