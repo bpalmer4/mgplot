@@ -11,10 +11,11 @@ from typing import Any
 # analytic third-party imports
 from numpy import ndarray, array
 from matplotlib.pyplot import Axes, subplots
-from pandas import DataFrame, Period
+from pandas import DataFrame, Period, PeriodIndex, read_csv
 
 # local imports
 from mgplot.finalise_plot import finalise_plot
+from mgplot.settings import set_chart_dir, clear_chart_dir
 
 # --- constants
 ZSCORES = "zscores"
@@ -122,7 +123,7 @@ def _label_extremes(
 
     original, adjusted = data
     low, high = kwargs["xlim"]
-    if plot_type == "scaled":
+    if plot_type == ZSCALED:
         ax.axvline(-1, color="#555555", linewidth=0.5, linestyle="--")
         ax.axvline(1, color="#555555", linewidth=0.5, linestyle="--")
         ax.scatter(
@@ -178,7 +179,7 @@ def summary_plot(
     **kwargs: Any,
 ) -> None:
     """Plot a summary of historical data for a given DataFrame.
-    
+
     Args:
     - summary: DataFrame containing the summary data. The column names are
       used as labels for the plot.
@@ -186,7 +187,7 @@ def summary_plot(
     - kwargs: additional arguments for the plot, including:
         - verbose: if True, print the summary data.
         - middle: proportion of data to highlight (default is 0.8).
-        - plot_types: list of plot types to generate 
+        - plot_types: list of plot types to generate
           (default is ["zscores", "zscaled"]).
         - show: if True, display the plot.
         - ylabel: y-axis label for the plot.
@@ -239,9 +240,26 @@ def summary_plot(
 
         # finalise
         kwargs["pre_tag"] = plot_type
-        ax.tick_params(axis="y", labelsize="x-small")
+        ax.tick_params(axis="y", labelsize="small")
         finalise_plot(ax, **kwargs)
 
         # prepare for next loop
         kwargs.pop("xlabel", None)
         kwargs.pop("x0", None)
+
+
+# --- test code
+if __name__ == "__main__":
+
+    set_chart_dir("./test_charts")
+    clear_chart_dir()
+
+    summary_ = read_csv('./zz-test-data/summary.csv', index_col=0, parse_dates=True)
+    summary_.index = PeriodIndex(summary_.index, freq="M")
+    summary_plot(
+        summary_,
+        start=Period("1995-01", freq="M"),
+        title="Summary Plot",
+        ylabel=None,
+        rfooter="Summary Plot",
+    )
