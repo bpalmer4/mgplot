@@ -1,6 +1,6 @@
 """Package to provide a frontend to matplotlib."""
 
-# from typing import Any
+from typing import Any
 
 __version__ = "0.0.1"
 __author__ = "Bryan Palmer"
@@ -25,7 +25,6 @@ __all__ = (
     # --- line_plot
     "line_plot",
     "line_plot_finalise",
-    "line_plot_multistart",
     "seas_trend_plot",
     # --- growth plot
     "calc_growth",
@@ -41,20 +40,23 @@ __all__ = (
     # --- covid recovery plot
     "covid_recovery_plot",
     # --- multi_plot
-    "multi_plot",
+    "multi_start",
+    "multi_column",
+    # --- test
+    "prepare_for_test",
 )
-# __pdoc__: dict[str, Any] = {}  # hide submodules from documentation
+__pdoc__: dict[str, Any] = {"test": False}  # hide submodules from documentation
 
 
 # --- local imports
-from mgplot.settings import get_setting, set_setting, set_chart_dir, clear_chart_dir
+
 from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
 from mgplot.growth_plot import calc_growth, growth_plot, growth_plot_from_series
 from mgplot.bar_plot import bar_plot, bar_plot_finalise
 from mgplot.summary_plot import summary_plot
 from mgplot.revision_plot import revision_plot
 from mgplot.covid_recovery_plot import covid_recovery_plot
-from mgplot.multi_plot import multi_plot
+from mgplot.multi_plot import multi_start, multi_column
 from mgplot.colors import (
     get_color,
     get_party_palette,
@@ -66,6 +68,12 @@ from mgplot.colors import (
 from mgplot.line_plot import (
     line_plot,
     line_plot_finalise,
-    line_plot_multistart,
     seas_trend_plot,
 )
+from mgplot.settings import (
+    get_setting,
+    set_setting,
+    set_chart_dir,
+    clear_chart_dir,
+)
+from mgplot.test import prepare_for_test

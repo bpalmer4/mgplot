@@ -15,7 +15,7 @@ from pandas import DataFrame, Period, PeriodIndex, read_csv
 
 # local imports
 from mgplot.finalise_plot import finalise_plot
-from mgplot.settings import set_chart_dir, clear_chart_dir
+from mgplot.test import prepare_for_test
 
 # --- constants
 ZSCORES = "zscores"
@@ -251,8 +251,7 @@ def summary_plot(
 # --- test code
 if __name__ == "__main__":
 
-    set_chart_dir("./test_charts")
-    clear_chart_dir()
+    prepare_for_test("summary_plot")
 
     summary_ = read_csv("./zz-test-data/summary.csv", index_col=0, parse_dates=True)
     summary_.index = PeriodIndex(summary_.index, freq="M")

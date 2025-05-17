@@ -10,7 +10,8 @@ from matplotlib.pyplot import Axes
 import matplotlib.patheffects as pe
 
 from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
-from mgplot.settings import set_chart_dir, clear_chart_dir, get_setting
+from mgplot.test import prepare_for_test
+from mgplot.settings import get_setting
 from mgplot.date_utils import set_labels
 from mgplot.utilities import annotate_series
 
@@ -234,8 +235,7 @@ def growth_plot_from_series(
 if __name__ == "__main__":
 
     # --- set up
-    set_chart_dir("test_charts")
-    clear_chart_dir()
+    prepare_for_test("growth_plot")
 
     # --- run the test
     index = PeriodIndex(period_range("2020-Q1", "2025-Q4", freq="Q"))

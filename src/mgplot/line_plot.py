@@ -4,7 +4,7 @@ Plot a series or a dataframe with lines.
 """
 
 # --- imports
-from typing import Any, cast
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -14,11 +14,11 @@ from pandas import DataFrame
 from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
 from mgplot.settings import DataT, get_setting
 from mgplot.utilities import apply_defaults, get_color_list, get_axes, annotate_series
-from mgplot.settings import set_chart_dir
+from mgplot.test import prepare_for_test
 
 
 # --- constants
-STARTS, TAGS = "starts", "tags"
+TAGS = "tags"
 AX = "ax"
 STYLE, WIDTH, COLOR = "style", "width", "color"
 ANNOTATE = "annotate"
@@ -64,7 +64,7 @@ def _get_style_width_color_etc(
 def line_plot(data: DataT, **kwargs) -> plt.Axes:
     """
     Build a single plot from the data passed in.
-    This can be a single or multiple line plot.
+    This can be a single- or multiple-line plot.
     Return the axes object for the build.
 
     Agruments:
@@ -139,64 +139,6 @@ def line_plot_finalise(data: DataT, **kwargs) -> None:
     finalise_plot(axes, **fp_kwargs)
 
 
-def _get_multi_starts(**kwargs) -> tuple[dict[str, list], dict]:
-    """Get the multi-starting point arguments."""
-
-    defaults = {  # defaults
-        STARTS: None,  # should be first item in dictionary
-        TAGS: "",
-    }
-    stags, kwargs = apply_defaults(1, defaults, kwargs)
-
-    if len(stags[TAGS]) < len(stags[STARTS]):
-        stags[TAGS] = stags[TAGS] * len(stags[STARTS])
-    # Ensure that the tags are not identical ...
-    if len(stags[TAGS]) > 1 and stags[TAGS].count(stags[TAGS][0]) == len(stags[TAGS]):
-        stags[TAGS] = [
-            e + f"{i:05d}" if i > 0 else e for i, e in enumerate(stags[TAGS])
-        ]
-
-    return stags, kwargs
-
-
-def line_plot_multistart(data: DataT, **kwargs) -> None:
-    """
-    Publish multiple plots from the data passed in, with multiple starting
-    points, Each plot is finalised with a call to finalise_plot().
-    Note: the data must be a pandas Series or DataFrame with a PeriodIndex.
-
-    Arguments:
-    In addition to using much the same arguments for line_plot() and
-    finalise_plot(), the following arguments are also used:
-    - starts: str | pd.Period | list[str] | list[pd.Period] -
-      starting dates for plots.
-    - tags: str | list[str] - unique file name tages for multiple plots.
-    Note: cannot use the ax argument to line_plot()
-
-    Returns
-    - None.
-    """
-
-    stags, rkwargs = _get_multi_starts(**kwargs)  # time horizons
-    if AX in rkwargs:
-        print("Ignoring the ax argument to line_plot_multistart()")
-        del rkwargs[AX]
-
-    previous_tags: set[str] = set()
-    counter = 0
-    for start, tag in zip(stags[STARTS], stags[TAGS]):
-        if start and not isinstance(start, pd.Period):
-            start = pd.Period(start, freq=cast(pd.PeriodIndex, start.index).freq)
-        recent = data[data.index >= start] if start else data
-        this_kwargs = rkwargs.copy()
-        proposed_tag = tag
-        while proposed_tag in previous_tags:
-            counter += 1
-            proposed_tag = f"{tag}_{counter:05d}"
-        this_kwargs["tag"] = proposed_tag
-        line_plot_finalise(recent, **this_kwargs)
-
-
 def seas_trend_plot(data: DataFrame, **kwargs) -> None:
     """
     Publish a DataFrame, where the first column is seasonally
@@ -238,7 +180,7 @@ def seas_trend_plot(data: DataFrame, **kwargs) -> None:
 if __name__ == "__main__":
 
     # set the chart directory
-    set_chart_dir("./test_charts")
+    prepare_for_test("line_plot")
 
     # Create a sample DataFrame with a PeriodIndex
     np.random.seed(42)

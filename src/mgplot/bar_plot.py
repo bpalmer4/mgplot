@@ -14,7 +14,8 @@ from numpy import random
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import Axes
 
-from mgplot.settings import DataT, get_setting, set_chart_dir, clear_chart_dir
+from mgplot.settings import DataT, get_setting
+from mgplot.test import prepare_for_test
 from mgplot.utilities import apply_defaults, get_color_list, get_axes
 from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
 from mgplot.date_utils import set_labels
@@ -112,8 +113,7 @@ def bar_plot_finalise(
 # --- test ---
 if __name__ == "__main__":
     # set the chart directory
-    set_chart_dir("./test_charts")
-    clear_chart_dir()
+    prepare_for_test("bar_plot")
 
     # Test 1
     series_ = Series([1, 2, 3, 4, 5], index=list("ABCDE"))
