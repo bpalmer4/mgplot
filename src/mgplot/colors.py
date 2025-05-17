@@ -111,3 +111,32 @@ def contrast(orig_color: str) -> str:
             new_color = "hotpink"
 
     return new_color
+
+
+# --- Australian state names
+_state_names = {
+    "New South Wales": "NSW",
+    "Victoria": "Vic",
+    "Queensland": "Qld",
+    "South Australia": "SA",
+    "Western Australia": "WA",
+    "Tasmania": "Tas",
+    "Northern Territory": "NT",
+    "Australian Capital Territory": "ACT",
+}
+state_names = {}
+for k, v in _state_names.items():
+    # allow for fast different case matches
+    state_names[k] = v
+    state_names[k.lower()] = v
+    state_names[k.upper()] = v
+    state_names[v.lower()] = v
+    state_names[v.upper()] = v
+
+
+def abbreviate_state(state: str) -> str:
+    """
+    Return the abbreviation for a state name.
+    """
+
+    return state_names.get(state.lower(), state)

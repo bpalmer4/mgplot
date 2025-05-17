@@ -80,11 +80,12 @@ def _apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
             if method_name == "legend" and kwargs[method_name] is True:
                 # use the global default legend settings
                 kwargs[method_name] = get_setting("legend")
-            if isinstance(kwargs[method_name], dict):
+            elif isinstance(kwargs[method_name], dict):
                 method = getattr(axes, method_name)
                 method(**kwargs[method_name])
             else:
-                print(f"Warning expected dict argument: {method_name}")
+                print(f"Warning expected dict argument: {method_name}/"
+                      + f"{type(kwargs[method_name])}.")
 
 
 def _apply_annotations(axes: Axes, **kwargs) -> None:

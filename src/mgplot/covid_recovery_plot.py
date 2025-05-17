@@ -5,9 +5,9 @@ Plot the pre-COVID trajectory against the current trend.
 
 # --- imports
 from pandas import DataFrame, Series, Period, PeriodIndex
-import numpy as np
+from numpy import arange, polyfit
 
-from mgplot import line_plot_finalise
+from mgplot.finalise_plot import line_plot_finalise
 from mgplot.settings import get_setting
 
 
@@ -26,10 +26,10 @@ def get_projection(original: Series, to_period: Period) -> Series:
     """
 
     y_regress = original[original.index <= to_period].copy()
-    x_regress = np.arange(len(y_regress))
-    m, b = np.polyfit(x_regress, y_regress, 1)
+    x_regress = arange(len(y_regress))
+    m, b = polyfit(x_regress, y_regress, 1)
 
-    x_complete = np.arange(len(original))
+    x_complete = arange(len(original))
     projection = Series((x_complete * m) + b, index=original.index)
 
     return projection
