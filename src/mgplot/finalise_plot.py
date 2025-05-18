@@ -1,7 +1,7 @@
 """
 finalise_plot.py:
-This module provides a function to finalise and save plots to the file system.
-It is used to publish plots.
+This module provides a function to finalise and save plots to the
+file system. It is used to publish plots.
 """
 
 # --- imports
@@ -12,6 +12,8 @@ from matplotlib.pyplot import Axes, Figure
 import matplotlib.dates as mdates
 
 from mgplot.settings import get_setting
+from mgplot.utilities import validate_kwargs
+from mgplot.test import verbose_kwargs
 
 
 # --- constants
@@ -36,6 +38,7 @@ _oth_kwargs = (
     "dont_save",
     "dont_close",
     "concise_dates",
+    "verbose",  # special case for testing
 )
 _ACCEPTABLE_KWARGS = frozenset(
     _value_kwargs
@@ -46,16 +49,70 @@ _ACCEPTABLE_KWARGS = frozenset(
     + _oth_kwargs
 )
 
+FINALISE_KW_TYPES: dict[str, type | tuple[type, ...]] = {
+    # - value kwargs
+    "title": (str, type(None)),
+    "xlabel": (str, type(None)),
+    "ylabel": (str, type(None)),
+    "ylim": (tuple, type(None)),
+    "xlim": (tuple, type(None)),
+    "yscale": (str, type(None)),
+    "xscale": (str, type(None)),
+    # - splat kwargs
+    "legend": (bool, dict, type(None)),
+    "axhspan": (dict, type(None)),
+    "axvspan": (dict, type(None)),
+    "axhline": (dict, type(None)),
+    "axvline": (dict, type(None)),
+    # - file kwargs
+    "pre_tag": str,
+    "tag": str,
+    "chart_dir": str,
+    "file_type": str,
+    "dpi": int,
+    # - fig kwargs
+    "figsize": tuple,
+    "show": bool,
+    # - annotation kwargs
+    "lfooter": str,
+    "rfooter": str,
+    "lheader": str,
+    "rheader": str,
+    # - Other kwargs
+    "zero_y": bool,
+    "y0": bool,
+    "x0": bool,
+    "dont_save": bool,
+    "dont_close": bool,
+    "concise_dates": bool,
+    "verbose": bool,  # special case for testing
+}
+
+
+def _internal_consistency_kwargs():
+    """Quick check to ensure that the kwargs checkers are consistent."""
+
+    bad = False
+    for k in FINALISE_KW_TYPES:
+        if k not in _ACCEPTABLE_KWARGS:
+            bad = True
+            print(f"Key {k} in FINALISE_KW_TYPES but not _ACCEPTABLE_KWARGS")
+
+    for k in _ACCEPTABLE_KWARGS:
+        if k not in FINALISE_KW_TYPES:
+            bad = True
+            print(f"Key {k} in _ACCEPTABLE_KWARGS but not FINALISE_KW_TYPES")
+
+    if bad:
+        raise RuntimeError(
+            "Internal error: _ACCEPTABLE_KWARGS and FINALISE_KW_TYPES are inconsistent."
+        )
+
+
+_internal_consistency_kwargs()
+
 
 # - private utility functions for finalise_plot()
-
-
-def _check_kwargs(against: frozenset = _ACCEPTABLE_KWARGS, **kwargs) -> None:
-    """Report any unrecognised keyword arguments."""
-
-    for k in kwargs:
-        if k not in against:
-            print(f"Warning: {k} was an unrecognised keyword argument")
 
 
 def _apply_value_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
@@ -77,10 +134,14 @@ def _apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
 
     for method_name in settings:
         if method_name in kwargs and kwargs[method_name] is not None:
+
+            # the legend method is a special case
             if method_name == "legend" and kwargs[method_name] is True:
                 # use the global default legend settings
                 kwargs[method_name] = get_setting("legend")
-            elif isinstance(kwargs[method_name], dict):
+
+            # splat the kwargs to the method
+            if isinstance(kwargs[method_name], dict):
                 method = getattr(axes, method_name)
                 method(**kwargs[method_name])
             else:
@@ -201,8 +262,8 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
     - axes - matplotlib axes object - required
     - kwargs
         - title: str - plot title, also used to create the save file name
-        - xlabel: str - text label for the x-axis
-        - ylabel: str - label for the y-axis
+        - xlabel: str | None - text label for the x-axis
+        - ylabel: str | None - label for the y-axis
         - pre_tag: str - text before the title in file name
         - tag: str - text after the title in the file name
           (useful for ensuring that same titled charts do not over-write)
@@ -233,7 +294,8 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
         - None
     """
 
-    _check_kwargs(**kwargs)
+    validate_kwargs(kwargs, FINALISE_KW_TYPES, "finalise_plot")
+    verbose_kwargs(kwargs, called_from="finalise_plot")
 
     # margins
     # axes.use_sticky_margins = False   ### CHECK THIS

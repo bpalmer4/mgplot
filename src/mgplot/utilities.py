@@ -46,7 +46,7 @@ def apply_defaults(
 
         # repeat multi-item lists if not long enough for all lines to be plotted
         if len(returnable[option]) < length and length > 1:
-            multiplier = (length // len(returnable[option])) + 1
+            multiplier = math.ceil(length / len(returnable[option]))
             returnable[option] = returnable[option] * multiplier
 
     return returnable, kwargs_d
@@ -92,25 +92,124 @@ def get_axes(kwargs: dict[str, Any]) -> tuple[Axes, dict[str, Any]]:
 def annotate_series(
     series: Series,
     axes: Axes,
-    rounding: int | None = None,
+    rounding: int | bool = False,
     color: str = "#444444",
     fontsize: int | str = "small",
+    **kwargs,
 ) -> None:
     """Annotate the right-hand end-point of a line-plotted series."""
 
-    x, y = series.index[-1], series.iloc[-1]
+    latest = series.dropna()
+    if latest.empty:
+        return
+
+    x, y = latest.index[-1], latest.iloc[-1]
     if y is None or math.isnan(y):
         return
 
-    if rounding is None:
+    r_string = f" {y}"  # default to no rounding
+    original = rounding
+    if isinstance(rounding, bool) and rounding:
         rounding = 0 if y >= 100 else 1 if y >= 10 else 2
+    if not isinstance(rounding, bool) and isinstance(rounding, int):
+        r_string = f" {y:.{rounding}f}"
+
+    if "test" in kwargs:
+        print(f"annotate_series: {x=}, {y=}, {original=} {rounding=} {r_string=}")
+        return
+
     axes.text(
         x=x,
         y=y,
-        s=f" {y:.{rounding}f}",
+        s=r_string,
         ha="left",
         va="center",
         fontsize=fontsize,
         color=color,
         font="Helvetica",
     )
+
+
+# ---- kwargs management
+
+
+def report_bad_kwargs(
+    kwargs: dict[str, Any],
+    kwarg_list: list[str] | tuple[str] | set[str] | frozenset[str],
+    called_from: str = "",
+) -> None:
+    """Report any bad keyword arguments passed to a function."""
+
+    called_from = f"{called_from} " if called_from else ""
+
+    bad_kwargs = [k for k in kwargs if k not in kwarg_list]
+    if bad_kwargs:
+        print(
+            f"Warning: {called_from}" + f"got unknown keyword arguments: {bad_kwargs}"
+        )
+
+
+def get_good_kwargs(
+    kwargs: dict[str, Any],
+    kwarg_list: list[str] | tuple[str] | set[str] | frozenset[str],
+) -> dict[str, Any]:
+    """Select only the good keyword arguments for a function."""
+
+    return {k: v for k, v in kwargs.items() if k in kwarg_list}
+
+
+def validate_kwargs(
+    kwargs: dict[str, Any],
+    expectations: (
+        list[str]
+        | tuple[str]
+        | set[str]
+        | frozenset[str]
+        | dict[str, type | tuple[type, ...]]
+    ),
+    called_from: str = "",
+) -> None:
+    """Check for bad keyword arguments passed to a function.
+    Also check the types of the arguments. Produce warnings if
+    any problems are detected."""
+
+    called_from = f"{called_from} " if called_from else ""
+    for k, v in kwargs.items():
+        if k not in expectations:
+            print(f"Warning: {called_from}got unknown keyword argument: {k}")
+
+        if isinstance(expectations, dict) and k in expectations:
+            if not isinstance(v, expectations[k]):
+                print(
+                    f"Warning: {called_from}argument {k} is of type {type(v)}, "
+                    f"expected {expectations[k]}"
+                )
+
+
+# --- test code
+if __name__ == "__main__":
+
+    # --- test annotate_series()
+    axes_, _ = get_axes({})
+    series_ = Series([1.12345, 2.12345, 3.12345, 4.12345, 5.12345])
+    rounding_ = (
+        False,
+        True,
+        0,
+        1,
+        2,
+        3,
+    )
+    for r in rounding_:
+        annotate_series(series_, axes_, rounding=r, test=True)
+    print("Done")
+
+    # --- test validate_kwargs()
+    kw = {"arg1": 1, "arg2": "two", "arg3": 3.0, "bad": "bad"}
+    expect: dict[str, type | tuple[type, ...]] = {
+        "arg1": (int, float, type(None)),
+        "arg2": str,
+        "arg3": (int, float),
+        "bad": (int, float),
+    }
+    validate_kwargs(kw, expect, "test")

@@ -9,11 +9,30 @@ from numpy import nan, random
 from matplotlib.pyplot import Axes
 import matplotlib.patheffects as pe
 
-from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
+from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
 from mgplot.test import prepare_for_test
 from mgplot.settings import get_setting
 from mgplot.date_utils import set_labels
-from mgplot.utilities import annotate_series
+from mgplot.utilities import annotate_series, validate_kwargs
+
+
+# --- constants
+ANNUAL = "annual"
+PWERIODIC = "periodic"
+
+
+GP_KWARGS: dict[str, type | tuple[type, ...]] = {
+    "line_width": (float, int),
+    "line_color": str,
+    "line_style": str,
+    "annotate_line": (type(None), int, str),
+    "bar_width": float,
+    "bar_color": str,
+    "annotate_bar": (type(None), int, str),
+    "annotation_rounding": int,
+    "plot_from": (type(None), Period, int),
+    "max_ticks": int,
+}
 
 
 # --- functions
@@ -74,6 +93,7 @@ def _annotations(
         annotate_series(
             annual,
             axes,
+            rounding=kwargs.get("annotation_rounding", True),
             fontsize=annotate_line,
             color=kwargs.get("line_color", "darkblue"),
         )
@@ -151,6 +171,7 @@ def growth_plot(
     """
 
     # --- sanity checks
+    validate_kwargs(kwargs, GP_KWARGS, "growth_plot")
     if not isinstance(annual, Series):
         raise TypeError("The annual argument must be a pandas Series")
     if not isinstance(periodic, Series):
@@ -218,9 +239,13 @@ def growth_plot_from_series(
         -   takes the same kwargs as for growth_plot() and finalise_plot()
     """
 
+    kwargs_expect = GP_KWARGS | FINALISE_KW_TYPES
+    validate_kwargs(kwargs, kwargs_expect, "growth_plot_from_series")
+
+    gp_kwargs = {k: v for k, v in kwargs.items() if k in GP_KWARGS}
     annual, periodic = calc_growth(series)
-    ax = growth_plot(annual, periodic, **kwargs)
-    fp_kwargs = {k: v for k, v in kwargs.items() if k in get_finalise_kwargs_list()}
+    ax = growth_plot(annual, periodic, **gp_kwargs)
+    fp_kwargs = {k: v for k, v in kwargs.items() if k in FINALISE_KW_TYPES}
     fp_kwargs["ylabel"] = "Per cent Growth"
     if (periodic < 0).any() and (periodic > 0).any():
         # include a y=0 line when positive and negative values are present

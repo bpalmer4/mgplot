@@ -13,24 +13,55 @@ from pandas import DataFrame
 
 from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
 from mgplot.settings import DataT, get_setting
-from mgplot.utilities import apply_defaults, get_color_list, get_axes, annotate_series
-from mgplot.test import prepare_for_test
+from mgplot.utilities import (
+    apply_defaults,
+    get_color_list,
+    report_bad_kwargs,
+    get_good_kwargs,
+    get_axes,
+    annotate_series,
+)
+from mgplot.test import prepare_for_test, verbose_kwargs
 
 
 # --- constants
-TAGS = "tags"
+(
+    DATA,
+    VERBOSE,
+) = (
+    "data",
+    "verbose",
+)  # special cases
 AX = "ax"
-STYLE, WIDTH, COLOR = "style", "width", "color"
+STYLE, WIDTH, COLOR, ALPHA = "style", "width", "color", "alpha"
 ANNOTATE = "annotate"
-ALPHA, LEGEND, DROPNA = "alpha", "legend", "dropna"
-DRAWSTYLE, MARKER = "drawstyle", "marker"
-MARKERSIZE = "markersize"
+ROUNDING = "rounding"
+FONTSIZE = "fontsize"
+DROPNA = "dropna"
+DRAWSTYLE, MARKER, MARKERSIZE = "drawstyle", "marker", "markersize"
+LP_KWARGS = [
+    DATA,
+    VERBOSE,
+    AX,
+    STYLE,
+    WIDTH,
+    COLOR,
+    ALPHA,
+    DRAWSTYLE,
+    MARKER,
+    MARKERSIZE,
+    DROPNA,
+    ANNOTATE,
+    ROUNDING,
+]
+
+LEGEND = "legend"  # Note: LEGEND is not in LP_KWARGS
 
 
 # --- functions
 def _get_style_width_color_etc(
     item_count, num_data_points, **kwargs
-) -> tuple[dict[str, list], dict]:
+) -> tuple[dict[str, list | tuple], dict[str, Any]]:
     """
     Get the plot-line attributes arguemnts.
     Returns a dictionary of lists of attributes for each line, and
@@ -50,13 +81,39 @@ def _get_style_width_color_etc(
         DRAWSTYLE: None,
         MARKER: None,
         MARKERSIZE: 10,
-        ANNOTATE: None,
+        DROPNA: True,
+        ANNOTATE: False,
+        ROUNDING: True,
+        FONTSIZE: "small",
     }
+
+    expected_types: dict[str, type | tuple[type, ...]] = {
+        STYLE: str,
+        WIDTH: (float, int),
+        COLOR: str,
+        ALPHA: float,
+        DRAWSTYLE: (str, type(None)),
+        MARKER: (str, type(None)),
+        MARKERSIZE: (float, int, type(None)),
+        DROPNA: bool,
+        ANNOTATE: bool,
+        ROUNDING: (int, bool, type(None)),
+        FONTSIZE: (str, int, type(None)),
+    }
+    assert len(expected_types) == len(
+        defaults
+    ), "expected_types and defaults must match"
+
     swce, kwargs = apply_defaults(item_count, defaults, kwargs)
 
-    swce[DROPNA] = kwargs.get(DROPNA, False)
-    if DROPNA in kwargs:
-        del kwargs[DROPNA]
+    # check the types of the arguments being passed
+    for key, value_list in swce.items():
+        for i, value in enumerate(value_list):
+            if not isinstance(value, expected_types[key]):
+                print(
+                    f"Warning: Expected {expected_types[key]} for {key}, "
+                    f"but got {type(value)} at index {i}"
+                )
 
     return swce, kwargs
 
@@ -70,38 +127,51 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
     Agruments:
     - data: DataFrame | Series - data to plot
     - kwargs:
+        - ax: plt.Axes | None - axes to plot on (optional)
+        - dropna: bool | list[bool] - whether to delete NAs frm the
+          data before plotting [optional]
         - color: str | list[str] - line colors.
         - width: float | list[float] - line widths [optional].
         - style: str | list[str] - line styles [optional].
         - alpha: float | list[float] - line transparencies [optional].
         - marker: str | list[str] - line markers [optional].
         - marker_size: float | list[float] - line marker sizes [optional].
-        - annotate: None | int | list[int] -  if not None, the number
-          of decimals with which to annotate the right-end-point of a line.
-        - dropna: bool | list[bool] - whether to delete NAs before plotting
-          [optional]
-        - ax: plt.Axes | None - axes to plot on (optional)
-        - figsize: tuple[float, float] - figure size (optional)
+        - annotate: bool | list[bool] - whether to annotate a series.
+        - rounding: int | bool | list[int | bool] - number of decimal places
+          to round an annotation. If True, a default between 0 and 2 is
+          used.
+        - fontsize: int | str | list[int | str] - font size for the
+          annotation.
+        - drawstyle: str | list[str] - matplotlib line draw styles.
 
     Returns:
     - axes: plt.Axes - the axes object for the plot
     """
 
+    # sanity checks
+    verbose_kwargs(kwargs, called_from="line_plot")
+    report_bad_kwargs(kwargs, LP_KWARGS, called_from="line_plot")
+
     # the data to be plotted:
     df = DataFrame(data)  # really we are only plotting DataFrames
+
+    # get the arguments for each line we will plot ...
     item_count = len(df.columns)
     num_data_points = len(df)
     swce, kwargs = _get_style_width_color_etc(item_count, num_data_points, **kwargs)
+
+    # further debugging.
+    if VERBOSE in kwargs and kwargs[VERBOSE]:
+        print(f"line_plot: {swce=}")
 
     # Let's plot
     axes, kwargs = get_axes(kwargs)  # get the axes to plot on
     for i, column in enumerate(df.columns):
         series = df[column]
-        if (series.isna()).all():
-            continue
-        series = series.dropna() if DROPNA in swce and swce[DROPNA] else series
+        series = series.dropna() if DROPNA in swce and swce[DROPNA][i] else series
         if series.empty or series.isna().all():
             continue
+
         axes = series.plot(
             ls=swce[STYLE][i],
             lw=swce[WIDTH][i],
@@ -112,11 +182,17 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
             drawstyle=swce[DRAWSTYLE][i],
             ax=axes,
         )
-        if swce[ANNOTATE][i]:
-            rounding: int | None = (
-                swce[ANNOTATE][i] if isinstance(swce[ANNOTATE][i], int) else None
-            )
-            annotate_series(series, axes, rounding=rounding, color=swce[COLOR][i])
+
+        if swce[ANNOTATE][i] is None or not swce[ANNOTATE][i]:
+            continue
+
+        annotate_series(
+            series,
+            axes,
+            rounding=swce[ROUNDING][i],
+            color=swce[COLOR][i],
+            fontsize=swce[FONTSIZE][i],
+        )
 
     return axes
 
@@ -133,9 +209,20 @@ def line_plot_finalise(data: DataT, **kwargs) -> None:
     Returns None.
     """
 
-    axes = line_plot(data, **kwargs)
-    keep_me = get_finalise_kwargs_list()
-    fp_kwargs = {k: v for k, v in kwargs.items() if k in keep_me}
+    # sanity checks
+    kw_list = LP_KWARGS + get_finalise_kwargs_list()
+    report_bad_kwargs(kwargs, kw_list, "line_plot_finalise")
+
+    # if multi-column, assume we want a legend
+    if isinstance(data, pd.DataFrame) and len(data.columns) > 1:
+        kwargs[LEGEND] = kwargs.get(LEGEND, get_setting("legend"))
+
+    # plot the data
+    lp_kwargs = get_good_kwargs(kwargs, LP_KWARGS)
+    axes = line_plot(data, **lp_kwargs)
+
+    # finalise the plot
+    fp_kwargs = get_good_kwargs(kwargs, get_finalise_kwargs_list())
     finalise_plot(axes, **fp_kwargs)
 
 
@@ -155,22 +242,22 @@ def seas_trend_plot(data: DataFrame, **kwargs) -> None:
     - None
     """
 
-    colors = get_color_list(2)
-    widths = [get_setting("line_normal"), get_setting("line_wide")]
-    annotations = [True, False]
-    styles = "-"
+    # defaults if not in kwargs
+    colors = kwargs.pop(COLOR, get_color_list(2))
+    widths = kwargs.pop(WIDTH, [get_setting("line_normal"), get_setting("line_wide")])
+    styles = kwargs.pop(STYLE, ["-", "-"])
+    annotations = kwargs.pop(ANNOTATE, [True, False])
+    legend = kwargs.pop(LEGEND, True)
 
-    if DROPNA not in kwargs:
-        kwargs[DROPNA] = True
+    # series breaks are common in seas-trend data
+    kwargs[DROPNA] = kwargs.pop(DROPNA, False)
 
-    annotate = (kwargs.pop(ANNOTATE, annotations),)
-    legend = (kwargs.pop(LEGEND, get_setting("legend")),)
     line_plot_finalise(
         data,
-        width=widths,
         color=colors,
+        width=widths,
         style=styles,
-        annotate=annotate,
+        annotate=annotations,
         legend=legend,
         **kwargs,
     )
@@ -203,5 +290,7 @@ if __name__ == "__main__":
         marker=[None, "o"],
         markersize=[None, 5],
         legend=True,
-        annotate=3,
+        annotate=[True, False],
+        verbose=False,
+        rounding=True,
     )

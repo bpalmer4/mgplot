@@ -16,9 +16,20 @@ from matplotlib.pyplot import Axes
 
 from mgplot.settings import DataT, get_setting
 from mgplot.test import prepare_for_test
-from mgplot.utilities import apply_defaults, get_color_list, get_axes
-from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
+from mgplot.utilities import apply_defaults, get_color_list, get_axes, validate_kwargs
+from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
 from mgplot.date_utils import set_labels
+
+
+# --- constants
+BAR_PLOT_KW_TYPES: dict[str, type | tuple[type, ...]] = {
+    "color": list,
+    "width": float,
+    "stacked": bool,
+    "rotation": (int, float),
+    "bar_legend": bool,
+    "max_ticks": int,
+}
 
 
 # --- functions
@@ -38,13 +49,17 @@ def bar_plot(
         - width: float - The width of the bars.
         - stacked: bool - If True, the bars will be stacked.
         - rotation: int - The rotation angle in degrees for the x-axis labels.
-        - bar_legend: bool - If True, show the legend [defaults to True].
+        - bar_legend: bool - If True, show the legend. Defaults to True
+          if more than one bar being plotted for each category.
         - "max_ticks": int - The maximum number of ticks on the x-axis,
           (this option only applies to PeriodIndex data.).
 
     Returns
     - axes: Axes - The axes for the plot.
     """
+
+    # --- validate the kwargs
+    validate_kwargs(kwargs, BAR_PLOT_KW_TYPES, "bar_plot")
 
     # --- get the data
     df = DataFrame(data)  # really we are only plotting DataFrames
@@ -55,7 +70,7 @@ def bar_plot(
         "width": get_setting("bar_width"),
         "stacked": False,
         "rotation": 90,
-        "bar_legend": True,
+        "bar_legend": (item_count > 1),
         "max_ticks": 10,
     }
     bar_args, remaining_kwargs = apply_defaults(item_count, defaults, kwargs)
@@ -102,8 +117,16 @@ def bar_plot_finalise(
       taking the same parameters as bar_plot and finalise_plot.
     """
 
-    axes = bar_plot(data, **kwargs)
-    fp_kwargs = {k: v for k, v in kwargs.items() if k in get_finalise_kwargs_list()}
+    # --- validate the kwargs
+    kw_dict = BAR_PLOT_KW_TYPES | FINALISE_KW_TYPES
+    validate_kwargs(kwargs, kw_dict, "bar_plot_finalise")
+
+    # --- build the plot
+    bp_kwargs = {k: v for k, v in kwargs.items() if k in BAR_PLOT_KW_TYPES}
+    axes = bar_plot(data, **bp_kwargs)
+
+    # --- finalise the plot
+    fp_kwargs = {k: v for k, v in kwargs.items() if k in FINALISE_KW_TYPES}
     finalise_plot(
         axes,
         **fp_kwargs,
@@ -161,5 +184,4 @@ if __name__ == "__main__":
         xlabel=None,
         ylabel="Y-axis Label",
         rfooter="Fake quarterly data",
-        bar_legend=False,
     )

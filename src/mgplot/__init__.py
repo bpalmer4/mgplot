@@ -1,6 +1,6 @@
 """Package to provide a frontend to matplotlib."""
 
-from typing import Any
+# from typing import Any
 
 __version__ = "0.0.1"
 __author__ = "Bryan Palmer"
@@ -42,14 +42,13 @@ __all__ = (
     # --- multi_plot
     "multi_start",
     "multi_column",
-    # --- test
-    "prepare_for_test",
+    # Note: test and utilities are not public
 )
-__pdoc__: dict[str, Any] = {"test": False}  # hide submodules from documentation
+# __pdoc__: dict[str, Any] = {"test": False}  # hide submodules from documentation
 
 
 # --- local imports
-
+#     Not utilities and test have not been imported (not public)
 from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
 from mgplot.growth_plot import calc_growth, growth_plot, growth_plot_from_series
 from mgplot.bar_plot import bar_plot, bar_plot_finalise
@@ -76,4 +75,3 @@ from mgplot.settings import (
     set_chart_dir,
     clear_chart_dir,
 )
-from mgplot.test import prepare_for_test

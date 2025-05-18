@@ -162,4 +162,5 @@ if __name__ == "__main__":
         function=[multi_start, line_plot_finalise],
         title="Test Multi Column / Multi start: ",
         starts=[None, 180],
+        verbose=False,
     )
