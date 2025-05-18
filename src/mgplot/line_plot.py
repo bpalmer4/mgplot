@@ -247,6 +247,7 @@ def seas_trend_plot(data: DataFrame, **kwargs) -> None:
     widths = kwargs.pop(WIDTH, [get_setting("line_normal"), get_setting("line_wide")])
     styles = kwargs.pop(STYLE, ["-", "-"])
     annotations = kwargs.pop(ANNOTATE, [True, False])
+    rounding = kwargs.pop(ROUNDING, True)
     legend = kwargs.pop(LEGEND, True)
 
     # series breaks are common in seas-trend data
@@ -258,6 +259,7 @@ def seas_trend_plot(data: DataFrame, **kwargs) -> None:
         width=widths,
         style=styles,
         annotate=annotations,
+        rounding=rounding,
         legend=legend,
         **kwargs,
     )
