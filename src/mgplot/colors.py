@@ -114,7 +114,7 @@ def contrast(orig_color: str) -> str:
 
 
 # --- Australian state names
-_state_names = {
+_state_names: dict[str, str] = {
     "New South Wales": "NSW",
     "Victoria": "Vic",
     "Queensland": "Qld",
@@ -124,19 +124,34 @@ _state_names = {
     "Northern Territory": "NT",
     "Australian Capital Territory": "ACT",
 }
-state_names = {}
+
+# a tuple of standard state names
+state_names = tuple(_state_names.keys())
+
+# a tuple of standard state abbreviations
+state_abbrs = tuple(_state_names.values())
+
+# a map of state name to their abbreviation
+# including upper and lower case mappings
+_state_names_multi: dict[str, str] = {}
 for k, v in _state_names.items():
     # allow for fast different case matches
-    state_names[k] = v
-    state_names[k.lower()] = v
-    state_names[k.upper()] = v
-    state_names[v.lower()] = v
-    state_names[v.upper()] = v
+    _state_names_multi[k] = v
+    _state_names_multi[k.lower()] = v
+    _state_names_multi[k.upper()] = v
+    _state_names_multi[v.lower()] = v
+    _state_names_multi[v.upper()] = v
 
 
 def abbreviate_state(state: str) -> str:
     """
+    A function to abbreviate long-form state
+    names.
+
+    Arguments
+    -   state: the long-form state name.
+
     Return the abbreviation for a state name.
     """
 
-    return state_names.get(state.lower(), state)
+    return _state_names.get(state.lower(), state)

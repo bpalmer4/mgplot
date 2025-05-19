@@ -19,6 +19,7 @@ __all__ = (
     "contrast",
     "abbreviate_state",
     "state_names",
+    "state_abbrs",
     # --- finalise_plot
     "finalise_plot",
     "get_finalise_kwargs_list",
@@ -63,6 +64,7 @@ from mgplot.colors import (
     contrast,
     abbreviate_state,
     state_names,
+    state_abbrs,
 )
 from mgplot.line_plot import (
     line_plot,
