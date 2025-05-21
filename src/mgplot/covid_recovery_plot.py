@@ -41,7 +41,7 @@ def covid_recovery_plot(series: Series, **kwargs) -> None:
 
     Arguments
     - series to be plotted
-    - **kwargs - same as for finalise_plot().
+    - **kwargs - same as for line_plot() and finalise_plot().
 
     Raises:
     - TypeError if series is not a pandas Series
@@ -65,8 +65,8 @@ def covid_recovery_plot(series: Series, **kwargs) -> None:
             start_regression = Period("2014Q4", freq=freq)
             end_regression = Period("2019Q4", freq=freq)
         case "M":
-            start_regression = Period("2015-01-31", freq=freq)
-            end_regression = Period("2020-01-31", freq=freq)
+            start_regression = Period("2015-01", freq=freq)
+            end_regression = Period("2020-01", freq=freq)
         case "D":
             start_regression = Period("2015-01-01", freq=freq)
             end_regression = Period("2020-01-01", freq=freq)

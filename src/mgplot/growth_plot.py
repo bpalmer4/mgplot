@@ -18,10 +18,9 @@ from mgplot.utilities import annotate_series, validate_kwargs
 
 # --- constants
 ANNUAL = "annual"
-PWERIODIC = "periodic"
+PERIODIC = "periodic"
 
-
-GP_KWARGS: dict[str, type | tuple[type, ...]] = {
+GROWTH_KW_TYPES: dict[str, type | tuple[type, ...]] = {
     "line_width": (float, int),
     "line_color": str,
     "line_style": str,
@@ -171,7 +170,7 @@ def growth_plot(
     """
 
     # --- sanity checks
-    validate_kwargs(kwargs, GP_KWARGS, "growth_plot")
+    validate_kwargs(kwargs, GROWTH_KW_TYPES, "growth_plot")
     if not isinstance(annual, Series):
         raise TypeError("The annual argument must be a pandas Series")
     if not isinstance(periodic, Series):
@@ -239,10 +238,10 @@ def growth_plot_from_series(
         -   takes the same kwargs as for growth_plot() and finalise_plot()
     """
 
-    kwargs_expect = GP_KWARGS | FINALISE_KW_TYPES
+    kwargs_expect = GROWTH_KW_TYPES | FINALISE_KW_TYPES
     validate_kwargs(kwargs, kwargs_expect, "growth_plot_from_series")
 
-    gp_kwargs = {k: v for k, v in kwargs.items() if k in GP_KWARGS}
+    gp_kwargs = {k: v for k, v in kwargs.items() if k in GROWTH_KW_TYPES}
     annual, periodic = calc_growth(series)
     ax = growth_plot(annual, periodic, **gp_kwargs)
     fp_kwargs = {k: v for k, v in kwargs.items() if k in FINALISE_KW_TYPES}

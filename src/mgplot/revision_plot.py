@@ -10,15 +10,13 @@ import numpy as np
 
 from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
 from mgplot.utilities import annotate_series, validate_kwargs
-from mgplot.test import verbose_kwargs
+from mgplot.kw_type_checking import report_kwargs
 
 
 # --- constants
 ROUNDING = "rounding"
-VERBOSE = "verbose"
 REVISION_KW_TYPES: dict[str, type | tuple[type, ...]] = {
     ROUNDING: (int, bool),
-    VERBOSE: bool,  # special case
 }
 
 
@@ -39,9 +37,9 @@ def revision_plot(data: DataFrame, units: str, recent=18, **kwargs) -> None:
             apply int rounding.
     """
 
+    report_kwargs(kwargs, called_from="revision_plot")
     expected = REVISION_KW_TYPES | FINALISE_KW_TYPES
     validate_kwargs(kwargs, expected, "revision_plot")
-    verbose_kwargs(kwargs, called_from="revision_plot")
 
     # focis on the data we wasnt to plot
     repository = data[data.columns[::-1]].tail(recent)

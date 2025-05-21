@@ -49,7 +49,7 @@ __all__ = (
 
 
 # --- local imports
-#     Not utilities and test have not been imported (not public)
+#    Do not import the utilities, test nor type-checking modules here.
 from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
 from mgplot.growth_plot import calc_growth, growth_plot, growth_plot_from_series
 from mgplot.bar_plot import bar_plot, bar_plot_finalise

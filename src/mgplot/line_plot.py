@@ -11,8 +11,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pandas import DataFrame
 
-from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
 from mgplot.settings import DataT, get_setting
+from mgplot.kw_type_checking import report_kwargs
+from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
 from mgplot.utilities import (
     apply_defaults,
     get_color_list,
@@ -21,17 +22,11 @@ from mgplot.utilities import (
     get_axes,
     annotate_series,
 )
-from mgplot.test import prepare_for_test, verbose_kwargs
+from mgplot.test import prepare_for_test
 
 
 # --- constants
-(
-    DATA,
-    VERBOSE,
-) = (
-    "data",
-    "verbose",
-)  # special cases
+DATA = "data"
 AX = "ax"
 STYLE, WIDTH, COLOR, ALPHA = "style", "width", "color", "alpha"
 ANNOTATE = "annotate"
@@ -41,7 +36,6 @@ DROPNA = "dropna"
 DRAWSTYLE, MARKER, MARKERSIZE = "drawstyle", "marker", "markersize"
 LP_KWARGS = [
     DATA,
-    VERBOSE,
     AX,
     STYLE,
     WIDTH,
@@ -149,7 +143,7 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
     """
 
     # sanity checks
-    verbose_kwargs(kwargs, called_from="line_plot")
+    report_kwargs(kwargs, called_from="line_plot")
     report_bad_kwargs(kwargs, LP_KWARGS, called_from="line_plot")
 
     # the data to be plotted:
@@ -159,10 +153,6 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
     item_count = len(df.columns)
     num_data_points = len(df)
     swce, kwargs = _get_style_width_color_etc(item_count, num_data_points, **kwargs)
-
-    # further debugging.
-    if VERBOSE in kwargs and kwargs[VERBOSE]:
-        print(f"line_plot: {swce=}")
 
     # Let's plot
     axes, kwargs = get_axes(kwargs)  # get the axes to plot on
@@ -293,6 +283,5 @@ if __name__ == "__main__":
         markersize=[None, 5],
         legend=True,
         annotate=[True, False],
-        verbose=False,
         rounding=True,
     )

@@ -112,7 +112,7 @@ Plot the pre-COVID trajectory against the current trend.</p>
 </span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>
 </span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="sd">    Arguments</span>
 </span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">    - series to be plotted</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">    - **kwargs - same as for finalise_plot().</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">    - **kwargs - same as for line_plot() and finalise_plot().</span>
 </span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>
 </span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">    Raises:</span>
 </span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="sd">    - TypeError if series is not a pandas Series</span>
@@ -136,8 +136,8 @@ Plot the pre-COVID trajectory against the current trend.</p>
 </span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>            <span class="n">start_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2014Q4&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>            <span class="n">end_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2019Q4&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>        <span class="k">case</span> <span class="s2">&quot;M&quot;</span><span class="p">:</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>            <span class="n">start_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2015-01-31&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>            <span class="n">end_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2020-01-31&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>            <span class="n">start_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2015-01&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>            <span class="n">end_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2020-01&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
 </span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>        <span class="k">case</span> <span class="s2">&quot;D&quot;</span><span class="p">:</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>            <span class="n">start_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2015-01-01&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
 </span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>            <span class="n">end_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2020-01-01&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
@@ -259,7 +259,7 @@ period of the original series.</p>
 </span><span id="covid_recovery_plot-42"><a href="#covid_recovery_plot-42"><span class="linenos">42</span></a>
 </span><span id="covid_recovery_plot-43"><a href="#covid_recovery_plot-43"><span class="linenos">43</span></a><span class="sd">    Arguments</span>
 </span><span id="covid_recovery_plot-44"><a href="#covid_recovery_plot-44"><span class="linenos">44</span></a><span class="sd">    - series to be plotted</span>
-</span><span id="covid_recovery_plot-45"><a href="#covid_recovery_plot-45"><span class="linenos">45</span></a><span class="sd">    - **kwargs - same as for finalise_plot().</span>
+</span><span id="covid_recovery_plot-45"><a href="#covid_recovery_plot-45"><span class="linenos">45</span></a><span class="sd">    - **kwargs - same as for line_plot() and finalise_plot().</span>
 </span><span id="covid_recovery_plot-46"><a href="#covid_recovery_plot-46"><span class="linenos">46</span></a>
 </span><span id="covid_recovery_plot-47"><a href="#covid_recovery_plot-47"><span class="linenos">47</span></a><span class="sd">    Raises:</span>
 </span><span id="covid_recovery_plot-48"><a href="#covid_recovery_plot-48"><span class="linenos">48</span></a><span class="sd">    - TypeError if series is not a pandas Series</span>
@@ -283,8 +283,8 @@ period of the original series.</p>
 </span><span id="covid_recovery_plot-66"><a href="#covid_recovery_plot-66"><span class="linenos">66</span></a>            <span class="n">start_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2014Q4&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
 </span><span id="covid_recovery_plot-67"><a href="#covid_recovery_plot-67"><span class="linenos">67</span></a>            <span class="n">end_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2019Q4&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
 </span><span id="covid_recovery_plot-68"><a href="#covid_recovery_plot-68"><span class="linenos">68</span></a>        <span class="k">case</span> <span class="s2">&quot;M&quot;</span><span class="p">:</span>
-</span><span id="covid_recovery_plot-69"><a href="#covid_recovery_plot-69"><span class="linenos">69</span></a>            <span class="n">start_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2015-01-31&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
-</span><span id="covid_recovery_plot-70"><a href="#covid_recovery_plot-70"><span class="linenos">70</span></a>            <span class="n">end_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2020-01-31&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
+</span><span id="covid_recovery_plot-69"><a href="#covid_recovery_plot-69"><span class="linenos">69</span></a>            <span class="n">start_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2015-01&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
+</span><span id="covid_recovery_plot-70"><a href="#covid_recovery_plot-70"><span class="linenos">70</span></a>            <span class="n">end_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2020-01&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
 </span><span id="covid_recovery_plot-71"><a href="#covid_recovery_plot-71"><span class="linenos">71</span></a>        <span class="k">case</span> <span class="s2">&quot;D&quot;</span><span class="p">:</span>
 </span><span id="covid_recovery_plot-72"><a href="#covid_recovery_plot-72"><span class="linenos">72</span></a>            <span class="n">start_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2015-01-01&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
 </span><span id="covid_recovery_plot-73"><a href="#covid_recovery_plot-73"><span class="linenos">73</span></a>            <span class="n">end_regression</span> <span class="o">=</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2020-01-01&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
@@ -322,7 +322,7 @@ period of the original series.</p>
 
 <ul>
 <li>series to be plotted</li>
-<li>**kwargs - same as for finalise_plot().</li>
+<li>**kwargs - same as for line_plot() and finalise_plot().</li>
 </ul>
 
 <p>Raises:</p>

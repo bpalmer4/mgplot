@@ -13,7 +13,7 @@ import matplotlib.dates as mdates
 
 from mgplot.settings import get_setting
 from mgplot.utilities import validate_kwargs
-from mgplot.test import verbose_kwargs
+from mgplot.kw_type_checking import report_kwargs
 
 
 # --- constants
@@ -295,7 +295,7 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
     """
 
     validate_kwargs(kwargs, FINALISE_KW_TYPES, "finalise_plot")
-    verbose_kwargs(kwargs, called_from="finalise_plot")
+    report_kwargs(kwargs, called_from="finalise_plot")
 
     # margins
     # axes.use_sticky_margins = False   ### CHECK THIS
