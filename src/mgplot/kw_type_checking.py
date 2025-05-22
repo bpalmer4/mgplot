@@ -68,9 +68,15 @@ Limitations:
 """
 
 # --- imports
-from typing import Any, Final
+from typing import Any, Final, Union, Optional
+from typing import Sequence as TypingSequence
+from typing import Set as TypingSet
+from typing import Iterable as TypingIterable
+from typing import Mapping as TypingMapping
+
 from collections.abc import Sequence, Set  # Iterable and Sized
 from collections.abc import Mapping
+from collections.abc import Iterable, Sized, Container, Callable, Generator, Iterator
 
 import textwrap
 
@@ -118,7 +124,7 @@ def limit_kwargs(
     Limit the keyword arguments to those in the expected dict.
     """
 
-    return {k: v for k, v in kwargs.items() if k in expected}
+    return {k: v for k, v in kwargs.items() if k in expected or k == REPORT_KWARGS}
 
 
 # === Keyword expectation validation ===
@@ -236,22 +242,51 @@ def validate_expected(
 ) -> None:
     """
     Check the expected types dictionary is properly formed.
+    This function should be used on all the expected types
+    dictionaries in the module.
+
+    It is not intended to be used by the user.
+
+    This function raises an ValueError exception if the expected
+    types dictionary is malformed.
     """
 
-    def flatten(t: type | NestedTypeTuple) -> list[type]:
-        """check that the values are all types or tuples of types."""
-        pile = []
-        if isinstance(t, type):
-            pile.append(t)
+    def check_members(key: str, t: type | NestedTypeTuple) -> str:
+        """
+        Recursively check each element of the NestedTypeTuple.
+        to ensure it is a type or a tuple of types. Returns a string
+        description of any problems found.
+        """
+
+        problems = ""
+        # --- start with the things that are types
+        if t in (Iterable, Sized, Container, Callable, Generator, Iterator):
+            # note: these collections.abc types *are* types
+            problems += f"{key}: the collections.abc type {t} in {called_from} is unsupported.\n"
+        elif t in (Any,):
+            # Any is also an instance of type
+            problems += f"{key}: please use 'object' rather than 'typing.Any'.\n"
+        elif isinstance(t, type):
+            pass  # Fantastic!
+        # --- then the things that are not types
         elif isinstance(t, tuple):
             for element in t:
-                if isinstance(element, type):
-                    pile.append(element)
-                elif isinstance(element, tuple):
-                    pile.extend(flatten(element))
-                else:
-                    raise ValueError(f"Unexpected element '{element}' in {t}.")
-        return pile
+                problems += check_members(key, element)
+        elif t in (
+            # note: these typing types *are not* types
+            TypingSequence,
+            TypingSet,
+            TypingMapping,
+            TypingIterable,
+            Union,
+            Optional,
+        ):
+            problems += (
+                f"{key}: Only use the collection.abc types: {t} in {called_from}.\n"
+            )
+        else:
+            problems += f"{key}: Malformed typing '{t}' in {called_from}.\n"
+        return problems
 
     if DEBUG:
         print("==========================================")
@@ -262,12 +297,15 @@ def validate_expected(
         if not isinstance(key, str):
             problems += f"Key '{key}' is not a string - {called_from=}.\n"
             continue
-        _flattened = flatten(value)
+        problems += check_members(key, value)
         if not _check_expectations(value, top_level=True):
-            problems += f"Unexpected value '{value}' for '{key}' - {called_from=}.\n"
+            problems += f"{key}: Malformed '{value}' in {called_from}.\n"
     if problems:
         # Other than testing, we want to raise an exception here
-        statement = f"Expected types validation failed:\n{problems}"
+        statement = (
+            "Expected types validation failed "
+            + f"(this is an internal package error):\n{problems}"
+        )
         if not module_testing:
             raise ValueError(statement)
         print(statement)
@@ -371,17 +409,17 @@ def validate_kwargs(
             # This is a special case - and always okay if the value is boolean
             continue
         if key not in expected:
-            problems += f"Unexpected keyword argument '{key}' in {called_from}.\n"
+            problems += f"{key}: unexpected keyword argument in {called_from}.\n"
             continue
         if not _type_check_kwargs(value, expected[key]):
             problems += (
-                f"Keyword argument '{key}' with {value=} had unexpected type "
+                f"{key}: with {value=} had the type "
                 f"'{type(value)}' in {called_from}. Expected: {expected[key]}\n"
             )
 
     if problems:
         # don't raise an exception - just warn instead
-        statement = f"Keyword argument validation failed:\n{problems}"
+        statement = f"Keyword argument validation issues:\n{problems}"
         print(statement)
 
 
@@ -415,6 +453,11 @@ if __name__ == "__main__":
         "bad5": (list, float),
         "bad6": ((list, tuple), (int, float)),
         "bad7": (dict, (str, int), (int, float)),
+        "bad8": (TypingSequence, (int, float)),
+        # "bad9": (list, [int, float]),  # pylint: disable=dict-item
+        "bad10": (dict, (str,)),
+        "bad11": (Iterable, (int, float)),
+        # "bad12": Any,  # pylint: disable=unreachable
     }
     validate_expected(expected_gb, "testing")
 
