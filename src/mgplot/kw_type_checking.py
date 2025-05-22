@@ -1,5 +1,10 @@
 """
 kw_type_checking.py
+- report_kwargs()
+- validate_kwargs()
+- validate_expected()
+- limit_kwargs()
+
 
 Private functions used for validating the arguments passed
 to our major functions as **kwargs keyword arguments.  This
@@ -15,9 +20,9 @@ following types:
 - Sets (such as set, frozenset)
 - Mappings (such as dict)
 
-Note: this means some Python types are only partially supported,
-such as: generators, iterators, and coroutines.  It also means that
-complex types (such as a list of dictionaries) are not fully supported.
+Note: this means some Python types are only partially supported.
+Others are unsupported, such as: generators, iterators, and
+coroutines.
 
 In  order to check the **kwargs dictionary, we need to construct
 a dictionary of expected keywords and their expected types.
@@ -57,6 +62,8 @@ Limitations:
 - strings, bytearrays, bytes are treated as simple types, not Sequences.
 - You cannot use generators or iterators as types, they would be
     consumed in the testing.
+- Sequence, Set and Mapping must be imported from collections.abc
+    and not from the typing module.
 """
 
 # --- imports
@@ -72,7 +79,6 @@ type NestedTypeTuple = tuple[type | NestedTypeTuple, ...]  # recursive type
 type ExpectedTypeDict = dict[str, type | NestedTypeTuple]
 
 NOT_SEQUENCE: Final[tuple[type, ...]] = (str, bytearray, bytes, memoryview)
-print(type(NOT_SEQUENCE))
 REPORT_KWARGS: Final[str] = "report_kwargs"  # special case
 
 DEBUG: Final[bool] = False  # debugging flag
@@ -98,6 +104,20 @@ def report_kwargs(
     if kwargs.get(REPORT_KWARGS, False):
         wrapped = textwrap.fill(str(kwargs), width=79)
         print(f"{called_from} kwargs:\n{wrapped}\n".strip())
+
+
+# === limit kwargs to those in an approved list
+
+
+def limit_kwargs(
+    kwargs: dict[str, Any],
+    expected: ExpectedTypeDict,
+) -> dict[str, Any]:
+    """
+    Limit the keyword arguments to those in the expected dict.
+    """
+
+    return {k: v for k, v in kwargs.items() if k in expected}
 
 
 # === Keyword expectation validation ===
@@ -209,10 +229,28 @@ def _check_expectations(
     return False
 
 
-def validate_expected(expected: ExpectedTypeDict) -> None:
+def validate_expected(
+    expected: ExpectedTypeDict,
+    called_from: str,
+) -> None:
     """
     Check the expected types dictionary is properly formed.
     """
+
+    def flatten(t: type | NestedTypeTuple) -> list[type]:
+        """check that the values are all types or tuples of types."""
+        pile = []
+        if isinstance(t, type):
+            pile.append(t)
+        elif isinstance(t, tuple):
+            for element in t:
+                if isinstance(element, type):
+                    pile.append(element)
+                elif isinstance(element, tuple):
+                    pile.extend(flatten(element))
+                else:
+                    raise ValueError(f"Unexpected element '{element}' in {t}.")
+        return pile
 
     if DEBUG:
         print("==========================================")
@@ -221,9 +259,10 @@ def validate_expected(expected: ExpectedTypeDict) -> None:
         if DEBUG:
             print(f"VE ======> {key=} {value=}")
         if not isinstance(key, str):
-            problems += f"Key '{key}' is not a string.\n"
+            problems += f"Key '{key}' is not a string - {called_from=}.\n"
+        _flattened = flatten(value)
         if not _check_expectations(value, top_level=True):
-            problems += f"Unexpected value '{value}' for '{key}'.\n"
+            problems += f"Unexpected value '{value}' for '{key}' - {called_from=}.\n"
     if problems:
         # Other than testing, we want to raise an exception here
         statement = f"Expected types validation failed:\n{problems}"
@@ -232,11 +271,61 @@ def validate_expected(expected: ExpectedTypeDict) -> None:
         print(statement)
 
 
-# === keyword validation ===
+# === keyword validation: (1) expected, (2) of the right type ===
 
 
-def _check_tuple(*args, **kwargs):
-    "to do"
+def _check_tuple(
+    value: Any,
+    typeinfo: NestedTypeTuple,  # we know this is a tuple
+) -> bool:
+    """
+    Check the value against the expected tuple type.
+    """
+
+    if DEBUG:
+        print(f"---- Tuple checking {value=} against {typeinfo=}")
+
+    check_sequence = check_mapping = False
+    for thistype in typeinfo:
+
+        if check_mapping or check_sequence:  # the guard-rail
+            if not isinstance(thistype, tuple):
+                if DEBUG:
+                    print(
+                        f"Internal error: Expected a tuple, got '{thistype}' in {typeinfo}."
+                    )
+                return False
+
+        if check_sequence and isinstance(thistype, tuple):
+            for v in value:
+                check = _type_check_kwargs(v, thistype)
+                if not check:
+                    check_sequence = False
+                    continue
+            return True
+
+        if check_mapping and isinstance(thistype, tuple):
+            for k, v in value.items():
+                check = _type_check_kwargs(k, thistype[0]) and _type_check_kwargs(
+                    v, thistype[1]
+                )
+                if not check:
+                    check_mapping = False
+                    continue
+            return True
+
+        if isinstance(thistype, type) and isinstance(value, thistype):
+            if thistype in NOT_SEQUENCE:
+                return True
+            if issubclass(thistype, (Sequence, Set)):
+                check_sequence = True
+                continue
+            if issubclass(thistype, Mapping):
+                check_mapping = True
+                continue
+            return True
+
+    return False
 
 
 def _type_check_kwargs(
@@ -273,9 +362,12 @@ def validate_kwargs(
     problems = ""
     for key, value in kwargs.items():
         if DEBUG:
-            print(f"VKW =====> {key=} {value=}")
+            print(
+                f"VKW =====> About to validate {key=} {value=} expected={expected.get(key, '')}"
+            )
         if key not in expected:
             problems += f"Unexpected keyword argument '{key}' in {called_from}.\n"
+            continue
         if not _type_check_kwargs(value, expected[key]):
             problems += (
                 f"Keyword argument '{key}' with {value=} had unexpected type "
@@ -309,6 +401,7 @@ if __name__ == "__main__":
         "good11": (dict, ((str, int), (int, float))),
         "good12": (list, (dict, ((str, int), (list, (complex,))))),
         "good13": (Sequence, (int, float), Set, (int, float)),
+        "good14": (Sequence, (str,)),
         # - these ones should fail
         "bad1": list,
         "bad2": (int, (str, bool)),
@@ -318,7 +411,7 @@ if __name__ == "__main__":
         "bad6": ((list, tuple), (int, float)),
         "bad7": (dict, (str, int), (int, float)),
     }
-    validate_expected(expected_gb)
+    validate_expected(expected_gb, "testing")
 
     # --- test the validate_kwargs() function
     # bad means the KWARGS are not of the expected type
@@ -328,18 +421,21 @@ if __name__ == "__main__":
         "good_1": "hello",
         "good_2": [1, 2, 3],
         "good_3": (),
+        "good_4": ["fred", "bill", "janice"],
         # - these ones should fail
+        "missing": "hello",
         "bad_1": 3.14,
         "bad_2": (3, 4),
     }
 
     expected_kw: ExpectedTypeDict = {
         "good_1": str,
-        "good_2": (list, (int, float)),
+        "good_2": (Sequence, (int, float), int, float),
         "good_3": (int, float, Sequence, (int, float)),
+        "good_4": (Sequence, (str,)),
         "bad_1": str,
         "bad_2": (int, float),
     }
 
-    # validate_expected(expected_kw)
-    # validate_kwargs(kwargs_test, expected_kw, "test")
+    validate_expected(expected_kw, "test")
+    validate_kwargs(kwargs_test, expected_kw, "test")

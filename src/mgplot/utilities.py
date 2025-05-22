@@ -133,57 +133,20 @@ def annotate_series(
 # ---- kwargs management
 
 
-def report_bad_kwargs(
-    kwargs: dict[str, Any],
-    kwarg_list: list[str] | tuple[str] | set[str] | frozenset[str],
-    called_from: str = "",
-) -> None:
-    """Report any bad keyword arguments passed to a function."""
-
-    called_from = f"{called_from} " if called_from else ""
-
-    bad_kwargs = [k for k in kwargs if k not in kwarg_list]
-    if bad_kwargs:
-        print(
-            f"Warning: {called_from}" + f"got unknown keyword arguments: {bad_kwargs}"
-        )
-
-
-def get_good_kwargs(
-    kwargs: dict[str, Any],
-    kwarg_list: list[str] | tuple[str] | set[str] | frozenset[str],
-) -> dict[str, Any]:
-    """Select only the good keyword arguments for a function."""
-
-    return {k: v for k, v in kwargs.items() if k in kwarg_list}
-
-
-def validate_kwargs(
-    kwargs: dict[str, Any],
-    expectations: (
-        list[str]
-        | tuple[str]
-        | set[str]
-        | frozenset[str]
-        | dict[str, type | tuple[type, ...]]
-    ),
-    called_from: str = "",
-) -> None:
-    """Check for bad keyword arguments passed to a function.
-    Also check the types of the arguments. Produce warnings if
-    any problems are detected."""
-
-    called_from = f"{called_from} " if called_from else ""
-    for k, v in kwargs.items():
-        if k not in expectations:
-            print(f"Warning: {called_from}got unknown keyword argument: {k}")
-
-        if isinstance(expectations, dict) and k in expectations:
-            if not isinstance(v, expectations[k]):
-                print(
-                    f"Warning: {called_from}argument {k} is of type {type(v)}, "
-                    f"expected {expectations[k]}"
-                )
+# def report_bad_kwargs(
+#    kwargs: dict[str, Any],
+#    kwarg_list: list[str] | tuple[str] | set[str] | frozenset[str],
+#    called_from: str = "",
+# ) -> None:
+#    """Report any bad keyword arguments passed to a function."""#
+#
+#    called_from = f"{called_from} " if called_from else ""
+#
+#    bad_kwargs = [k for k in kwargs if k not in kwarg_list]
+#    if bad_kwargs:
+#        print(
+#            f"Warning: {called_from}" + f"got unknown keyword arguments: {bad_kwargs}"
+#        )
 
 
 # --- test code
@@ -203,13 +166,3 @@ if __name__ == "__main__":
     for r in rounding_:
         annotate_series(series_, axes_, rounding=r, test=True)
     print("Done")
-
-    # --- test validate_kwargs()
-    kw = {"arg1": 1, "arg2": "two", "arg3": 3.0, "bad": "bad"}
-    expect: dict[str, type | tuple[type, ...]] = {
-        "arg1": (int, float, type(None)),
-        "arg2": str,
-        "arg3": (int, float),
-        "bad": (int, float),
-    }
-    validate_kwargs(kw, expect, "test")

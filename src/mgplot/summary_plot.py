@@ -8,6 +8,8 @@ The data is normalised to z-scores and scaled.
 # system imports
 from typing import Any
 
+# from collections.abc import Sequence
+
 # analytic third-party imports
 from numpy import ndarray, array
 from matplotlib.pyplot import Axes, subplots
@@ -15,19 +17,24 @@ from pandas import DataFrame, Period, PeriodIndex, read_csv
 
 # local imports
 from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
-from mgplot.utilities import validate_kwargs
 from mgplot.test import prepare_for_test
-from mgplot.kw_type_checking import report_kwargs
+from mgplot.kw_type_checking import (
+    report_kwargs,
+    ExpectedTypeDict,
+    validate_expected,
+    validate_kwargs,
+)
 
 # --- constants
 ZSCORES = "zscores"
 ZSCALED = "zscaled"
 
-SUMMARY_KW_TYPES: dict[str, type | tuple[type, ...]] = {
+SUMMARY_KW_TYPES: ExpectedTypeDict = {
     "verbose": bool,
     "middle": float,
-    "plot_types": (list, tuple),
+    "plot_types": (list, (str,)),
 }
+validate_expected(SUMMARY_KW_TYPES, "summary_plot")
 
 
 # --- functions

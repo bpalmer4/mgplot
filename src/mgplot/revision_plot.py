@@ -9,7 +9,8 @@ import numpy as np
 
 
 from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
-from mgplot.utilities import annotate_series, validate_kwargs
+from mgplot.utilities import annotate_series
+from mgplot.kw_type_checking import validate_kwargs
 from mgplot.kw_type_checking import report_kwargs
 
 

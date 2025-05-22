@@ -5,20 +5,24 @@ Plot a series or a dataframe with lines.
 
 # --- imports
 from typing import Any
-
+from collections.abc import Sequence
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from pandas import DataFrame
 
 from mgplot.settings import DataT, get_setting
-from mgplot.kw_type_checking import report_kwargs
-from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
+from mgplot.kw_type_checking import (
+    report_kwargs,
+    validate_kwargs,
+    validate_expected,
+    ExpectedTypeDict,
+    limit_kwargs,
+)
+from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
 from mgplot.utilities import (
     apply_defaults,
     get_color_list,
-    report_bad_kwargs,
-    get_good_kwargs,
     get_axes,
     annotate_series,
 )
@@ -49,7 +53,22 @@ LP_KWARGS = [
     ROUNDING,
 ]
 
-LEGEND = "legend"  # Note: LEGEND is not in LP_KWARGS
+LP_KW_TYPES: ExpectedTypeDict = {
+    STYLE: (Sequence, (str,), str),
+    WIDTH: (Sequence, (float, int), float, int),
+    COLOR: (Sequence, (str,), str),
+    ALPHA: (Sequence, (float,), float),
+    DRAWSTYLE: (Sequence, (str,), str, type(None)),
+    MARKER: (Sequence, (str,), str, type(None)),
+    MARKERSIZE: (Sequence, (float, int), float, int, type(None)),
+    DROPNA: (Sequence, (bool,), bool),
+    ANNOTATE: (Sequence, (bool,), bool),
+    ROUNDING: (Sequence, (bool, int), int, bool, type(None)),
+    FONTSIZE: (Sequence, (str, int), str, int, type(None)),
+}
+validate_expected(LP_KW_TYPES, "line_plot")
+
+LEGEND = "legend"
 
 
 # --- functions
@@ -81,7 +100,7 @@ def _get_style_width_color_etc(
         FONTSIZE: "small",
     }
 
-    expected_types: dict[str, type | tuple[type, ...]] = {
+    expected_types: ExpectedTypeDict = {
         STYLE: str,
         WIDTH: (float, int),
         COLOR: str,
@@ -144,7 +163,7 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
 
     # sanity checks
     report_kwargs(kwargs, called_from="line_plot")
-    report_bad_kwargs(kwargs, LP_KWARGS, called_from="line_plot")
+    validate_kwargs(kwargs, LP_KW_TYPES, called_from="line_plot")
 
     # the data to be plotted:
     df = DataFrame(data)  # really we are only plotting DataFrames
@@ -200,19 +219,19 @@ def line_plot_finalise(data: DataT, **kwargs) -> None:
     """
 
     # sanity checks
-    kw_list = LP_KWARGS + get_finalise_kwargs_list()
-    report_bad_kwargs(kwargs, kw_list, "line_plot_finalise")
+    kw_dict = LP_KW_TYPES | FINALISE_KW_TYPES
+    validate_kwargs(kwargs, kw_dict, "line_plot_finalise")
 
     # if multi-column, assume we want a legend
     if isinstance(data, pd.DataFrame) and len(data.columns) > 1:
         kwargs[LEGEND] = kwargs.get(LEGEND, get_setting("legend"))
 
     # plot the data
-    lp_kwargs = get_good_kwargs(kwargs, LP_KWARGS)
+    lp_kwargs = limit_kwargs(kwargs, LP_KW_TYPES)
     axes = line_plot(data, **lp_kwargs)
 
     # finalise the plot
-    fp_kwargs = get_good_kwargs(kwargs, get_finalise_kwargs_list())
+    fp_kwargs = limit_kwargs(kwargs, FINALISE_KW_TYPES)
     finalise_plot(axes, **fp_kwargs)
 
 

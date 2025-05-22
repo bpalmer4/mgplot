@@ -13,14 +13,15 @@ from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
 from mgplot.test import prepare_for_test
 from mgplot.settings import get_setting
 from mgplot.date_utils import set_labels
-from mgplot.utilities import annotate_series, validate_kwargs
+from mgplot.utilities import annotate_series
+from mgplot.kw_type_checking import validate_kwargs, ExpectedTypeDict
 
 
 # --- constants
 ANNUAL = "annual"
 PERIODIC = "periodic"
 
-GROWTH_KW_TYPES: dict[str, type | tuple[type, ...]] = {
+GROWTH_KW_TYPES: ExpectedTypeDict = {
     "line_width": (float, int),
     "line_color": str,
     "line_style": str,

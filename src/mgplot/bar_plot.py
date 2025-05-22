@@ -16,13 +16,14 @@ from matplotlib.pyplot import Axes
 
 from mgplot.settings import DataT, get_setting
 from mgplot.test import prepare_for_test
-from mgplot.utilities import apply_defaults, get_color_list, get_axes, validate_kwargs
+from mgplot.utilities import apply_defaults, get_color_list, get_axes
+from mgplot.kw_type_checking import validate_kwargs, ExpectedTypeDict
 from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
 from mgplot.date_utils import set_labels
 
 
 # --- constants
-BAR_PLOT_KW_TYPES: dict[str, type | tuple[type, ...]] = {
+BAR_PLOT_KW_TYPES: ExpectedTypeDict = {
     "color": list,
     "width": float,
     "stacked": bool,

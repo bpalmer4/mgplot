@@ -22,7 +22,6 @@ __all__ = (
     "state_abbrs",
     # --- finalise_plot
     "finalise_plot",
-    "get_finalise_kwargs_list",
     # --- line_plot
     "line_plot",
     "line_plot_finalise",
@@ -43,6 +42,8 @@ __all__ = (
     # --- multi_plot
     "multi_start",
     "multi_column",
+    # --- run_highlight_plot
+    "run_highlight_plot",
     # Note: test and utilities are not public
 )
 # __pdoc__: dict[str, Any] = {"test": False}  # hide submodules from documentation
@@ -50,13 +51,14 @@ __all__ = (
 
 # --- local imports
 #    Do not import the utilities, test nor type-checking modules here.
-from mgplot.finalise_plot import finalise_plot, get_finalise_kwargs_list
+from mgplot.finalise_plot import finalise_plot
 from mgplot.growth_plot import calc_growth, growth_plot, growth_plot_from_series
 from mgplot.bar_plot import bar_plot, bar_plot_finalise
 from mgplot.summary_plot import summary_plot
 from mgplot.revision_plot import revision_plot
 from mgplot.covid_recovery_plot import covid_recovery_plot
 from mgplot.multi_plot import multi_start, multi_column
+from mgplot.run_highlight_plot import run_highlight_plot
 from mgplot.colors import (
     get_color,
     get_party_palette,

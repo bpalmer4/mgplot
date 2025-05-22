@@ -5,6 +5,7 @@ file system. It is used to publish plots.
 """
 
 # --- imports
+# from typing import Any
 import re
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -12,8 +13,13 @@ from matplotlib.pyplot import Axes, Figure
 import matplotlib.dates as mdates
 
 from mgplot.settings import get_setting
-from mgplot.utilities import validate_kwargs
-from mgplot.kw_type_checking import report_kwargs
+from mgplot.kw_type_checking import (
+    report_kwargs,
+    validate_expected,
+    ExpectedTypeDict,
+    #    limit_kwargs,
+    validate_kwargs,
+)
 
 
 # --- constants
@@ -49,21 +55,21 @@ _ACCEPTABLE_KWARGS = frozenset(
     + _oth_kwargs
 )
 
-FINALISE_KW_TYPES: dict[str, type | tuple[type, ...]] = {
+FINALISE_KW_TYPES: ExpectedTypeDict = {
     # - value kwargs
     "title": (str, type(None)),
     "xlabel": (str, type(None)),
     "ylabel": (str, type(None)),
-    "ylim": (tuple, type(None)),
-    "xlim": (tuple, type(None)),
+    "ylim": (tuple, (float, int), type(None)),
+    "xlim": (tuple, (float, int), type(None)),
     "yscale": (str, type(None)),
     "xscale": (str, type(None)),
     # - splat kwargs
-    "legend": (bool, dict, type(None)),
-    "axhspan": (dict, type(None)),
-    "axvspan": (dict, type(None)),
-    "axhline": (dict, type(None)),
-    "axvline": (dict, type(None)),
+    "legend": (dict, (str, (int, float, str)), bool, type(None)),
+    "axhspan": (dict, (str, (int, float, str)), type(None)),
+    "axvspan": (dict, (str, (int, float, str)), type(None)),
+    "axhline": (dict, (str, (int, float, str)), type(None)),
+    "axvline": (dict, (str, (int, float, str)), type(None)),
     # - file kwargs
     "pre_tag": str,
     "tag": str,
@@ -71,7 +77,7 @@ FINALISE_KW_TYPES: dict[str, type | tuple[type, ...]] = {
     "file_type": str,
     "dpi": int,
     # - fig kwargs
-    "figsize": tuple,
+    "figsize": (tuple, (float, int)),
     "show": bool,
     # - annotation kwargs
     "lfooter": str,
@@ -87,6 +93,7 @@ FINALISE_KW_TYPES: dict[str, type | tuple[type, ...]] = {
     "concise_dates": bool,
     "verbose": bool,  # special case for testing
 }
+validate_expected(FINALISE_KW_TYPES, "finalise_plot")
 
 
 def _internal_consistency_kwargs():
@@ -242,14 +249,6 @@ def _save_to_file(fig: Figure, **kwargs) -> None:
 
 
 # - public functions for finalise_plot()
-
-
-def get_finalise_kwargs_list() -> list[str]:
-    """
-    Return a list of possible kwargs for finalise_plot().
-    """
-
-    return list(_ACCEPTABLE_KWARGS)
 
 
 def finalise_plot(axes: Axes, **kwargs) -> None:
