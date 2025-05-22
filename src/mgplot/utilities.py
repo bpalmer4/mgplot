@@ -130,25 +130,6 @@ def annotate_series(
     )
 
 
-# ---- kwargs management
-
-
-# def report_bad_kwargs(
-#    kwargs: dict[str, Any],
-#    kwarg_list: list[str] | tuple[str] | set[str] | frozenset[str],
-#    called_from: str = "",
-# ) -> None:
-#    """Report any bad keyword arguments passed to a function."""#
-#
-#    called_from = f"{called_from} " if called_from else ""
-#
-#    bad_kwargs = [k for k in kwargs if k not in kwarg_list]
-#    if bad_kwargs:
-#        print(
-#            f"Warning: {called_from}" + f"got unknown keyword arguments: {bad_kwargs}"
-#        )
-
-
 # --- test code
 if __name__ == "__main__":
 

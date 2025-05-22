@@ -38,31 +38,18 @@ ROUNDING = "rounding"
 FONTSIZE = "fontsize"
 DROPNA = "dropna"
 DRAWSTYLE, MARKER, MARKERSIZE = "drawstyle", "marker", "markersize"
-LP_KWARGS = [
-    DATA,
-    AX,
-    STYLE,
-    WIDTH,
-    COLOR,
-    ALPHA,
-    DRAWSTYLE,
-    MARKER,
-    MARKERSIZE,
-    DROPNA,
-    ANNOTATE,
-    ROUNDING,
-]
 
 LP_KW_TYPES: ExpectedTypeDict = {
-    STYLE: (Sequence, (str,), str),
-    WIDTH: (Sequence, (float, int), float, int),
-    COLOR: (Sequence, (str,), str),
-    ALPHA: (Sequence, (float,), float),
-    DRAWSTYLE: (Sequence, (str,), str, type(None)),
-    MARKER: (Sequence, (str,), str, type(None)),
-    MARKERSIZE: (Sequence, (float, int), float, int, type(None)),
-    DROPNA: (Sequence, (bool,), bool),
-    ANNOTATE: (Sequence, (bool,), bool),
+    AX: (plt.Axes, type(None)),
+    STYLE: (str, Sequence, (str,)),
+    WIDTH: (float, int, Sequence, (float, int)),
+    COLOR: (str, Sequence, (str,)),
+    ALPHA: (float, Sequence, (float,)),
+    DRAWSTYLE: (str, Sequence, (str,), type(None)),
+    MARKER: (str, Sequence, (str,), type(None)),
+    MARKERSIZE: (float, Sequence, (float,), int, type(None)),
+    DROPNA: (bool, Sequence, (bool,)),
+    ANNOTATE: (bool, Sequence, (bool,)),
     ROUNDING: (Sequence, (bool, int), int, bool, type(None)),
     FONTSIZE: (Sequence, (str, int), str, int, type(None)),
 }
@@ -221,6 +208,7 @@ def line_plot_finalise(data: DataT, **kwargs) -> None:
     # sanity checks
     kw_dict = LP_KW_TYPES | FINALISE_KW_TYPES
     validate_kwargs(kwargs, kw_dict, "line_plot_finalise")
+    report_kwargs(kwargs, called_from="line_plot_finalise")
 
     # if multi-column, assume we want a legend
     if isinstance(data, pd.DataFrame) and len(data.columns) > 1:

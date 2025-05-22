@@ -5,9 +5,8 @@ kw_type_checking.py
 - validate_expected()
 - limit_kwargs()
 
-
 Private functions used for validating the arguments passed
-to our major functions as **kwargs keyword arguments.  This
+to the major functions as **kwargs keyword arguments.  This
 allows us to warn when an unexpected argument appears or
 when the value is not of the expected type.
 
@@ -16,7 +15,8 @@ This module is not intended to be used directly by the user.
 The assumption is that most keyword arguments are one of the
 following types:
 - simple types (such as str, int, float, bool, complex, NoneType)
-- Sequences (such as list, tuple, but excluding strings!)
+- Sequences (such as list, tuple, but excluding strings, and without
+  being infinitely recursive, like a list of lists of lists ...)
 - Sets (such as set, frozenset)
 - Mappings (such as dict)
 
@@ -63,7 +63,8 @@ Limitations:
 - You cannot use generators or iterators as types, they would be
     consumed in the testing.
 - Sequence, Set and Mapping must be imported from collections.abc
-    and not from the typing module.
+    and not from the older typing module. A world of pain awaits
+    if you do.
 """
 
 # --- imports
@@ -260,6 +261,7 @@ def validate_expected(
             print(f"VE ======> {key=} {value=}")
         if not isinstance(key, str):
             problems += f"Key '{key}' is not a string - {called_from=}.\n"
+            continue
         _flattened = flatten(value)
         if not _check_expectations(value, top_level=True):
             problems += f"Unexpected value '{value}' for '{key}' - {called_from=}.\n"
@@ -271,7 +273,7 @@ def validate_expected(
         print(statement)
 
 
-# === keyword validation: (1) expected, (2) of the right type ===
+# === keyword validation: (1) if expected, (2) of the right type ===
 
 
 def _check_tuple(
@@ -365,6 +367,9 @@ def validate_kwargs(
             print(
                 f"VKW =====> About to validate {key=} {value=} expected={expected.get(key, '')}"
             )
+        if key == REPORT_KWARGS and (value is True or value is False):
+            # This is a special case - and always okay if the value is boolean
+            continue
         if key not in expected:
             problems += f"Unexpected keyword argument '{key}' in {called_from}.\n"
             continue
@@ -375,7 +380,7 @@ def validate_kwargs(
             )
 
     if problems:
-        # don't raise an exception - warn instead
+        # don't raise an exception - just warn instead
         statement = f"Keyword argument validation failed:\n{problems}"
         print(statement)
 
@@ -422,6 +427,7 @@ if __name__ == "__main__":
         "good_2": [1, 2, 3],
         "good_3": (),
         "good_4": ["fred", "bill", "janice"],
+        "report_kwargs": True,  # special case
         # - these ones should fail
         "missing": "hello",
         "bad_1": 3.14,
