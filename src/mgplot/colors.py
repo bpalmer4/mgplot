@@ -2,6 +2,7 @@
 colors.py
 This module provides a set of color palettes and functions to generate colors
 for Australian states and territories and major political parties.
+It also provides Australian state names and their abbreviations.
 """
 
 # --- Imports
@@ -16,16 +17,17 @@ def get_party_palette(party_text: str) -> str:
     """
 
     # Note: light to dark maps work best
-    if "alp" in party_text.lower():
-        return "Reds"
-    if "l/np" in party_text.lower():
-        return "Blues"
-    if "grn" in party_text.lower():
-        return "Greens"
-    if "oth" in party_text.lower():
-        return "YlOrBr"
-    if "onp" in party_text.lower():
-        return "YlGnBu"
+    match party_text.lower():
+        case ("alp" | "labor"):
+            return "Reds"
+        case ("l/np" | "coalition"):
+            return "Blues"
+        case ("grn" | "green" | "greens"):
+            return "Greens"
+        case ("oth" | "other"):
+            return "YlOrBr"
+        case ("onp" | "one nation"):
+            return "YlGnBu"
     return "Purples"
 
 
@@ -136,11 +138,9 @@ state_abbrs = tuple(_state_names.values())
 _state_names_multi: dict[str, str] = {}
 for k, v in _state_names.items():
     # allow for fast different case matches
-    _state_names_multi[k] = v
     _state_names_multi[k.lower()] = v
-    _state_names_multi[k.upper()] = v
+    _state_names_multi[k.lower()] = v
     _state_names_multi[v.lower()] = v
-    _state_names_multi[v.upper()] = v
 
 
 def abbreviate_state(state: str) -> str:
@@ -154,4 +154,30 @@ def abbreviate_state(state: str) -> str:
     Return the abbreviation for a state name.
     """
 
-    return _state_names.get(state.lower(), state)
+    return _state_names_multi.get(state.lower(), state)
+
+
+# --- test code
+if __name__ == "__main__":
+    # Test the color functions
+    check = ["Western Australia", "L/NP", "ALP", "Greens", "Dissatisfied", "Ley"]
+    for party in check:
+        print(f"{party} -> {get_color(party)}")
+
+    # Test the party palette function
+    print()
+    check = ["ALP", "L/NP", "Greens"]
+    for party in check:
+        print(f"{party} -> {get_party_palette(party)}")
+
+    # Test the abbreviate_state function
+    print()
+    check = [
+        "New South Wales",
+        "Victoria",
+        "victoria",
+        "VICTORIA",
+        "VIC",
+    ]
+    for state_ in check:
+        print(f"{state_} -> {abbreviate_state(state_)}")

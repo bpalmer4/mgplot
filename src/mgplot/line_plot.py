@@ -68,7 +68,7 @@ def _get_style_width_color_etc(
     a modified kwargs dictionary.
     """
 
-    data_point_thresh = 24
+    data_point_thresh = 151
     defaults: dict[str, Any] = {
         STYLE: "-",
         WIDTH: (
@@ -87,35 +87,7 @@ def _get_style_width_color_etc(
         FONTSIZE: "small",
     }
 
-    expected_types: ExpectedTypeDict = {
-        STYLE: str,
-        WIDTH: (float, int),
-        COLOR: str,
-        ALPHA: float,
-        DRAWSTYLE: (str, type(None)),
-        MARKER: (str, type(None)),
-        MARKERSIZE: (float, int, type(None)),
-        DROPNA: bool,
-        ANNOTATE: bool,
-        ROUNDING: (int, bool, type(None)),
-        FONTSIZE: (str, int, type(None)),
-    }
-    assert len(expected_types) == len(
-        defaults
-    ), "expected_types and defaults must match"
-
-    swce, kwargs = apply_defaults(item_count, defaults, kwargs)
-
-    # check the types of the arguments being passed
-    for key, value_list in swce.items():
-        for i, value in enumerate(value_list):
-            if not isinstance(value, expected_types[key]):
-                print(
-                    f"Warning: Expected {expected_types[key]} for {key}, "
-                    f"but got {type(value)} at index {i}"
-                )
-
-    return swce, kwargs
+    return apply_defaults(item_count, defaults, kwargs)
 
 
 def line_plot(data: DataT, **kwargs) -> plt.Axes:
