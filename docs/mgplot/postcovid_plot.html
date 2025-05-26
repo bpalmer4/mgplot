@@ -161,11 +161,12 @@ Plot the pre-COVID trajectory against the current trend.</p>
 </span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>        <span class="n">WIDTH</span><span class="p">,</span> <span class="p">[</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_normal&quot;</span><span class="p">),</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_wide&quot;</span><span class="p">)]</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>    <span class="p">)</span>
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="n">STYLE</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">STYLE</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">])</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="k">return</span> <span class="n">line_plot</span><span class="p">(</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>        <span class="n">data_set</span><span class="p">,</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="p">)</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;legend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;legend&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="k">return</span> <span class="n">line_plot</span><span class="p">(</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>        <span class="n">data_set</span><span class="p">,</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 
@@ -298,11 +299,12 @@ period of the original series.</p>
 </span><span id="postcovid_plot-94"><a href="#postcovid_plot-94"><span class="linenos"> 94</span></a>        <span class="n">WIDTH</span><span class="p">,</span> <span class="p">[</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_normal&quot;</span><span class="p">),</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_wide&quot;</span><span class="p">)]</span>
 </span><span id="postcovid_plot-95"><a href="#postcovid_plot-95"><span class="linenos"> 95</span></a>    <span class="p">)</span>
 </span><span id="postcovid_plot-96"><a href="#postcovid_plot-96"><span class="linenos"> 96</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="n">STYLE</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">STYLE</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">])</span>
-</span><span id="postcovid_plot-97"><a href="#postcovid_plot-97"><span class="linenos"> 97</span></a>
-</span><span id="postcovid_plot-98"><a href="#postcovid_plot-98"><span class="linenos"> 98</span></a>    <span class="k">return</span> <span class="n">line_plot</span><span class="p">(</span>
-</span><span id="postcovid_plot-99"><a href="#postcovid_plot-99"><span class="linenos"> 99</span></a>        <span class="n">data_set</span><span class="p">,</span>
-</span><span id="postcovid_plot-100"><a href="#postcovid_plot-100"><span class="linenos">100</span></a>        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-</span><span id="postcovid_plot-101"><a href="#postcovid_plot-101"><span class="linenos">101</span></a>    <span class="p">)</span>
+</span><span id="postcovid_plot-97"><a href="#postcovid_plot-97"><span class="linenos"> 97</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;legend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;legend&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="postcovid_plot-98"><a href="#postcovid_plot-98"><span class="linenos"> 98</span></a>
+</span><span id="postcovid_plot-99"><a href="#postcovid_plot-99"><span class="linenos"> 99</span></a>    <span class="k">return</span> <span class="n">line_plot</span><span class="p">(</span>
+</span><span id="postcovid_plot-100"><a href="#postcovid_plot-100"><span class="linenos">100</span></a>        <span class="n">data_set</span><span class="p">,</span>
+</span><span id="postcovid_plot-101"><a href="#postcovid_plot-101"><span class="linenos">101</span></a>        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span id="postcovid_plot-102"><a href="#postcovid_plot-102"><span class="linenos">102</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 

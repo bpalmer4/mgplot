@@ -58,16 +58,16 @@ _mgplot_defaults = _DefaultValues(
     legend_font_size="small",
     legend={
         "loc": "best",
-        "fontsize": "small",
+        "fontsize": "x-small",
     },
     colors={
-        1: ["indianred"],
-        5: ["royalblue", "darkorange", "forestgreen", "indianred", "gray"],
+        1: ["#dd0000"],
+        5: ["royalblue", "darkorange", "forestgreen", "#dd0000", "gray"],
         9: [
             "darkblue",
             "darkorange",
             "forestgreen",
-            "indianred",
+            "#dd0000",
             "purple",
             "gold",
             "lightcoral",

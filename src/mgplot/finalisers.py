@@ -45,6 +45,15 @@ def line_plot_finalise(
     wraps calls to line_plot() and finalise_plot().
     """
 
+    if isinstance(data, DataFrame):
+        if len(data.columns) > 1:
+            # default to displaying a legend
+            kwargs["legend"] = kwargs.get("legend", True)
+        if len(data.columns) > 4:
+            # default to using a style for the lines
+            kwargs["style"] = kwargs.get(
+                "style", ["solid", "dashed", "dashdot", "dotted"]
+            )
     plot_then_finalise(
         data,
         function=line_plot,
@@ -135,6 +144,8 @@ def run_plot_finalise(
 def series_growth_plot_finalise(data: DataT, **kwargs) -> None:
     """
     A convenience function to call series_growth_plot() and finalise_plot().
+    Use this when you are providing the series data, for mgplot to calculate
+    the growth series.
     """
 
     kwargs["ylabel"] = kwargs.get("ylabel", "Per cent Growth")
@@ -149,9 +160,11 @@ def series_growth_plot_finalise(data: DataT, **kwargs) -> None:
 def raw_growth_plot_finalise(data: DataT, **kwargs) -> None:
     """
     A convenience function to call series_growth_plot() and finalise_plot().
+    Use this when you are providing the raw growth data. Don't forget to
+    set the ylabel in kwargs.
     """
 
-    kwargs["ylabel"] = kwargs.get("ylabel", "Per cent Growth")
+    kwargs["ylabel"] = kwargs.get("ylabel", "Growth Units unspecified")
     kwargs["xlabel"] = kwargs.get("xlabel", None)
     plot_then_finalise(
         data=data,
@@ -208,11 +221,11 @@ def summary_plot_finalise(
             start = data.index[start]
         if set_default:
             freq = data.index.freqstr[0]
-            if freq not in ("D", "M", "Y"):
+            if freq not in ("D", "M", "Q"):
                 raise ValueError(
-                    f"Unknown frequency {data.index.freqstr} for data index"
+                    f"Unknown frequency {freq} for data index"
                 )
-            start = Period("1995-01-01", freq=freq)
+            start = Period("1995-01-01", freq=data.index.freqstr)
         kwargs["plot_from"] = start
 
         if plot_type not in (ZSCORES, ZSCALED):

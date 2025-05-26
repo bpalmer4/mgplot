@@ -36,7 +36,7 @@ _value_kwargs = _value_must_kwargs + _value_may_kwargs
 _annotation_kwargs = ("lfooter", "rfooter", "lheader", "rheader")
 
 _file_kwargs = ("pre_tag", "tag", "chart_dir", "file_type", "dpi")
-_fig_kwargs = ("figsize", "show", "preserve_lims")
+_fig_kwargs = ("figsize", "show", "preserve_lims", "remove_legend")
 _oth_kwargs = (
     "zero_y",
     "y0",
@@ -77,6 +77,7 @@ FINALISE_KW_TYPES: ExpectedTypeDict = {
     "file_type": str,
     "dpi": int,
     # - fig kwargs
+    "remove_legend": (type(None), bool),
     "preserve_lims": (type(None), bool),
     "figsize": (tuple, (float, int)),
     "show": bool,
@@ -290,6 +291,7 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
         - ylim: tuple[float, float] - set lower and upper y-axis limits
         - xlim: tuple[float, float] - set lower and upper x-axis limits
         - preserve_lims: bool - if True, preserve the original axes limits after tight layout
+        - remove_legend: bool | None - if True, remove the legend from the plot
 
      Returns:
         - None
@@ -318,6 +320,9 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
             axes.set_xlim(xlim)
             axes.set_ylim(ylim)
         _apply_late_kwargs(axes, **kwargs)
+        legend = axes.get_legend()
+        if legend and kwargs.get("remove_legend", False):
+            legend.remove()
         _save_to_file(fig, **kwargs)
 
     # show the plot in Jupyter Lab

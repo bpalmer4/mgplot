@@ -35,6 +35,7 @@ FONTSIZE = "fontsize"
 DROPNA = "dropna"
 DRAWSTYLE, MARKER, MARKERSIZE = "drawstyle", "marker", "markersize"
 PLOT_FROM = "plot_from"  # used to constrain the data to a starting point
+LEGEND = "legend"
 
 LP_KW_TYPES: ExpectedTypeDict = {
     AX: (plt.Axes, type(None)),
@@ -50,10 +51,9 @@ LP_KW_TYPES: ExpectedTypeDict = {
     ROUNDING: (Sequence, (bool, int), int, bool, type(None)),
     FONTSIZE: (Sequence, (str, int), str, int, type(None)),
     PLOT_FROM: (int, Period, type(None)),
+    LEGEND: (dict, (str, object), bool, type(None)),
 }
 validate_expected(LP_KW_TYPES, "line_plot")
-
-LEGEND = "legend"
 
 
 # --- functions
@@ -163,5 +163,14 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
             color=swce[COLOR][i],
             fontsize=swce[FONTSIZE][i],
         )
+
+    # add a legend if requested
+    if len(df.columns) > 1:
+        kwargs[LEGEND] = kwargs.get(LEGEND, get_setting("legend"))
+    if LEGEND in kwargs and kwargs[LEGEND] is not None:
+        legend = kwargs[LEGEND]
+        if isinstance(legend, bool):
+            legend = get_setting("legend")
+        axes.legend(**legend)
 
     return axes

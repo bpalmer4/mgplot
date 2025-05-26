@@ -223,7 +223,6 @@ def raw_growth_plot(
     set_labels(axes, save_index, kwargs.get("max_ticks", 10))
 
     # --- and done ...
-    axes.legend()
     return axes
 
 

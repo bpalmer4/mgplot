@@ -93,6 +93,7 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
         WIDTH, [get_setting("line_normal"), get_setting("line_wide")]
     )
     kwargs[STYLE] = kwargs.pop(STYLE, ["--", "-"])
+    kwargs["legend"] = kwargs.pop("legend", True)
 
     return line_plot(
         data_set,
