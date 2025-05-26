@@ -15,6 +15,7 @@ dependencies = [
     "numpy",
     "pandas",
     "pathlib",
+    "tabulate",
 
     # - code
     "black",
@@ -25,7 +26,7 @@ dependencies = [
 
     # - typing
     "pandas-stubs",
-
+    "types-tabulate",
 ]
 
 [project.optional-dependencies]

@@ -1,20 +1,23 @@
 """
 growth_plot.py:
 plot period and annual/through-the-year growth rates on the same axes.
+- calc_growth()
+- raw_growth_plot()
+- series_growth_plot()
 """
 
 # --- imports
-from pandas import Series, Index, Period, PeriodIndex, period_range
-from numpy import nan, random
+from pandas import Series, DataFrame, Index, Period, PeriodIndex, period_range
+from numpy import nan
 from matplotlib.pyplot import Axes
 import matplotlib.patheffects as pe
+from tabulate import tabulate
 
-from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
 from mgplot.test import prepare_for_test
-from mgplot.settings import get_setting
+from mgplot.settings import get_setting, DataT
 from mgplot.date_utils import set_labels
 from mgplot.utilities import annotate_series
-from mgplot.kw_type_checking import validate_kwargs, ExpectedTypeDict
+from mgplot.kw_type_checking import validate_kwargs, validate_expected, ExpectedTypeDict
 
 
 # --- constants
@@ -33,10 +36,11 @@ GROWTH_KW_TYPES: ExpectedTypeDict = {
     "plot_from": (type(None), Period, int),
     "max_ticks": int,
 }
+validate_expected(GROWTH_KW_TYPES, "growth_plot")
 
 
 # --- functions
-def calc_growth(series: Series) -> tuple[Series, Series]:
+def calc_growth(series: Series) -> DataFrame:
     """
     Calculate annual and periodic growth for a pandas Series,
     where the index is a PeriodIndex.
@@ -44,9 +48,7 @@ def calc_growth(series: Series) -> tuple[Series, Series]:
     Args:
     -   series: A pandas Series with an appropriate PeriodIndex.
 
-    Returns a two element tuple:
-    -   annual: A pandas Series with the annual growth rate.
-    -   periodic: A pandas Series with the periodic growth rate.
+    Returns a two column DataFrame:
 
     Raises
     -   TypeError if the series is not a pandas Series.
@@ -68,7 +70,7 @@ def calc_growth(series: Series) -> tuple[Series, Series]:
     if series.index.has_duplicates:
         raise ValueError("The series index must not have duplicate values")
 
-    # --- ensure the index is complete and date sorted
+    # --- ensure the index is complete and the date is sorted
     complete = period_range(start=series.index.min(), end=series.index.max())
     series = series.reindex(complete, fill_value=nan)
     series = series.sort_index(ascending=True)
@@ -77,7 +79,13 @@ def calc_growth(series: Series) -> tuple[Series, Series]:
     ppy = {"Q": 4, "M": 12, "D": 365}[PeriodIndex(series.index).freqstr[:1]]
     annual = series.pct_change(periods=ppy) * 100
     periodic = series.pct_change(periods=1) * 100
-    return annual, periodic
+    periodic_name = {4: "Quarterly", 12: "Monthly", 365: "Daily"}[ppy] + " Growth"
+    return DataFrame(
+        {
+            "Annual Growth": annual,
+            periodic_name: periodic,
+        }
+    )
 
 
 def _annotations(
@@ -128,9 +136,8 @@ def _annotations(
             )
 
 
-def growth_plot(
-    annual: Series,
-    periodic: Series,
+def raw_growth_plot(
+    data: DataT,
     **kwargs,
 ) -> Axes:
     """
@@ -138,8 +145,7 @@ def growth_plot(
     same axes.
 
     Args:
-    -   annual: A pandas Series with the annual growth rate.
-    -   periodic: A pandas Series with the periodic growth rate.
+    -   data: A pandas DataFrame with two columns:
     -   kwargs:
         -   line_width: The width of the line (default is 2).
         -   line_color: The color of the line (default is "darkblue").
@@ -172,14 +178,10 @@ def growth_plot(
 
     # --- sanity checks
     validate_kwargs(kwargs, GROWTH_KW_TYPES, "growth_plot")
-    if not isinstance(annual, Series):
-        raise TypeError("The annual argument must be a pandas Series")
-    if not isinstance(periodic, Series):
-        raise TypeError("The periodic argument must be a pandas Series")
-    if not isinstance(annual.index, PeriodIndex):
-        raise TypeError("The annual index must be a pandas PeriodIndex")
-    if not annual.index.equals(periodic.index):
-        raise ValueError("The annual and periodic series must have the same index")
+    if not isinstance(data, DataFrame) or len(data.columns) != 2:
+        raise TypeError("The data argument must be a pandas DataFrame with two columns")
+    annual = data[data.columns[0]]
+    periodic = data[data.columns[1]]
 
     # --- plot
     plot_from: None | Period | int = kwargs.get("plot_from", None)
@@ -225,50 +227,38 @@ def growth_plot(
     return axes
 
 
-def growth_plot_from_series(
-    series: Series,
+def series_growth_plot(
+    data: DataT,
     **kwargs,
-) -> None:
+) -> Axes:
     """
     Plot annual and periodic growth from a pandas Series,
     and finalise the plot.
 
     Args:
-    -   series: A pandas Series with an appropriate PeriodIndex.
+    -   data: A pandas Series with an appropriate PeriodIndex.
     -   kwargs:
-        -   takes the same kwargs as for growth_plot() and finalise_plot()
+        -   takes the same kwargs as for growth_plot()
     """
 
-    kwargs_expect = GROWTH_KW_TYPES | FINALISE_KW_TYPES
-    validate_kwargs(kwargs, kwargs_expect, "growth_plot_from_series")
+    # --- sanity checks
+    if not isinstance(data, Series):
+        raise TypeError(
+            "The data argument to series_growth_plot() must be a pandas Series"
+        )
 
-    gp_kwargs = {k: v for k, v in kwargs.items() if k in GROWTH_KW_TYPES}
-    annual, periodic = calc_growth(series)
-    ax = growth_plot(annual, periodic, **gp_kwargs)
-    fp_kwargs = {k: v for k, v in kwargs.items() if k in FINALISE_KW_TYPES}
-    fp_kwargs["ylabel"] = "Per cent Growth"
-    if (periodic < 0).any() and (periodic > 0).any():
-        # include a y=0 line when positive and negative values are present
-        fp_kwargs["y0"] = fp_kwargs.get("y0", True)
-    finalise_plot(
-        ax,
-        **fp_kwargs,
-    )
+    # --- calculate growth and plot
+    growth = calc_growth(data)
+    ax = raw_growth_plot(growth, **kwargs)
+    return ax
 
 
-# --- test
+# --- test code
 if __name__ == "__main__":
-
-    # --- set up
+    print("Testing")
     prepare_for_test("growth_plot")
-
-    # --- run the test
-    index = PeriodIndex(period_range("2020-Q1", "2025-Q4", freq="Q"))
-    data = Series([0.1] * len(index), index=index).cumsum()
-    data += random.normal(1, 0.02, len(index))
-    growth_plot_from_series(
-        data,
-        plot_from=4,
-        title="Growth Rates Test",
-        rfooter="Fake data",
-    )
+    series_ = Series([1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0])
+    series_.index = period_range("2020Q1", periods=len(series_), freq="Q")
+    growth_ = calc_growth(series_)
+    text_ = tabulate(growth_, headers="keys", tablefmt="pipe")  # type: ignore[arg-type]
+    print(text_)

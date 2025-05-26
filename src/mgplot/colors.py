@@ -18,15 +18,15 @@ def get_party_palette(party_text: str) -> str:
 
     # Note: light to dark maps work best
     match party_text.lower():
-        case ("alp" | "labor"):
+        case "alp" | "labor":
             return "Reds"
-        case ("l/np" | "coalition"):
+        case "l/np" | "coalition":
             return "Blues"
-        case ("grn" | "green" | "greens"):
+        case "grn" | "green" | "greens":
             return "Greens"
-        case ("oth" | "other"):
+        case "oth" | "other":
             return "YlOrBr"
-        case ("onp" | "one nation"):
+        case "onp" | "one nation":
             return "YlGnBu"
     return "Purples"
 
@@ -66,6 +66,7 @@ def get_color(s: str) -> str:
         (
             "grn",
             "green",
+            "greens",
         ): "mediumseagreen",
         (
             "other",
@@ -74,7 +75,7 @@ def get_color(s: str) -> str:
     }
 
     for find_me, return_me in color_map.items():
-        if any(x in s.lower() for x in find_me):
+        if any(x == s.lower() for x in find_me):
             return return_me
 
     return "darkgrey"
@@ -174,10 +175,25 @@ if __name__ == "__main__":
     print()
     check = [
         "New South Wales",
+        "nsw",
         "Victoria",
         "victoria",
         "VICTORIA",
         "VIC",
+        "rubbish",
+        "Queensland",
+        "South Australia",
+        "Western Australia",
+        "Tasmania",
+        "Northern Territory",
+        "Australian Capital Territory",
+        "ACT",
     ]
+
     for state_ in check:
         print(f"{state_} -> {abbreviate_state(state_)}")
+
+    # Test the get_color function for states
+    print()
+    for state_ in check:
+        print(f"{state_} -> {get_color(state_)}")

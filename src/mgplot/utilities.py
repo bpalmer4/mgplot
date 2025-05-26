@@ -2,6 +2,11 @@
 utilities.py:
 Utiltiy functions used by more than one mgplot module.
 These are not intended to be used directly by the user.
+- apply_defaults()
+- get_color_list()
+- get_axes()
+- annotate_series()
+- constrain_data()
 """
 
 # --- imports
@@ -9,12 +14,36 @@ import math
 from typing import Any
 from matplotlib import cm
 from matplotlib.pyplot import Axes, subplots
-from pandas import Series
+from pandas import Series, Period, PeriodIndex
 import numpy as np
 from mgplot.settings import get_setting
+from mgplot.settings import DataT
 
 
 # --- functions
+def constrain_data(data: DataT, kwargs: dict[str, Any]) -> tuple[DataT, dict[str, Any]]:
+    """
+    Constrain the data to a DataFrame or Series.
+    If the data is not a DataFrame or Series, raise a TypeError.
+    Args:
+        data: the data to be constrained
+        kwargs: keyword arguments - uses "plot_from" in kwargs to constrain the data
+    Returns:
+        A tuple of the constrained data and the modified kwargs.
+    """
+
+    plot_from = kwargs.pop("plot_from", 0)
+    if isinstance(plot_from, Period) and isinstance(data.index, PeriodIndex):
+        data = data.loc[data.index >= plot_from]
+    elif isinstance(plot_from, int):
+        data = data.iloc[plot_from:]
+    elif plot_from is None:
+        pass
+    else:
+        print(f"Warning: {plot_from=} either not a valid type or not applicable. ")
+    return data, kwargs
+
+
 def apply_defaults(
     length: int, defaults: dict[str, Any], kwargs_d: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, list[Any] | tuple[Any]]]:

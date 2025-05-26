@@ -454,10 +454,10 @@ if __name__ == "__main__":
         "bad6": ((list, tuple), (int, float)),
         "bad7": (dict, (str, int), (int, float)),
         "bad8": (TypingSequence, (int, float)),
-        # "bad9": (list, [int, float]),  # pylint: disable=dict-item
+        # "bad9": (list, [int, float]),
         "bad10": (dict, (str,)),
         "bad11": (Iterable, (int, float)),
-        # "bad12": Any,  # pylint: disable=unreachable
+        # "bad12": Any,
     }
     validate_expected(expected_gb, "testing")
 

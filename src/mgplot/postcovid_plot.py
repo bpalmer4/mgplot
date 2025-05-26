@@ -5,16 +5,17 @@ Plot the pre-COVID trajectory against the current trend.
 
 # --- imports
 from pandas import DataFrame, Series, Period, PeriodIndex
+from matplotlib.pyplot import Axes
 from numpy import arange, polyfit
 
-from mgplot.line_plot import line_plot_finalise
+from mgplot.settings import DataT
+from mgplot.line_plot import line_plot
 from mgplot.settings import get_setting
 
 
 # --- constants
-DROPNA = "dropna"
-LEGEND = "legend"
-LFOOTER = "lfooter"
+WIDTH = "width"
+STYLE = "style"
 
 
 # --- functions
@@ -35,12 +36,13 @@ def get_projection(original: Series, to_period: Period) -> Series:
     return projection
 
 
-def covid_recovery_plot(series: Series, **kwargs) -> None:
+def postcovid_plot(data: DataT, **kwargs) -> Axes:
     """
     Plots a series with a PeriodIndex.
 
     Arguments
-    - series to be plotted
+    - data - the series to be plotted (note that this function
+      is designed to work with a single series, not a DataFrame).
     - **kwargs - same as for line_plot() and finalise_plot().
 
     Raises:
@@ -51,12 +53,17 @@ def covid_recovery_plot(series: Series, **kwargs) -> None:
     """
 
     # sanity checks
-    if not isinstance(series, Series):
+    if not isinstance(data, Series):
         raise TypeError("The series argument must be a pandas Series")
+    series: Series = data
     if not isinstance(series.index, PeriodIndex):
         raise TypeError("The series must have a pandas PeriodIndex")
     if series.index.freqstr[:1] not in ("Q", "M", "D"):
         raise ValueError("The series index must have a D, M or Q freq")
+
+    if "plot_from" in kwargs:
+        print("Warning: the 'plot_from' argument is ignored in postcovid_plot().")
+        del kwargs["plot_from"]
 
     # plot COVID counterfactural
     freq = series.index.freqstr
@@ -81,17 +88,13 @@ def covid_recovery_plot(series: Series, **kwargs) -> None:
     projection = get_projection(recent, end_regression)
     projection.name = "Pre-COVID projection"
     data_set = DataFrame([projection, recent]).T
-    kwargs[LFOOTER] = (
-        kwargs.get(LFOOTER, "")
-        + f"Projection from {start_regression} to {end_regression}. "
+
+    kwargs[WIDTH] = kwargs.pop(
+        WIDTH, [get_setting("line_normal"), get_setting("line_wide")]
     )
+    kwargs[STYLE] = kwargs.pop(STYLE, ["--", "-"])
 
-    kwargs[DROPNA] = kwargs.get(DROPNA, False)
-    kwargs[LEGEND] = kwargs.get(LEGEND, get_setting("legend"))
-
-    line_plot_finalise(
+    return line_plot(
         data_set,
-        width=[get_setting("line_normal"), get_setting("line_wide")],
-        style=["--", "-"],
         **kwargs,
     )

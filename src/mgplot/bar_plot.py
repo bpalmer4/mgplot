@@ -9,28 +9,28 @@ cannot be plotted on the same axes.
 
 # --- imports
 from typing import Any
-from pandas import Series, DataFrame, PeriodIndex, period_range
-from numpy import random
+from collections.abc import Sequence
+from pandas import DataFrame, period_range, PeriodIndex
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import Axes
 
 from mgplot.settings import DataT, get_setting
-from mgplot.test import prepare_for_test
-from mgplot.utilities import apply_defaults, get_color_list, get_axes
-from mgplot.kw_type_checking import validate_kwargs, ExpectedTypeDict
-from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
+from mgplot.utilities import apply_defaults, get_color_list, get_axes, constrain_data
+from mgplot.kw_type_checking import validate_kwargs, validate_expected, ExpectedTypeDict
 from mgplot.date_utils import set_labels
 
 
 # --- constants
 BAR_PLOT_KW_TYPES: ExpectedTypeDict = {
-    "color": list,
+    "color": (str, Sequence, (str,)),
     "width": float,
     "stacked": bool,
     "rotation": (int, float),
     "bar_legend": bool,
     "max_ticks": int,
+    "plot_from": (int, PeriodIndex, type(None)),
 }
+validate_expected(BAR_PLOT_KW_TYPES, "bar_plot")
 
 
 # --- functions
@@ -64,6 +64,7 @@ def bar_plot(
 
     # --- get the data
     df = DataFrame(data)  # really we are only plotting DataFrames
+    df, kwargs = constrain_data(df, kwargs)
     item_count = len(df.columns)
 
     defaults: dict[str, Any] = {
@@ -101,88 +102,3 @@ def bar_plot(
         plt.xticks(rotation=bar_args["rotation"][0])
 
     return axes
-
-
-def bar_plot_finalise(
-    data: DataT,
-    **kwargs,
-) -> None:
-    """Build and finalise a bar plot. This function is a wrapper around
-    the bar_plot function and finalise_plot function. It allows for
-    additional customisation of the plot, such as setting the title,
-    x-axis label, y-axis label, and other parameters.
-
-    Parameters
-    - data: Series - The data to plot. Can be a DataFrame or a Series.
-    - **kwargs: dict Additional keyword arguments for customization,
-      taking the same parameters as bar_plot and finalise_plot.
-    """
-
-    # --- validate the kwargs
-    kw_dict = BAR_PLOT_KW_TYPES | FINALISE_KW_TYPES
-    validate_kwargs(kwargs, kw_dict, "bar_plot_finalise")
-
-    # --- build the plot
-    bp_kwargs = {k: v for k, v in kwargs.items() if k in BAR_PLOT_KW_TYPES}
-    axes = bar_plot(data, **bp_kwargs)
-
-    # --- finalise the plot
-    fp_kwargs = {k: v for k, v in kwargs.items() if k in FINALISE_KW_TYPES}
-    finalise_plot(
-        axes,
-        **fp_kwargs,
-    )
-
-
-# --- test ---
-if __name__ == "__main__":
-    # set the chart directory
-    prepare_for_test("bar_plot")
-
-    # Test 1
-    series_ = Series([1, 2, 3, 4, 5], index=list("ABCDE"))
-    ax = bar_plot(series_, rotation=45, bar_legend=False)
-    finalise_plot(
-        ax,
-        title="Bar Plot Example 1",
-        xlabel="X-axis Label",
-        ylabel="Y-axis Label",
-    )
-
-    # Test 2
-    df_ = DataFrame(
-        {
-            "Series 1": [1, 2, 3, 4, 5],
-            "Series 2": [-5, -4, -3, -2, -1],
-            "Series 3": [1, -1, -1, 1, -1],
-        },
-        index=list("ABCDE"),
-    )
-    ax = bar_plot(df_, stacked=True, rotation=0)
-    finalise_plot(
-        ax,
-        title="Bar Plot Example 2a",
-        xlabel="X-axis Label",
-        ylabel="Y-axis Label",
-        y0=True,
-    )
-    ax = bar_plot(df_, stacked=False, rotation=0)
-    finalise_plot(
-        ax,
-        title="Bar Plot Example 2b",
-        xlabel="X-axis Label",
-        ylabel="Y-axis Label",
-        y0=True,
-    )
-
-    # Test 3
-    N = 25
-    dates = period_range("2020-Q1", periods=N, freq="Q")
-    series = Series(random.random(N), index=dates)
-    bar_plot_finalise(
-        series,
-        title="Bar Plot Example 3",
-        xlabel=None,
-        ylabel="Y-axis Label",
-        rfooter="Fake quarterly data",
-    )

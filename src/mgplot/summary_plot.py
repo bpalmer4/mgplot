@@ -13,17 +13,18 @@ from typing import Any
 # analytic third-party imports
 from numpy import ndarray, array
 from matplotlib.pyplot import Axes, subplots
-from pandas import DataFrame, Period, PeriodIndex, read_csv
+from pandas import DataFrame, Period
 
 # local imports
-from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
-from mgplot.test import prepare_for_test
+from mgplot.settings import DataT
+from mgplot.utilities import constrain_data
 from mgplot.kw_type_checking import (
     report_kwargs,
     ExpectedTypeDict,
     validate_expected,
     validate_kwargs,
 )
+
 
 # --- constants
 ZSCORES = "zscores"
@@ -32,7 +33,8 @@ ZSCALED = "zscaled"
 SUMMARY_KW_TYPES: ExpectedTypeDict = {
     "verbose": bool,
     "middle": float,
-    "plot_types": (list, (str,)),
+    "plot_type": str,
+    "plot_from": (int, Period, type(None)),
 }
 validate_expected(SUMMARY_KW_TYPES, "summary_plot")
 
@@ -93,7 +95,7 @@ def _plot_middle_bars(
     space = 0.15
     low = min(adjusted.iloc[-1].min(), lo_hi.min().min(), -span) - space
     high = max(adjusted.iloc[-1].max(), lo_hi.max().max(), span) + space
-    kwargs["xlim"] = (low, high)
+    kwargs["xlim"] = (low, high)  # remember the x-axis limits
     _fig, ax = subplots()
     ax.barh(
         y=lo_hi.index,
@@ -113,7 +115,7 @@ def _plot_latest_datapoint(
 ) -> None:
     """Add the latest datapoints to the summary plot"""
 
-    ax.scatter(adjusted.iloc[-1], adjusted.columns, color="darkorange")
+    ax.scatter(adjusted.iloc[-1], adjusted.columns, color="darkorange", label="Latest")
     f_size = 10
     row = adjusted.index[-1]
     for col_num, col_name in enumerate(original.columns):
@@ -189,97 +191,45 @@ def _horizontal_bar_plot(
 
 # public
 def summary_plot(
-    summary: DataFrame,  # summary data
-    start: str | Period,  # starting period for z-score calculation
+    data: DataT,  # summary data
     **kwargs: Any,
-) -> None:
+) -> Axes:
     """Plot a summary of historical data for a given DataFrame.
 
     Args:
     - summary: DataFrame containing the summary data. The column names are
       used as labels for the plot.
-    - start: starting period for z-score calculation.
     - kwargs: additional arguments for the plot, including:
+        - plot_from: int | Period | None
         - verbose: if True, print the summary data.
         - middle: proportion of data to highlight (default is 0.8).
-        - plot_types: list of plot types to generate
-          (default is ["zscores", "zscaled"]).
-        - show: if True, display the plot.
-        - ylabel: y-axis label for the plot.
-        - legend: legend settings for the plot.
-        - x0: if True, set x-axis limits to include 0.
+        - plot_types: list of plot types to generate.
 
 
-    Returns None.
+    Returns Axes.
     """
+
+    # --- sanity checks
+    if not isinstance(data, DataFrame):
+        raise ValueError("data for summary_plot() must be a pandas DataFrame")
 
     # --- check the arguments
     report_kwargs(kwargs, "summary_plot")
-    expected_kwargs = FINALISE_KW_TYPES | SUMMARY_KW_TYPES
+    expected_kwargs = SUMMARY_KW_TYPES
     validate_kwargs(kwargs, expected_kwargs, "summary_plot")
 
     # --- optional arguments
     verbose = kwargs.pop("verbose", False)
     middle = kwargs.pop("middle", 0.8)
-    plot_types = kwargs.pop("plot_types", [ZSCORES, ZSCALED])
-
-    kwargs["show"] = kwargs.get("show", False)
-    kwargs["ylabel"] = kwargs.get("ylabel", None)
-    kwargs["legend"] = kwargs.get(
-        "legend",
-        {
-            # put the legend below the x-axis label
-            "loc": "upper center",
-            "fontsize": "xx-small",
-            "bbox_to_anchor": (0.5, -0.125),
-            "ncol": 4,
-        },
-    )
-    kwargs["x0"] = kwargs.get("x0", True)
+    plot_type = kwargs.pop("plot_type", ZSCORES)
 
     # get the data, calculate z-scores and scaled scores based on the start period
-    subset = summary.loc[summary.index >= start]
+    subset, kwargs = constrain_data(data, kwargs)
     z_scores, z_scaled = _calculate_z(subset, middle, verbose=verbose)
 
     # plot as required by the plot_types argument
-    kwargs["title"] = kwargs.get("title", f"Summary at {subset.index[-1]}")
-    for plot_type in plot_types:
-
-        if plot_type == "zscores":
-            adjusted = z_scores
-            kwargs["xlabel"] = f"Z-scores for prints since {start}"
-            kwargs["x0"] = True
-        elif plot_type == "zscaled":
-            adjusted = z_scaled
-            kwargs["xlabel"] = f"-1 to 1 scaled z-scores since {start}"
-        else:
-            print(f"Unknown plot type {plot_type}")
-            continue
-
-        ax = _horizontal_bar_plot(subset, adjusted, middle, plot_type, kwargs)
-
-        # finalise
-        kwargs["pre_tag"] = plot_type
-        ax.tick_params(axis="y", labelsize="small")
-        fp_kwargs = {k: v for k, v in kwargs.items() if k in FINALISE_KW_TYPES}
-        finalise_plot(ax, **fp_kwargs)
-
-        # prepare for next loop
-        kwargs.pop("xlabel", None)
-        kwargs.pop("x0", None)
-
-
-# --- test code
-if __name__ == "__main__":
-
-    prepare_for_test("summary_plot")
-
-    summary_ = read_csv("./zz-test-data/summary.csv", index_col=0, parse_dates=True)
-    summary_.index = PeriodIndex(summary_.index, freq="M")
-    summary_plot(
-        summary_,
-        start=Period("1995-01", freq="M"),
-        title="Summary Plot",
-        ylabel=None,
-        rfooter="Summary Plot",
-    )
+    adjusted = z_scores if plot_type == ZSCORES else z_scaled
+    ax = _horizontal_bar_plot(subset, adjusted, middle, plot_type, kwargs)
+    ax.tick_params(axis="y", labelsize="small")
+    ax.set_xlim(kwargs.get("xlim", None))  # set x-axis limits if provided
+    return ax

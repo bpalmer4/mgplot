@@ -6,10 +6,8 @@ Plot a series or a dataframe with lines.
 # --- imports
 from typing import Any
 from collections.abc import Sequence
-import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from pandas import DataFrame
+from pandas import DataFrame, Period
 
 from mgplot.settings import DataT, get_setting
 from mgplot.kw_type_checking import (
@@ -17,16 +15,14 @@ from mgplot.kw_type_checking import (
     validate_kwargs,
     validate_expected,
     ExpectedTypeDict,
-    limit_kwargs,
 )
-from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
 from mgplot.utilities import (
     apply_defaults,
     get_color_list,
     get_axes,
     annotate_series,
+    constrain_data,
 )
-from mgplot.test import prepare_for_test
 
 
 # --- constants
@@ -38,6 +34,7 @@ ROUNDING = "rounding"
 FONTSIZE = "fontsize"
 DROPNA = "dropna"
 DRAWSTYLE, MARKER, MARKERSIZE = "drawstyle", "marker", "markersize"
+PLOT_FROM = "plot_from"  # used to constrain the data to a starting point
 
 LP_KW_TYPES: ExpectedTypeDict = {
     AX: (plt.Axes, type(None)),
@@ -52,6 +49,7 @@ LP_KW_TYPES: ExpectedTypeDict = {
     ANNOTATE: (bool, Sequence, (bool,)),
     ROUNDING: (Sequence, (bool, int), int, bool, type(None)),
     FONTSIZE: (Sequence, (str, int), str, int, type(None)),
+    PLOT_FROM: (int, Period, type(None)),
 }
 validate_expected(LP_KW_TYPES, "line_plot")
 
@@ -126,6 +124,9 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
 
     # the data to be plotted:
     df = DataFrame(data)  # really we are only plotting DataFrames
+    df, kwargs = constrain_data(df, kwargs)
+    if df.empty:
+        print("Warning: No data to plot.")
 
     # get the arguments for each line we will plot ...
     item_count = len(df.columns)
@@ -134,6 +135,7 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
 
     # Let's plot
     axes, kwargs = get_axes(kwargs)  # get the axes to plot on
+
     for i, column in enumerate(df.columns):
         series = df[column]
         series = series.dropna() if DROPNA in swce and swce[DROPNA][i] else series
@@ -163,104 +165,3 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
         )
 
     return axes
-
-
-def line_plot_finalise(data: DataT, **kwargs) -> None:
-    """
-    Publish a single plot from the data passed in.
-
-    Arguments:
-    - data: DataFrame | Series - data to plot
-    - Use the same  keyword arguments as for line_plot()
-      and finalise_plot().
-
-    Returns None.
-    """
-
-    # sanity checks
-    kw_dict = LP_KW_TYPES | FINALISE_KW_TYPES
-    validate_kwargs(kwargs, kw_dict, "line_plot_finalise")
-    report_kwargs(kwargs, called_from="line_plot_finalise")
-
-    # if multi-column, assume we want a legend
-    if isinstance(data, pd.DataFrame) and len(data.columns) > 1:
-        kwargs[LEGEND] = kwargs.get(LEGEND, get_setting("legend"))
-
-    # plot the data
-    lp_kwargs = limit_kwargs(kwargs, LP_KW_TYPES)
-    axes = line_plot(data, **lp_kwargs)
-
-    # finalise the plot
-    fp_kwargs = limit_kwargs(kwargs, FINALISE_KW_TYPES)
-    finalise_plot(axes, **fp_kwargs)
-
-
-def seas_trend_plot(data: DataFrame, **kwargs) -> None:
-    """
-    Publish a DataFrame, where the first column is seasonally
-    adjusted data, and the second column is trend data.
-
-    Aguments:
-    - data: DataFrame - the data to plot with the first column
-      being the seasonally adjusted data, and the second column
-      being the trend data.
-    The remaining arguments are the same as those passed to
-    (1) line_plot() and then (2) finalise_plot().
-
-    Returns:
-    - None
-    """
-
-    # defaults if not in kwargs
-    colors = kwargs.pop(COLOR, get_color_list(2))
-    widths = kwargs.pop(WIDTH, [get_setting("line_normal"), get_setting("line_wide")])
-    styles = kwargs.pop(STYLE, ["-", "-"])
-    annotations = kwargs.pop(ANNOTATE, [True, False])
-    rounding = kwargs.pop(ROUNDING, True)
-    legend = kwargs.pop(LEGEND, True)
-
-    # series breaks are common in seas-trend data
-    kwargs[DROPNA] = kwargs.pop(DROPNA, False)
-
-    line_plot_finalise(
-        data,
-        color=colors,
-        width=widths,
-        style=styles,
-        annotate=annotations,
-        rounding=rounding,
-        legend=legend,
-        **kwargs,
-    )
-
-
-# --- test code
-if __name__ == "__main__":
-
-    # set the chart directory
-    prepare_for_test("line_plot")
-
-    # Create a sample DataFrame with a PeriodIndex
-    np.random.seed(42)
-    dates = pd.period_range("2020-01", "2025-01", freq="M")
-    data_ = pd.DataFrame(
-        {
-            "Series 1": np.random.rand(len(dates)),
-            "Series 2": np.random.rand(len(dates)),
-        },
-        index=dates,
-    )
-
-    # Call the line_plot function with the sample data
-    line_plot_finalise(
-        data_,
-        title="Test Line Plot",
-        xlabel=None,
-        ylabel="Value",
-        width=[3, 1.5],
-        marker=[None, "o"],
-        markersize=[None, 5],
-        legend=True,
-        annotate=[True, False],
-        rounding=True,
-    )

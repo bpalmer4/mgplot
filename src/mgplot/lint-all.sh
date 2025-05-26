@@ -15,4 +15,3 @@ echo " "
 echo "Check linting overrides ..."
 grep "# type" *.py
 grep "# pylint" *.py
-

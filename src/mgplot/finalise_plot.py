@@ -36,7 +36,7 @@ _value_kwargs = _value_must_kwargs + _value_may_kwargs
 _annotation_kwargs = ("lfooter", "rfooter", "lheader", "rheader")
 
 _file_kwargs = ("pre_tag", "tag", "chart_dir", "file_type", "dpi")
-_fig_kwargs = ("figsize", "show")
+_fig_kwargs = ("figsize", "show", "preserve_lims")
 _oth_kwargs = (
     "zero_y",
     "y0",
@@ -77,6 +77,7 @@ FINALISE_KW_TYPES: ExpectedTypeDict = {
     "file_type": str,
     "dpi": int,
     # - fig kwargs
+    "preserve_lims": (type(None), bool),
     "figsize": (tuple, (float, int)),
     "show": bool,
     # - annotation kwargs
@@ -288,6 +289,7 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
         - axvline: dict - arguments to pass to axes.axvline()
         - ylim: tuple[float, float] - set lower and upper y-axis limits
         - xlim: tuple[float, float] - set lower and upper x-axis limits
+        - preserve_lims: bool - if True, preserve the original axes limits after tight layout
 
      Returns:
         - None
@@ -295,6 +297,10 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
 
     validate_kwargs(kwargs, FINALISE_KW_TYPES, "finalise_plot")
     report_kwargs(kwargs, called_from="finalise_plot")
+
+    # --- remember should we need to restore the axes limits
+    xlim = axes.get_xlim()
+    ylim = axes.get_ylim()
 
     # margins
     # axes.use_sticky_margins = False   ### CHECK THIS
@@ -307,6 +313,10 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
     fig = axes.figure
     if not isinstance(fig, mpl.figure.SubFigure):  # should never be a SubFigure
         fig.tight_layout(pad=1.1)
+        if "preserve_lims" in kwargs and kwargs["preserve_lims"]:
+            # restore the original limits of the axes
+            axes.set_xlim(xlim)
+            axes.set_ylim(ylim)
         _apply_late_kwargs(axes, **kwargs)
         _save_to_file(fig, **kwargs)
 
