@@ -222,9 +222,7 @@ def summary_plot_finalise(
         if set_default:
             freq = data.index.freqstr[0]
             if freq not in ("D", "M", "Q"):
-                raise ValueError(
-                    f"Unknown frequency {freq} for data index"
-                )
+                raise ValueError(f"Unknown frequency {freq} for data index")
             start = Period("1995-01-01", freq=data.index.freqstr)
         kwargs["plot_from"] = start
 

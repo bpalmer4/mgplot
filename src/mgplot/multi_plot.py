@@ -2,10 +2,9 @@
 multi_plot.py
 
 This module provides a function to create multiple plots
-from a single dataset:
+from a single dataset
 - multi_start()
 - multi_column()
-
 And to chain a plotting function with the finalise_plot() function.
 - plot_then_finalise()
 
@@ -15,16 +14,25 @@ Underlying assumptions:
       that some plotting functions only work with Series data, and they
       will raise an error if they are passed a DataFrame).
     - accepts an optional plot_from: int | Period keyword argument
-    - accepts an optional plot_to: int | Period keyword argument
     - returns a matplotlib Axes object
-- the multi functions (including plot_finalise)
+- the multi functions (all in this module)
     - have a mandatory data: DataFrame | Series argument
     - have a mandatory function: Callable | list[Callable] argument
-    - the multi functions can be chained together. However, the
-      plot_finalise() function must be the last function in a chain
-      as it is designed to call a plot function and then the
-      finalise_plot() function [and not another multi function].
+        and otherwise pass their kwargs to the next function
+        when execution is transferred to the next function.
+    - the multi functions can be chained together.
     - return None.
+
+And why are these three public functions all in the same modules?
+- They all work with the same underlying assumptions.
+- They all take a function argument/list to which execution is
+  passed.
+- They all use the same underlying logic to extract the first
+  function from the function argument, and to store any remaining
+  functions in the kwargs['function'] argument.
+
+Note: rather than pass the kwargs dict directly, we will re-pack-it
+
 """
 
 # --- imports
@@ -50,6 +58,9 @@ from mgplot.growth_plot import series_growth_plot, raw_growth_plot, GROWTH_KW_TY
 
 # --- constants
 EXPECTED_CALLABLES: Final[dict[Callable, ExpectedTypeDict]] = {
+    # used by plot_then_finalise() to (1) check the target function
+    # is one of the expected functions, and (2) to limit the kwargs
+    # passed on, to the expected keyword arguments for that function.
     line_plot: LP_KW_TYPES,
     bar_plot: BAR_PLOT_KW_TYPES,
     seastrend_plot: LP_KW_TYPES,  # just calls line_plot under the hood
@@ -65,7 +76,7 @@ EXPECTED_CALLABLES: Final[dict[Callable, ExpectedTypeDict]] = {
 # --- private functions
 def first_unchain(
     function: Callable | list[Callable],
-    kwargs: dict[str, Any],
+    **kwargs,
 ) -> tuple[Callable, dict[str, Any]]:
     """
     Extract the first Callable from function (which may be
@@ -74,7 +85,7 @@ def first_unchain(
     This allows for chaining multiple functions together.
 
     Parameters
-    - kwargs: dict[str, Any] - keyword arguments
+    - kwargs - keyword arguments
 
     Returns a tuple containing the first function and the updated kwargs.
     if function is a list of Callables, the first function will be removed
@@ -91,7 +102,7 @@ def first_unchain(
     if isinstance(function, list):
         if len(function) == 0:
             raise ValueError(error_msg)
-        first, rest = function[0], function[1:]
+        first, *rest = function
     elif callable(function):
         first, rest = function, []
     else:
@@ -123,7 +134,7 @@ def plot_then_finalise(
     Returns None.
     """
 
-    first, kwargs_ = first_unchain(function, kwargs.copy())
+    first, kwargs_ = first_unchain(function, **kwargs)
 
     if first in EXPECTED_CALLABLES:
 
@@ -172,12 +183,12 @@ def multi_start(
     if not isinstance(starts, Iterable):
         raise ValueError("starts must be an iterable of None, Period or int")
 
-    tag: Final[str] = kwargs.get("tag", "")
-    first, kwargs = first_unchain(function, kwargs)
+    original_tag: Final[str] = kwargs.get("tag", "")
+    first, kwargs = first_unchain(function, **kwargs)
 
     for i, start in enumerate(starts):
         kw = kwargs.copy()  # copy to avoid modifying the original kwargs
-        this_tag = f"{tag}_{i}"
+        this_tag = f"{original_tag}_{i}"
         kw["tag"] = this_tag
         kw["plot_from"] = start  # rely on plotting function to constrain the data
         first(data, **kw)
@@ -206,7 +217,7 @@ def multi_column(
 
     title_stem = kwargs.get("title", "")
     tag: Final[str] = kwargs.get("tag", "")
-    first, kwargs = first_unchain(function, kwargs)
+    first, kwargs = first_unchain(function, **kwargs)
 
     for i, col in enumerate(data.columns):
 
@@ -276,3 +287,35 @@ if __name__ == "__main__":
         xlabel="X-axis Label",
         ylabel="Y-axis Label",
     )
+
+
+# --- test
+if __name__ == "__main__":
+
+    # --- check that this fails
+    try:
+        multi_start(
+            data=DataFrame(),
+            function=[plot_then_finalise],
+            starts=[0, 1],
+        )
+    except (ValueError, TypeError) as e:
+        print(f"Expected error: {e}")
+
+    # --- check that tjis fails
+    try:
+        multi_column(
+            data=Series([1, 2, 3]),
+            function=[plot_then_finalise],
+        )
+    except (ValueError, TypeError) as e:
+        print(f"Expected error: {e}")
+
+    # --- check that this fails
+    try:
+        plot_then_finalise(
+            data=Series([1, 2, 3]),
+            function=[],
+        )
+    except (ValueError, TypeError) as e:
+        print(f"Expected error: {e}")
