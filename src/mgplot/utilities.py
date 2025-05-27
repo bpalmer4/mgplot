@@ -14,7 +14,7 @@ Functions:
 
 # --- imports
 import math
-from typing import Any, cast
+from typing import Any
 from pandas import Series, DataFrame, Period, PeriodIndex, period_range
 import numpy as np
 from matplotlib import cm
@@ -55,14 +55,15 @@ def check_clean_timeseries(data: DataT) -> DataT:
     if not data.index.is_monotonic_increasing:
         raise ValueError("Data index must be monotonic increasing.")
 
-    # --- remove leading NaNs
-    fvi = data.first_valid_index()
-    if fvi is None:
+    # --- remove any leading NaNs
+    start = data.first_valid_index()
+    if start is None:
         return data  # no valid index, return original data
-    start = cast(Period, fvi)  # syntactic sugar for type hinting
+    if not isinstance(start, Period):  # syntactic sugar for type hinting
+        raise TypeError("First valid index must be a Period.")
     data = data.loc[data.index >= start]
 
-    # --- report and missing periods:
+    # --- report and missing periods (ie. potentially incomplete data)
     data_index = PeriodIndex(data.index)  # syntactic sugar for type hinting
     complete = period_range(
         start=data_index.min(), end=data_index.max(), freq=data_index.freq
@@ -70,9 +71,7 @@ def check_clean_timeseries(data: DataT) -> DataT:
     missing = complete.difference(data_index)
     if not missing.empty:
         plural = "s" if len(missing) > 1 else ""
-        print(
-            f"Warning: {len(missing)} period{plural} missing from data.index: {missing.tolist()}"
-        )
+        print(f"Warning: {len(missing)} period{plural} missing from data index. ")
 
     # --- return the final data
     return data
@@ -80,15 +79,14 @@ def check_clean_timeseries(data: DataT) -> DataT:
 
 def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
     """
-    Constrain the data to a DataFrame or Series.
-    If the data is not a DataFrame or Series, raise a TypeError.
+    Constrain the data to start after a certain point.
 
     Args:
         data: the data to be constrained
         kwargs: keyword arguments - uses "plot_from" in kwargs to constrain the data
 
     Assume:
-    - that mgplot.utilitiesd.check_clean_timeseries() has already been called
+    - that mgplot.utilitiesd.check_clean_timeseries() has already been applied
     - that the data is a Series or DataFrame with a PeriodIndex
     - that the index is unique and monotonic increasing
 
@@ -171,8 +169,10 @@ def get_color_list(count: int) -> list[str]:
 
 
 def get_axes(**kwargs) -> tuple[Axes, dict[str, Any]]:
-    """Get the axes to plot on.
-    If not passed in kwargs, create a new figure and axes."""
+    """
+    Get the axes to plot on.
+    If not passed in kwargs, create a new figure and axes.
+    """
 
     ax = "ax"
     if ax in kwargs and kwargs[ax] is not None:

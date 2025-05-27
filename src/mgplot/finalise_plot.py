@@ -17,7 +17,6 @@ from mgplot.kw_type_checking import (
     report_kwargs,
     validate_expected,
     ExpectedTypeDict,
-    #    limit_kwargs,
     validate_kwargs,
 )
 
@@ -44,7 +43,6 @@ _oth_kwargs = (
     "dont_save",
     "dont_close",
     "concise_dates",
-    "verbose",  # special case for testing
 )
 _ACCEPTABLE_KWARGS = frozenset(
     _value_kwargs
@@ -93,7 +91,6 @@ FINALISE_KW_TYPES: ExpectedTypeDict = {
     "dont_save": bool,
     "dont_close": bool,
     "concise_dates": bool,
-    "verbose": bool,  # special case for testing
 }
 validate_expected(FINALISE_KW_TYPES, "finalise_plot")
 
@@ -142,12 +139,13 @@ def _apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
     """
 
     for method_name in settings:
-        if method_name in kwargs and kwargs[method_name] is not None:
+        if method_name in kwargs:
 
-            # the legend method is a special case
-            if method_name == "legend" and kwargs[method_name] is True:
-                # use the global default legend settings
-                kwargs[method_name] = get_setting("legend")
+            if kwargs[method_name] is None or kwargs[method_name] is False:
+                continue
+
+            if kwargs[method_name] is True:  # use the global default settings
+                kwargs[method_name] = get_setting(method_name)
 
             # splat the kwargs to the method
             if isinstance(kwargs[method_name], dict):
@@ -155,7 +153,7 @@ def _apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
                 method(**kwargs[method_name])
             else:
                 print(
-                    f"Warning expected dict argument: {method_name}/"
+                    f"Warning expected dict argument: {method_name} but got "
                     + f"{type(kwargs[method_name])}."
                 )
 
@@ -290,13 +288,16 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
         - axvline: dict - arguments to pass to axes.axvline()
         - ylim: tuple[float, float] - set lower and upper y-axis limits
         - xlim: tuple[float, float] - set lower and upper x-axis limits
-        - preserve_lims: bool - if True, preserve the original axes limits after tight layout
+        - preserve_lims: bool - if True, preserve the original axes limits,
+          lims saved at the start, and restored after the tight layout
         - remove_legend: bool | None - if True, remove the legend from the plot
+        - report_kwargs: bool - if True, report the kwargs used in this function
 
      Returns:
         - None
     """
 
+    # --- sanity checks
     validate_kwargs(kwargs, FINALISE_KW_TYPES, "finalise_plot")
     report_kwargs(kwargs, called_from="finalise_plot")
 

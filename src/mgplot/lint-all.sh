@@ -15,3 +15,5 @@ echo " "
 echo "Check linting overrides ..."
 grep "# type" *.py
 grep "# pylint" *.py
+grep --regexp="from typing import .*cast" *.py
+grep "cast(" *.py

@@ -305,7 +305,7 @@ if __name__ == "__main__":
             st,
             function=seastrend_plot_finalise,
             starts=[0, Period("2018Q1")],
-            title="Test Multi Start SeaTrend Plot",
+            title="Test Multi Start Seas-Trend Plot",
             ylabel="Value",
             xlabel=None,
         )
