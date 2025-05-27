@@ -88,8 +88,6 @@ type ExpectedTypeDict = dict[str, type | NestedTypeTuple]
 NOT_SEQUENCE: Final[tuple[type, ...]] = (str, bytearray, bytes, memoryview)
 REPORT_KWARGS: Final[str] = "report_kwargs"  # special case
 
-DEBUG: Final[bool] = False  # debugging flag
-
 
 # --- module-scoped global variable
 module_testing: bool = False
@@ -132,23 +130,15 @@ def limit_kwargs(
 
 def _check_expected_tuple(
     t: NestedTypeTuple,
-    top_level: bool,
 ) -> bool:
-
-    if DEBUG:
-        print(f"tuple --> {t=} {top_level=}")
 
     post_mapping = post_sequence = False
     empty = True
     for element in t:
-        if DEBUG:
-            print(f"element --> {element=} {post_mapping=} {post_sequence=}")
         empty = False
 
         if isinstance(element, type):
             if post_mapping or post_sequence:
-                if DEBUG:
-                    print(f"Expected to get a tuple: '{element}' in {t}.")
                 return False
             if issubclass(element, NOT_SEQUENCE):
                 post_mapping = post_sequence = False
@@ -164,32 +154,22 @@ def _check_expected_tuple(
 
         if isinstance(element, tuple):
             if not (post_mapping or post_sequence):
-                if DEBUG:
-                    print(f"Unexpected tuple '{element}' in {t}.")
                 return False
             if post_sequence:
                 check = _check_expectations(element)
                 if not check:
-                    if DEBUG:
-                        print(f"Malformed tuple '{element}' in {t}.")
                     return False
                 post_sequence = False
             if post_mapping:
                 if len(element) != 2:
-                    if DEBUG:
-                        print(f"Malformed mapping '{element}' in {t}.")
                     return False
                 check = _check_expectations(element[0]) and _check_expectations(
                     element[1]
                 )
                 if not check:
-                    if DEBUG:
-                        print(f"Malformed mapping '{element}' in {t}.")
                     return False
                 post_mapping = False
     if empty:
-        if DEBUG:
-            print(f"Empty tuple '{t}'.")
         return False
     return True
 
@@ -198,23 +178,16 @@ def _check_expected_type(t: type) -> bool:
     """
     Check t is an acceptable stand alone type
     """
-    if DEBUG:
-        print(f"stand-alone type --> {t=}")
 
     if issubclass(t, NOT_SEQUENCE):
         return True
     if issubclass(t, (Sequence, Set, Mapping)):
-        if DEBUG:
-            print(f"Unexpected stand-alone type '{t}'.")
         return False
     return True
 
 
 def _check_expectations(
     t: type | NestedTypeTuple,
-    after_sequence: bool = False,
-    after_mapping: bool = False,
-    top_level: bool = False,
 ) -> bool:
     """
     Check t is a type or a tuple of types.
@@ -222,8 +195,6 @@ def _check_expectations(
     Where a Sequence or Mapping type is found, check that
     the subsequent tuple contains valid member types.
     """
-    if DEBUG:
-        print(f"CEV ----> {t=} {after_sequence=} {after_mapping=} {top_level=}")
 
     # --- simple case
     if isinstance(t, type):
@@ -231,7 +202,7 @@ def _check_expectations(
 
     # --- more challenging case
     if isinstance(t, tuple):
-        return _check_expected_tuple(t, top_level)
+        return _check_expected_tuple(t)
 
     return False
 
@@ -288,17 +259,13 @@ def validate_expected(
             problems += f"{key}: Malformed typing '{t}' in {called_from}.\n"
         return problems
 
-    if DEBUG:
-        print("==========================================")
     problems = ""
     for key, value in expected.items():
-        if DEBUG:
-            print(f"VE ======> {key=} {value=}")
         if not isinstance(key, str):
             problems += f"Key '{key}' is not a string - {called_from=}.\n"
             continue
         problems += check_members(key, value)
-        if not _check_expectations(value, top_level=True):
+        if not _check_expectations(value):
             problems += f"{key}: Malformed '{value}' in {called_from}.\n"
     if problems:
         # Other than testing, we want to raise an exception here
@@ -322,18 +289,11 @@ def _check_tuple(
     Check the value against the expected tuple type.
     """
 
-    if DEBUG:
-        print(f"---- Tuple checking {value=} against {typeinfo=}")
-
     check_sequence = check_mapping = False
     for thistype in typeinfo:
 
         if check_mapping or check_sequence:  # the guard-rail
             if not isinstance(thistype, tuple):
-                if DEBUG:
-                    print(
-                        f"Internal error: Expected a tuple, got '{thistype}' in {typeinfo}."
-                    )
                 return False
 
         if check_sequence and isinstance(thistype, tuple):
@@ -376,9 +336,6 @@ def _type_check_kwargs(
     Check the type of the value against the expected type.
     """
 
-    if DEBUG:
-        print(f"---- Type checking {value=} against {typeinfo=}")
-
     # --- the simple case
     if isinstance(typeinfo, type):
         return isinstance(value, typeinfo)
@@ -401,11 +358,7 @@ def validate_kwargs(
 
     problems = ""
     for key, value in kwargs.items():
-        if DEBUG:
-            print(
-                f"VKW =====> About to validate {key=} {value=} expected={expected.get(key, '')}"
-            )
-        if key == REPORT_KWARGS and (value is True or value is False):
+        if key == REPORT_KWARGS and isinstance(value, bool):
             # This is a special case - and always okay if the value is boolean
             continue
         if key not in expected:
