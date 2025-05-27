@@ -55,6 +55,8 @@ def bar_plot(
         - "max_ticks": int - The maximum number of ticks on the x-axis,
           (this option only applies to PeriodIndex data.).
 
+    Note: This function does not assume all data is timeseries with a PeriodIndex,
+
     Returns
     - axes: Axes - The axes for the plot.
     """
@@ -64,7 +66,7 @@ def bar_plot(
 
     # --- get the data
     df = DataFrame(data)  # really we are only plotting DataFrames
-    df, kwargs = constrain_data(df, kwargs)
+    df, kwargs = constrain_data(df, **kwargs)
     item_count = len(df.columns)
 
     defaults: dict[str, Any] = {
@@ -78,7 +80,7 @@ def bar_plot(
     bar_args, remaining_kwargs = apply_defaults(item_count, defaults, kwargs)
 
     # --- plot the data
-    axes, _rkwargs = get_axes(remaining_kwargs)
+    axes, _rkwargs = get_axes(**remaining_kwargs)
 
     df.plot.bar(
         ax=axes,

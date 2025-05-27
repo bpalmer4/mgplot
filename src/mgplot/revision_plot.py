@@ -8,7 +8,7 @@ from pandas import DataFrame, Series
 from matplotlib.pyplot import Axes
 
 
-from mgplot.utilities import annotate_series
+from mgplot.utilities import annotate_series, check_clean_timeseries
 from mgplot.line_plot import LP_KW_TYPES, line_plot
 from mgplot.kw_type_checking import validate_kwargs, validate_expected
 from mgplot.kw_type_checking import report_kwargs
@@ -40,6 +40,7 @@ def revision_plot(data: DataT, **kwargs) -> Axes:
             apply int rounding.
     """
 
+    data = check_clean_timeseries(data)
     report_kwargs(kwargs, called_from="revision_plot")
     validate_kwargs(kwargs, REVISION_KW_TYPES, "revision_plot")
 

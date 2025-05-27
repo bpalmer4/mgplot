@@ -2,32 +2,96 @@
 utilities.py:
 Utiltiy functions used by more than one mgplot module.
 These are not intended to be used directly by the user.
+
+Functions:
+- check_clean_timeseries()
+- constrain_data()
 - apply_defaults()
 - get_color_list()
 - get_axes()
 - annotate_series()
-- constrain_data()
 """
 
 # --- imports
 import math
-from typing import Any
+from typing import Any, cast
+from pandas import Series, DataFrame, Period, PeriodIndex, period_range
+import numpy as np
 from matplotlib import cm
 from matplotlib.pyplot import Axes, subplots
-from pandas import Series, Period, PeriodIndex
-import numpy as np
+
 from mgplot.settings import get_setting
 from mgplot.settings import DataT
 
 
 # --- functions
-def constrain_data(data: DataT, kwargs: dict[str, Any]) -> tuple[DataT, dict[str, Any]]:
+def check_clean_timeseries(data: DataT) -> DataT:
+    """
+    Check timeseries data for the following:
+    - That the data is a Series or DataFrame.
+    - That the index is a PeriodIndex
+    - That the index is unique and monotonic increasing
+
+    Remove any leading NAN rows or columns from the data.
+
+    Return the cleaned data.
+
+    Args:
+    - data: the data to be cleaned
+
+    Returns:
+    - The data with leading NaN values removed.
+
+    Raises TypeError/Value if problems found
+    """
+
+    # --- initial checks
+    if not isinstance(data, (Series, DataFrame)):
+        raise TypeError("Data must be a pandas Series or DataFrame.")
+    if not isinstance(data.index, PeriodIndex):
+        raise TypeError("Data index must be a PeriodIndex.")
+    if not data.index.is_unique:
+        raise ValueError("Data index must be unique.")
+    if not data.index.is_monotonic_increasing:
+        raise ValueError("Data index must be monotonic increasing.")
+
+    # --- remove leading NaNs
+    fvi = data.first_valid_index()
+    if fvi is None:
+        return data  # no valid index, return original data
+    start = cast(Period, fvi)  # syntactic sugar for type hinting
+    data = data.loc[data.index >= start]
+
+    # --- report and missing periods:
+    data_index = PeriodIndex(data.index)  # syntactic sugar for type hinting
+    complete = period_range(
+        start=data_index.min(), end=data_index.max(), freq=data_index.freq
+    )
+    missing = complete.difference(data_index)
+    if not missing.empty:
+        plural = "s" if len(missing) > 1 else ""
+        print(
+            f"Warning: {len(missing)} period{plural} missing from data.index: {missing.tolist()}"
+        )
+
+    # --- return the final data
+    return data
+
+
+def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
     """
     Constrain the data to a DataFrame or Series.
     If the data is not a DataFrame or Series, raise a TypeError.
+
     Args:
         data: the data to be constrained
         kwargs: keyword arguments - uses "plot_from" in kwargs to constrain the data
+
+    Assume:
+    - that mgplot.utilitiesd.check_clean_timeseries() has already been called
+    - that the data is a Series or DataFrame with a PeriodIndex
+    - that the index is unique and monotonic increasing
+
     Returns:
         A tuple of the constrained data and the modified kwargs.
     """
@@ -50,10 +114,12 @@ def apply_defaults(
     """
     Get arguments from kwargs_d, and apply a default from the
     defaults dict if not there. Remove the item from kwargs_d.
+
     Agumenets:
         length: the number of lines to be plotted
         defaults: a dictionary of default values
         kwargs_d: a dictionary of keyword arguments
+
     Returns a tuple of two dictionaries:
         - the first is a dictionary populated with the arguments
           from kwargs_d or the defaults dictionary, where the values
@@ -84,8 +150,10 @@ def apply_defaults(
 def get_color_list(count: int) -> list[str]:
     """
     Get a list of colours for plotting.
+
     Args:
         count: the number of colours to return
+
     Returns:
         A list of colours.
     """
@@ -102,7 +170,7 @@ def get_color_list(count: int) -> list[str]:
     return [f"#{int(x*255):02x}{int(y*255):02x}{int(z*255):02x}" for x, y, z, _ in c]
 
 
-def get_axes(kwargs: dict[str, Any]) -> tuple[Axes, dict[str, Any]]:
+def get_axes(**kwargs) -> tuple[Axes, dict[str, Any]]:
     """Get the axes to plot on.
     If not passed in kwargs, create a new figure and axes."""
 
@@ -162,9 +230,17 @@ def annotate_series(
 # --- test code
 if __name__ == "__main__":
 
+    # --- test check_clean_timeseries_data()
+    my_list = [np.nan, np.nan, 1.12345, 2.12345, 3.12345, 4.12345, 5.12345]
+    _ = Series(my_list, period_range(start="2023-01", periods=len(my_list), freq="M"))
+    _ = _.drop(index=[_.index[3]])
+    clean = check_clean_timeseries(_)
+    print(f"Cleaned data:\n{clean}")
+
     # --- test annotate_series()
-    axes_, _ = get_axes({})
-    series_ = Series([1.12345, 2.12345, 3.12345, 4.12345, 5.12345])
+    print()
+    _fig, ax_ = subplots(figsize=(9, 4.5))
+    series2_ = Series([1.12345, 2.12345, 3.12345, 4.12345, 5.12345])
     rounding_ = (
         False,
         True,
@@ -174,5 +250,5 @@ if __name__ == "__main__":
         3,
     )
     for r in rounding_:
-        annotate_series(series_, axes_, rounding=r, test=True)
+        annotate_series(series2_, ax_, rounding=r, test=True)
     print("Done")

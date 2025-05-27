@@ -19,7 +19,7 @@ from mgplot.kw_type_checking import (
     validate_expected,
 )
 from mgplot.line_plot import LP_KW_TYPES
-from mgplot.utilities import constrain_data
+from mgplot.utilities import constrain_data, check_clean_timeseries
 
 
 # --- constants
@@ -128,9 +128,11 @@ def run_plot(series: DataT, **kwargs) -> Axes:
     Return
      - matplotlib Axes object"""
 
+    # --- sanity checks
+    series = check_clean_timeseries(series)
     if not isinstance(series, Series):
         raise TypeError("series must be a pandas Series for run_plot()")
-    series, kwargs = constrain_data(series, kwargs)
+    series, kwargs = constrain_data(series, **kwargs)
 
     # check the kwargs
     expected = RUN_KW_TYPES | LP_KW_TYPES

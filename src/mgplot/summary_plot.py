@@ -17,7 +17,7 @@ from pandas import DataFrame, Period
 
 # local imports
 from mgplot.settings import DataT
-from mgplot.utilities import constrain_data
+from mgplot.utilities import constrain_data, check_clean_timeseries
 from mgplot.kw_type_checking import (
     report_kwargs,
     ExpectedTypeDict,
@@ -55,8 +55,8 @@ def _calculate_z(
     start/end of the middle proportion of data to highlight)."""
 
     # calculate z-scores, scaled scores and middle quantiles
-    z_scores = (original - original.mean()) / original.std()
-    z_scaled = (
+    z_scores: DataFrame = (original - original.mean()) / original.std()
+    z_scaled: DataFrame = (
         # scale z-scores between -1 and +1
         (((z_scores - z_scores.min()) / (z_scores.max() - z_scores.min())) - 0.5)
         * 2
@@ -77,7 +77,7 @@ def _calculate_z(
         )
         print(frame)
 
-    return z_scores, z_scaled
+    return DataFrame(z_scores), DataFrame(z_scaled)  # syntactic sugar for type hinting
 
 
 def _plot_middle_bars(
@@ -175,7 +175,7 @@ def _horizontal_bar_plot(
     adjusted: DataFrame,
     middle: float,
     plot_type: str,
-    kwargs: dict[str, Any],  # definitely a dictionary and not a splat
+    **kwargs,  # definitely a dictionary and not a splat
 ) -> Axes:
     """Plot horizontal bars for the middle of the data."""
 
@@ -210,8 +210,10 @@ def summary_plot(
     """
 
     # --- sanity checks
+    data = check_clean_timeseries(data)
     if not isinstance(data, DataFrame):
-        raise ValueError("data for summary_plot() must be a pandas DataFrame")
+        raise TypeError("data must be a pandas DataFrame for summary_plot()")
+    df = DataFrame(data)  # syntactic sugar for type hinting
 
     # --- check the arguments
     report_kwargs(kwargs, "summary_plot")
@@ -220,16 +222,16 @@ def summary_plot(
 
     # --- optional arguments
     verbose = kwargs.pop("verbose", False)
-    middle = kwargs.pop("middle", 0.8)
+    middle = float(kwargs.pop("middle", 0.8))
     plot_type = kwargs.pop("plot_type", ZSCORES)
 
     # get the data, calculate z-scores and scaled scores based on the start period
-    subset, kwargs = constrain_data(data, kwargs)
+    subset, kwargs = constrain_data(df, **kwargs)
     z_scores, z_scaled = _calculate_z(subset, middle, verbose=verbose)
 
     # plot as required by the plot_types argument
     adjusted = z_scores if plot_type == ZSCORES else z_scaled
-    ax = _horizontal_bar_plot(subset, adjusted, middle, plot_type, kwargs)
+    ax = _horizontal_bar_plot(subset, adjusted, middle, plot_type, **kwargs)
     ax.tick_params(axis="y", labelsize="small")
     ax.set_xlim(kwargs.get("xlim", None))  # set x-axis limits if provided
     return ax

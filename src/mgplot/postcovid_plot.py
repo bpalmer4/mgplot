@@ -8,9 +8,9 @@ from pandas import DataFrame, Series, Period, PeriodIndex
 from matplotlib.pyplot import Axes
 from numpy import arange, polyfit
 
-from mgplot.settings import DataT
+from mgplot.settings import DataT, get_setting
 from mgplot.line_plot import line_plot
-from mgplot.settings import get_setting
+from mgplot.utilities import check_clean_timeseries
 
 
 # --- constants
@@ -53,12 +53,12 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
     """
 
     # sanity checks
+    data = check_clean_timeseries(data)
     if not isinstance(data, Series):
         raise TypeError("The series argument must be a pandas Series")
     series: Series = data
-    if not isinstance(series.index, PeriodIndex):
-        raise TypeError("The series must have a pandas PeriodIndex")
-    if series.index.freqstr[:1] not in ("Q", "M", "D"):
+    series_index = PeriodIndex(series.index)  # syntactic sugar for type hinting
+    if series_index.freqstr[:1] not in ("Q", "M", "D"):
         raise ValueError("The series index must have a D, M or Q freq")
 
     if "plot_from" in kwargs:
@@ -66,7 +66,7 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
         del kwargs["plot_from"]
 
     # plot COVID counterfactural
-    freq = series.index.freqstr
+    freq = PeriodIndex(series.index).freqstr  # syntactic sugar for type hinting
     match freq[0]:
         case "Q":
             start_regression = Period("2014Q4", freq=freq)

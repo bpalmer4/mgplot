@@ -22,6 +22,7 @@ from mgplot.utilities import (
     get_axes,
     annotate_series,
     constrain_data,
+    check_clean_timeseries,
 )
 
 
@@ -119,12 +120,13 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
     """
 
     # sanity checks
+    data = check_clean_timeseries(data)
     report_kwargs(kwargs, called_from="line_plot")
     validate_kwargs(kwargs, LP_KW_TYPES, called_from="line_plot")
 
     # the data to be plotted:
     df = DataFrame(data)  # really we are only plotting DataFrames
-    df, kwargs = constrain_data(df, kwargs)
+    df, kwargs = constrain_data(df, **kwargs)
     if df.empty:
         print("Warning: No data to plot.")
 
@@ -134,7 +136,7 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
     swce, kwargs = _get_style_width_color_etc(item_count, num_data_points, **kwargs)
 
     # Let's plot
-    axes, kwargs = get_axes(kwargs)  # get the axes to plot on
+    axes, kwargs = get_axes(**kwargs)  # get the axes to plot on
 
     for i, column in enumerate(df.columns):
         series = df[column]

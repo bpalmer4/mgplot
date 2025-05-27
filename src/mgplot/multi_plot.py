@@ -305,7 +305,7 @@ if __name__ == "__main__":
     # --- check that tjis fails
     try:
         multi_column(
-            data=Series([1, 2, 3]),
+            data=Series([1, 2, 3]),  # type: ignore # Series is not a DataFrame
             function=[plot_then_finalise],
         )
     except (ValueError, TypeError) as e:

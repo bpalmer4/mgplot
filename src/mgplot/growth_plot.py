@@ -16,7 +16,7 @@ from tabulate import tabulate
 from mgplot.test import prepare_for_test
 from mgplot.settings import get_setting, DataT
 from mgplot.date_utils import set_labels
-from mgplot.utilities import annotate_series
+from mgplot.utilities import annotate_series, check_clean_timeseries
 from mgplot.kw_type_checking import validate_kwargs, validate_expected, ExpectedTypeDict
 
 
@@ -178,8 +178,11 @@ def raw_growth_plot(
 
     # --- sanity checks
     validate_kwargs(kwargs, GROWTH_KW_TYPES, "growth_plot")
-    if not isinstance(data, DataFrame) or len(data.columns) != 2:
+    data = check_clean_timeseries(data)
+    if len(data.columns) != 2:
         raise TypeError("The data argument must be a pandas DataFrame with two columns")
+
+    # --- get the series of interest ...
     annual = data[data.columns[0]]
     periodic = data[data.columns[1]]
 
