@@ -17,7 +17,12 @@ from mgplot.test import prepare_for_test
 from mgplot.settings import get_setting, DataT
 from mgplot.date_utils import set_labels
 from mgplot.utilities import annotate_series, check_clean_timeseries
-from mgplot.kw_type_checking import validate_kwargs, validate_expected, ExpectedTypeDict
+from mgplot.kw_type_checking import (
+    validate_kwargs,
+    report_kwargs,
+    validate_expected,
+    ExpectedTypeDict,
+)
 
 
 # --- constants
@@ -177,7 +182,8 @@ def raw_growth_plot(
     """
 
     # --- sanity checks
-    validate_kwargs(kwargs, GROWTH_KW_TYPES, "growth_plot")
+    report_kwargs(called_from="raw_growth_plot", **kwargs)
+    validate_kwargs(GROWTH_KW_TYPES, "raw_growth_plot", **kwargs)
     data = check_clean_timeseries(data)
     if len(data.columns) != 2:
         raise TypeError("The data argument must be a pandas DataFrame with two columns")
@@ -244,6 +250,9 @@ def series_growth_plot(
     """
 
     # --- sanity checks
+    report_kwargs(called_from="series_growth_plot", **kwargs)
+    data = check_clean_timeseries(data)
+    # we will validate kwargs in raw_growth_plot()
     if not isinstance(data, Series):
         raise TypeError(
             "The data argument to series_growth_plot() must be a pandas Series"

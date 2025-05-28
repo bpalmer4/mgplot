@@ -99,11 +99,18 @@ module_testing: bool = False
 
 
 def report_kwargs(
-    kwargs: dict,
     called_from: str,
+    **kwargs,
 ) -> None:
     """
     Dump the received keyword arguments to the console.
+    Useful for debugging purposes.
+
+    Arguments:
+    - called_from: str - the name of the function that called this
+      function, used for debugging.
+    - **kwargs - the keyword arguments to be reported, but only if
+        the REPORT_KWARGS key is present and set to True.
     """
 
     if kwargs.get(REPORT_KWARGS, False):
@@ -115,8 +122,8 @@ def report_kwargs(
 
 
 def limit_kwargs(
-    kwargs: dict[str, Any],
     expected: ExpectedTypeDict,
+    **kwargs,
 ) -> dict[str, Any]:
     """
     Limit the keyword arguments to those in the expected dict.
@@ -348,12 +355,21 @@ def _type_check_kwargs(
 
 
 def validate_kwargs(
-    kwargs: dict[str, Any],
     expected: ExpectedTypeDict,
     called_from: str,
+    **kwargs,
 ) -> None:
     """
-    Check the keyword arguments against the expected types.
+    This function is used to validate the keyword arguments.
+    To check we don't have unexpected keyword arguments, and
+    to check that the values are of the expected type.
+
+    Arguments
+    - expected: ExpectedTypeDict - the expected keyword arguments and their types.
+    - called_from: str - the name of the function that called this function,
+    - **kwargs - the keyword arguments to be validated.
+
+    It is not intended to be used by the user.
     """
 
     problems = ""
@@ -362,7 +378,9 @@ def validate_kwargs(
             # This is a special case - and always okay if the value is boolean
             continue
         if key not in expected:
-            problems += f"{key}: unexpected keyword argument in {called_from}.\n"
+            problems += (
+                f"{key}: unexpected keyword argument with {value=}in {called_from}.\n"
+            )
             continue
         if not _type_check_kwargs(value, expected[key]):
             problems += (
@@ -417,6 +435,16 @@ if __name__ == "__main__":
     # --- test the validate_kwargs() function
     # bad means the KWARGS are not of the expected type
 
+    expected_kw: ExpectedTypeDict = {
+        "good_1": str,
+        "good_2": (Sequence, (int, float), int, float),
+        "good_3": (int, float, Sequence, (int, float)),
+        "good_4": (Sequence, (str,)),
+        "bad_1": str,
+        "bad_2": (int, float),
+    }
+    validate_expected(expected_kw, "test")
+
     kwargs_test = {
         # - these ones should pass
         "good_1": "hello",
@@ -429,15 +457,4 @@ if __name__ == "__main__":
         "bad_1": 3.14,
         "bad_2": (3, 4),
     }
-
-    expected_kw: ExpectedTypeDict = {
-        "good_1": str,
-        "good_2": (Sequence, (int, float), int, float),
-        "good_3": (int, float, Sequence, (int, float)),
-        "good_4": (Sequence, (str,)),
-        "bad_1": str,
-        "bad_2": (int, float),
-    }
-
-    validate_expected(expected_kw, "test")
-    validate_kwargs(kwargs_test, expected_kw, "test")
+    validate_kwargs(expected_kw, "test", **kwargs_test)

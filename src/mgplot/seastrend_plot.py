@@ -9,6 +9,8 @@ from matplotlib.pyplot import Axes
 from mgplot.settings import DataT
 from mgplot.line_plot import line_plot
 from mgplot.utilities import get_color_list, get_setting, check_clean_timeseries
+from mgplot.kw_type_checking import report_kwargs
+
 
 # --- constants
 COLOR = "color"
@@ -41,11 +43,13 @@ def seastrend_plot(data: DataT, **kwargs) -> Axes:
     # including constraining the data to the plot_from keyword argument.
 
     # --- sanity checks
+    report_kwargs(called_from="seastrend_plot", **kwargs)
     data = check_clean_timeseries(data)
     if len(data.columns) < 2:
         raise ValueError(
             "seas_trend_plot() expects a DataFrame data item with at least 2 columns."
         )
+    # let line_plot() handle validate_kwargs()
 
     # --- defaults if not in kwargs
     colors = kwargs.pop(COLOR, get_color_list(2))

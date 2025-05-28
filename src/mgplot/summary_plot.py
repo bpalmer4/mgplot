@@ -83,7 +83,7 @@ def _calculate_z(
 def _plot_middle_bars(
     adjusted: DataFrame,
     middle: float,
-    kwargs: dict[str, Any],
+    kwargs: dict[str, Any],  # must be a dictionary, not a splat
 ) -> Axes:
     """Plot the middle (typically 80%) of the data as a bar.
     Note: also sets the x-axis limits in kwargs.
@@ -92,7 +92,7 @@ def _plot_middle_bars(
     q = _calc_quantiles(middle)
     lo_hi: DataFrame = adjusted.quantile(q=q).T  # get the middle section of data
     span = 1.15
-    space = 0.15
+    space = 0.2
     low = min(adjusted.iloc[-1].min(), lo_hi.min().min(), -span) - space
     high = max(adjusted.iloc[-1].max(), lo_hi.max().max(), span) + space
     kwargs["xlim"] = (low, high)  # remember the x-axis limits
@@ -134,7 +134,7 @@ def _label_extremes(
     data: tuple[DataFrame, DataFrame],
     plot_type: str,
     f_size: int,
-    kwargs: dict[str, Any],
+    kwargs: dict[str, Any],  # must be a dictionary, not a splat
 ) -> None:
     """Label the extremes in the scaled plots."""
 
@@ -175,9 +175,13 @@ def _horizontal_bar_plot(
     adjusted: DataFrame,
     middle: float,
     plot_type: str,
-    **kwargs,  # definitely a dictionary and not a splat
+    kwargs: dict[str, Any],  # must be a dictionary, not a splat
 ) -> Axes:
     """Plot horizontal bars for the middle of the data."""
+
+    # kwargs is a dictionary, not a splat
+    # so that we can pass it to the Axes object and
+    # set the x-axis limits.
 
     ax = _plot_middle_bars(adjusted, middle, kwargs)
     f_size = 10
@@ -192,7 +196,7 @@ def _horizontal_bar_plot(
 # public
 def summary_plot(
     data: DataT,  # summary data
-    **kwargs: Any,
+    **kwargs,
 ) -> Axes:
     """Plot a summary of historical data for a given DataFrame.
 
@@ -216,9 +220,8 @@ def summary_plot(
     df = DataFrame(data)  # syntactic sugar for type hinting
 
     # --- check the arguments
-    report_kwargs(kwargs, "summary_plot")
-    expected_kwargs = SUMMARY_KW_TYPES
-    validate_kwargs(kwargs, expected_kwargs, "summary_plot")
+    report_kwargs("summary_plot", **kwargs)
+    validate_kwargs(SUMMARY_KW_TYPES, "summary_plot", **kwargs)
 
     # --- optional arguments
     verbose = kwargs.pop("verbose", False)
@@ -231,7 +234,7 @@ def summary_plot(
 
     # plot as required by the plot_types argument
     adjusted = z_scores if plot_type == ZSCORES else z_scaled
-    ax = _horizontal_bar_plot(subset, adjusted, middle, plot_type, **kwargs)
+    ax = _horizontal_bar_plot(subset, adjusted, middle, plot_type, kwargs)
     ax.tick_params(axis="y", labelsize="small")
-    ax.set_xlim(kwargs.get("xlim", None))  # set x-axis limits if provided
+    ax.set_xlim(kwargs.get("xlim", None))  # provide space for the labels
     return ax

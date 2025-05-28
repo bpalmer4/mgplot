@@ -41,10 +41,15 @@ from collections.abc import Iterable
 from pandas import Period, DataFrame, Series, period_range
 from numpy import random
 
-from mgplot.kw_type_checking import limit_kwargs, ExpectedTypeDict, validate_kwargs
+from mgplot.kw_type_checking import (
+    limit_kwargs,
+    ExpectedTypeDict,
+    report_kwargs,
+)
 from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
 from mgplot.settings import DataT
 from mgplot.test import prepare_for_test
+from mgplot.utilities import check_clean_timeseries
 
 from mgplot.line_plot import line_plot, LP_KW_TYPES
 from mgplot.bar_plot import bar_plot, BAR_PLOT_KW_TYPES
@@ -65,7 +70,7 @@ EXPECTED_CALLABLES: Final[dict[Callable, ExpectedTypeDict]] = {
     bar_plot: BAR_PLOT_KW_TYPES,
     seastrend_plot: LP_KW_TYPES,  # just calls line_plot under the hood
     postcovid_plot: LP_KW_TYPES,  # just calls line_plot under the hood
-    revision_plot: LP_KW_TYPES | REVISION_KW_TYPES,
+    revision_plot: REVISION_KW_TYPES,
     run_plot: LP_KW_TYPES | RUN_KW_TYPES,
     summary_plot: SUMMARY_KW_TYPES,
     series_growth_plot: GROWTH_KW_TYPES,
@@ -134,22 +139,27 @@ def plot_then_finalise(
     Returns None.
     """
 
+    # --- sanity checks
+    report_kwargs(called_from="plot_then_finalise", **kwargs)
+    data = check_clean_timeseries(data)
+
+    # --- check the function argument
     first, kwargs_ = first_unchain(function, **kwargs)
 
     if first in EXPECTED_CALLABLES:
-
         expected = EXPECTED_CALLABLES[first]
-        plot_kwargs = limit_kwargs(kwargs_.copy(), expected)
-        expected |= FINALISE_KW_TYPES
-        validate_kwargs(plot_kwargs, expected, "plot_then_finalise")
+        plot_kwargs = limit_kwargs(expected, **kwargs)
     else:
         # this is an unexpected Callable, so we will give it a try
         print(f"Unknown proposed function: {first}; nonetheless, will give it a try.")
         plot_kwargs = kwargs_
 
+    # --- call the first function with the data and kwargs
+
     axes = first(data, **plot_kwargs)
 
-    fp_kwargs = limit_kwargs(kwargs_.copy(), FINALISE_KW_TYPES)
+    # --- finalise the plot
+    fp_kwargs = limit_kwargs(FINALISE_KW_TYPES, **kwargs)
     finalise_plot(axes, **fp_kwargs)
 
 
@@ -180,12 +190,17 @@ def multi_start(
     Note: kwargs['tag'] is used to create a unique tag for each plot.
     """
 
+    # --- sanity checks
+    report_kwargs(called_from="multi_start", **kwargs)
+    data = check_clean_timeseries(data)
     if not isinstance(starts, Iterable):
         raise ValueError("starts must be an iterable of None, Period or int")
 
+    # --- check the function argument
     original_tag: Final[str] = kwargs.get("tag", "")
     first, kwargs = first_unchain(function, **kwargs)
 
+    # --- iterate over the starts
     for i, start in enumerate(starts):
         kw = kwargs.copy()  # copy to avoid modifying the original kwargs
         this_tag = f"{original_tag}_{i}"
@@ -212,13 +227,16 @@ def multi_column(
     Returns None.
     """
 
-    if not isinstance(data, DataFrame):
-        raise ValueError("data must be a DataFrame")
+    # --- sanity checks
+    report_kwargs(called_from="multi_column", **kwargs)
+    data = check_clean_timeseries(data)
 
+    # --- check the function argument
     title_stem = kwargs.get("title", "")
     tag: Final[str] = kwargs.get("tag", "")
     first, kwargs = first_unchain(function, **kwargs)
 
+    # --- iterate over the columns
     for i, col in enumerate(data.columns):
 
         series = data[[col]]

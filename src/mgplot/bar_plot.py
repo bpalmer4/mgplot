@@ -62,7 +62,8 @@ def bar_plot(
     """
 
     # --- validate the kwargs
-    validate_kwargs(kwargs, BAR_PLOT_KW_TYPES, "bar_plot")
+    validate_kwargs(BAR_PLOT_KW_TYPES, "bar_plot", **kwargs)
+    # note data may not be time-series or have a period index.
 
     # --- get the data
     df = DataFrame(data)  # really we are only plotting DataFrames

@@ -2,14 +2,15 @@
 finalisers.py
 
 Simple convenience functions to finalise and produce plots.
-- line_plot_finalise()
 - bar_plot_finalise()
-- seastrend_plot_finalise()
+- line_plot_finalise()
 - postcovid_plot_finalise()
+- raw_growth_plot_finalise()
 - revision_plot_finalise()
 - run_plot_finalise()
-- raw_growth_plot_finalise()
+- seastrend_plot_finalise()
 - series_growth_plot_finalise()
+- summary_plot_finalise()
 
 Note: we keep these functions in a separate module to
 stop circular imports
@@ -213,7 +214,9 @@ def summary_plot_finalise(
         kwargs["plot_type"] = plot_type
         kwargs["title"] = kwargs.get("title", f"Summary at {data.index[-1]}")
         kwargs["pre_tag"] = plot_type  # necessary because the title is same
-        kwargs["preserve_lims"] = kwargs.get("preserve_lims", True)
+        kwargs["preserve_lims"] = kwargs.get(
+            "preserve_lims", True
+        )  # preserve the x-axis limits
 
         # get the start date for the plot
         set_default = start is None
@@ -317,11 +320,9 @@ if __name__ == "__main__":
             parse_dates=True,
         )
         summary_data.index = PeriodIndex(summary_data.index, freq="M")
-        multi_start(
+        summary_plot_finalise(
             data=summary_data,
-            function=summary_plot_finalise,
-            starts=[None, Period("2022-01", freq="M")],
-            title=f"Test Multi Start Summary Plot at {summary_data.index[-1]}",
+            title=f"Summary Plot at {summary_data.index[-1]}",
             ylabel="Value",
             xlabel=None,
         )

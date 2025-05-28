@@ -17,6 +17,7 @@ from mgplot.kw_type_checking import (
     ExpectedTypeDict,
     validate_kwargs,
     validate_expected,
+    report_kwargs,
 )
 from mgplot.line_plot import LP_KW_TYPES
 from mgplot.utilities import constrain_data, check_clean_timeseries
@@ -134,16 +135,15 @@ def run_plot(series: DataT, **kwargs) -> Axes:
         raise TypeError("series must be a pandas Series for run_plot()")
     series, kwargs = constrain_data(series, **kwargs)
 
-    # check the kwargs
+    # --- check the kwargs
+    report_kwargs(called_from="run_plot", **kwargs)
     expected = RUN_KW_TYPES | LP_KW_TYPES
-    validate_kwargs(kwargs, expected, "run_plot")
+    validate_kwargs(expected, "run_plot", **kwargs)
 
-    # default arguments - in **kwargs
+    # --- default arguments - in **kwargs
     kwargs[THRESHOLD] = kwargs.get(THRESHOLD, 0.1)
     kwargs[ROUND] = kwargs.get(ROUND, 2)
     direct = kwargs[DIRECTION] = kwargs.get(DIRECTION, "up")
-
-    # default line and highlight colors
     kwargs[HIGHLIGHT], kwargs["color"] = (
         (kwargs.get(HIGHLIGHT, "gold"), kwargs.get("color", "#dd0000"))
         if direct == "up"
@@ -162,7 +162,7 @@ def run_plot(series: DataT, **kwargs) -> Axes:
 
     # plot the line
     kwargs["drawstyle"] = kwargs.get("drawstyle", "steps-post")
-    lp_kwargs = limit_kwargs(kwargs, LP_KW_TYPES)
+    lp_kwargs = limit_kwargs(LP_KW_TYPES, **kwargs)
     axes = line_plot(series, **lp_kwargs)
 
     # plot the runs

@@ -120,9 +120,9 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
     """
 
     # sanity checks
+    report_kwargs(called_from="line_plot", **kwargs)
     data = check_clean_timeseries(data)
-    report_kwargs(kwargs, called_from="line_plot")
-    validate_kwargs(kwargs, LP_KW_TYPES, called_from="line_plot")
+    validate_kwargs(LP_KW_TYPES, called_from="line_plot", **kwargs)
 
     # the data to be plotted:
     df = DataFrame(data)  # really we are only plotting DataFrames

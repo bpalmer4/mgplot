@@ -298,12 +298,11 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
     """
 
     # --- sanity checks
-    validate_kwargs(kwargs, FINALISE_KW_TYPES, "finalise_plot")
-    report_kwargs(kwargs, called_from="finalise_plot")
+    report_kwargs(called_from="finalise_plot", **kwargs)
+    validate_kwargs(FINALISE_KW_TYPES, "finalise_plot", **kwargs)
 
     # --- remember should we need to restore the axes limits
-    xlim = axes.get_xlim()
-    ylim = axes.get_ylim()
+    xlim, ylim = axes.get_xlim(), axes.get_ylim()
 
     # margins
     # axes.use_sticky_margins = False   ### CHECK THIS

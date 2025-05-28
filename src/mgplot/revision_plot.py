@@ -4,7 +4,7 @@ Plot ABS revisions to estimates over time.
 """
 
 # --- imports
-from pandas import DataFrame, Series
+from pandas import Series
 from matplotlib.pyplot import Axes
 
 
@@ -40,19 +40,18 @@ def revision_plot(data: DataT, **kwargs) -> Axes:
             apply int rounding.
     """
 
+    # --- sanity checks
     data = check_clean_timeseries(data)
-    report_kwargs(kwargs, called_from="revision_plot")
-    validate_kwargs(kwargs, REVISION_KW_TYPES, "revision_plot")
+    report_kwargs(called_from="revision_plot", **kwargs)
+    validate_kwargs(REVISION_KW_TYPES, "revision_plot", **kwargs)
 
-    # critical defaults
+    # --- critical defaults
     kwargs["plot_from"] = kwargs.get("plot_from", -18)
 
-    if not isinstance(data, DataFrame):
-        raise TypeError("data must be a pandas DataFrame for revision_plot()")
-
+    # --- plot
     axes = line_plot(data, **kwargs)
 
-    # Annotate the last value in each series ...
+    # --- Annotate the last value in each series ...
     rounding: int | bool = kwargs.pop(ROUNDING, True)
     for c in data.columns:
         col: Series = data.loc[:, c].dropna()

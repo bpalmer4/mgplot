@@ -11,11 +11,14 @@ from numpy import arange, polyfit
 from mgplot.settings import DataT, get_setting
 from mgplot.line_plot import line_plot
 from mgplot.utilities import check_clean_timeseries
+from mgplot.kw_type_checking import report_kwargs
 
 
 # --- constants
 WIDTH = "width"
 STYLE = "style"
+START_R = "start_r"
+END_R = "end_r"
 
 
 # --- functions
@@ -52,7 +55,8 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
     - ValueError if regression start is after regression end
     """
 
-    # sanity checks
+    # --- sanity checks
+    report_kwargs(called_from="postcovid_plot", **kwargs)
     data = check_clean_timeseries(data)
     if not isinstance(data, Series):
         raise TypeError("The series argument must be a pandas Series")
@@ -60,12 +64,12 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
     series_index = PeriodIndex(series.index)  # syntactic sugar for type hinting
     if series_index.freqstr[:1] not in ("Q", "M", "D"):
         raise ValueError("The series index must have a D, M or Q freq")
-
+    # rely on line_plot() to validate kwargs
     if "plot_from" in kwargs:
         print("Warning: the 'plot_from' argument is ignored in postcovid_plot().")
         del kwargs["plot_from"]
 
-    # plot COVID counterfactural
+    # --- plot COVID counterfactural
     freq = PeriodIndex(series.index).freqstr  # syntactic sugar for type hinting
     match freq[0]:
         case "Q":
@@ -83,6 +87,7 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
     if start_regression >= end_regression:
         raise ValueError("Start period must be before end period")
 
+    # --- combine data and projection
     recent = series[series.index >= start_regression].copy()
     recent.name = "Series"
     projection = get_projection(recent, end_regression)

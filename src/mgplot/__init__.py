@@ -44,6 +44,7 @@ from mgplot.finalisers import (
     summary_plot_finalise,
     raw_growth_plot_finalise,
     series_growth_plot_finalise,
+    run_plot_finalise,
 )
 
 
@@ -102,6 +103,7 @@ __all__ = (
     "summary_plot_finalise",
     "raw_growth_plot_finalise",
     "series_growth_plot_finalise",
+    "run_plot_finalise",
     # --- The rest are internal use only
 )
 # __pdoc__: dict[str, Any] = {"test": False}  # hide submodules from documentation
