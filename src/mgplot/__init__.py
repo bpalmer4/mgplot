@@ -1,4 +1,16 @@
-"""Package to provide a frontend to matplotlib."""
+"""
+mgplot
+------
+
+Package to provide a frontend to matplotlib for working
+with timeseries data that is indexed with a PeriodIndex.
+"""
+
+# --- version and author
+# NOTE: update version number here (below) and in pyproject.toml
+__version__ = "0.1.0"
+__author__ = "Bryan Palmer"
+
 
 # --- local imports
 #    Do not import the utilities, test nor type-checking modules here.
