@@ -4,6 +4,7 @@ Plot the pre-COVID trajectory against the current trend.
 """
 
 # --- imports
+from collections.abc import Sequence
 from pandas import DataFrame, Series, Period, PeriodIndex
 from matplotlib.pyplot import Axes
 from numpy import arange, polyfit
@@ -11,7 +12,7 @@ from numpy import arange, polyfit
 from mgplot.settings import DataT, get_setting
 from mgplot.line_plot import line_plot
 from mgplot.utilities import check_clean_timeseries
-from mgplot.kw_type_checking import report_kwargs
+from mgplot.kw_type_checking import report_kwargs, ExpectedTypeDict, validate_expected
 
 
 # --- constants
@@ -19,6 +20,14 @@ WIDTH = "width"
 STYLE = "style"
 START_R = "start_r"
 END_R = "end_r"
+
+POSTCOVID_KW_TYPES: ExpectedTypeDict = {
+    WIDTH: (Sequence, (int, float), int, float),
+    STYLE: (Sequence, (str,), str),
+    START_R: Period,
+    END_R: Period,
+}
+validate_expected(POSTCOVID_KW_TYPES, "postcovid_plot")
 
 
 # --- functions

@@ -5,7 +5,7 @@ file system. It is used to publish plots.
 """
 
 # --- imports
-# from typing import Any
+from typing import Final
 import re
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -53,7 +53,7 @@ _ACCEPTABLE_KWARGS = frozenset(
     + _oth_kwargs
 )
 
-FINALISE_KW_TYPES: ExpectedTypeDict = {
+FINALISE_KW_TYPES: Final[ExpectedTypeDict] = {
     # - value kwargs
     "title": (str, type(None)),
     "xlabel": (str, type(None)),

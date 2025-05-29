@@ -9,7 +9,7 @@ from matplotlib.pyplot import Axes
 
 
 from mgplot.utilities import annotate_series, check_clean_timeseries
-from mgplot.line_plot import LP_KW_TYPES, line_plot
+from mgplot.line_plot import LINE_KW_TYPES, line_plot
 from mgplot.kw_type_checking import validate_kwargs, validate_expected
 from mgplot.kw_type_checking import report_kwargs
 from mgplot.settings import DataT
@@ -20,7 +20,7 @@ from mgplot.kw_type_checking import ExpectedTypeDict
 ROUNDING = "rounding"
 REVISION_KW_TYPES: ExpectedTypeDict = {
     ROUNDING: (int, bool),
-} | LP_KW_TYPES
+} | LINE_KW_TYPES
 validate_expected(REVISION_KW_TYPES, "revision_plot")
 
 

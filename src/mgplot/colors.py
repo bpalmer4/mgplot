@@ -54,20 +54,29 @@ def get_color(s: str) -> str:
         (
             "lnp",
             "l/np",
+            "liberal",
+            "liberals",
             "coalition",
             "dutton",
             "ley",
+            "liberal and/or nationals",
         ): "royalblue",
+        (
+            "nat",
+            "nats",
+            "national",
+            "nationals",
+        ): "forestgreen",
         (
             "alp",
             "labor",
             "albanese",
-        ): "indianred",
+        ): "#dd0000",
         (
             "grn",
             "green",
             "greens",
-        ): "mediumseagreen",
+        ): "limegreen",
         (
             "other",
             "oth",

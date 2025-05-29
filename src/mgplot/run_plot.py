@@ -11,7 +11,7 @@ from matplotlib.pyplot import Axes
 from matplotlib import patheffects as pe
 
 from mgplot.settings import DataT
-from mgplot.line_plot import line_plot
+from mgplot.line_plot import line_plot, LINE_KW_TYPES
 from mgplot.kw_type_checking import (
     limit_kwargs,
     ExpectedTypeDict,
@@ -19,7 +19,6 @@ from mgplot.kw_type_checking import (
     validate_expected,
     report_kwargs,
 )
-from mgplot.line_plot import LP_KW_TYPES
 from mgplot.utilities import constrain_data, check_clean_timeseries
 
 
@@ -35,6 +34,7 @@ RUN_KW_TYPES: ExpectedTypeDict = {
     HIGHLIGHT: (str, Sequence, (str,)),  # colors for highlighting the runs
     DIRECTION: str,  # "up", "down" or "both"
 }
+RUN_KW_TYPES |= LINE_KW_TYPES
 validate_expected(RUN_KW_TYPES, "run_highlight_plot")
 
 # --- functions
@@ -137,7 +137,7 @@ def run_plot(series: DataT, **kwargs) -> Axes:
 
     # --- check the kwargs
     report_kwargs(called_from="run_plot", **kwargs)
-    expected = RUN_KW_TYPES | LP_KW_TYPES
+    expected = RUN_KW_TYPES
     validate_kwargs(expected, "run_plot", **kwargs)
 
     # --- default arguments - in **kwargs
@@ -162,7 +162,7 @@ def run_plot(series: DataT, **kwargs) -> Axes:
 
     # plot the line
     kwargs["drawstyle"] = kwargs.get("drawstyle", "steps-post")
-    lp_kwargs = limit_kwargs(LP_KW_TYPES, **kwargs)
+    lp_kwargs = limit_kwargs(RUN_KW_TYPES, **kwargs)
     axes = line_plot(series, **lp_kwargs)
 
     # plot the runs

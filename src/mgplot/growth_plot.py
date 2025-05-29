@@ -7,6 +7,7 @@ plot period and annual/through-the-year growth rates on the same axes.
 """
 
 # --- imports
+from typing import Final
 from pandas import Series, DataFrame, Index, Period, PeriodIndex, period_range
 from numpy import nan
 from matplotlib.pyplot import Axes
@@ -29,7 +30,7 @@ from mgplot.kw_type_checking import (
 ANNUAL = "annual"
 PERIODIC = "periodic"
 
-GROWTH_KW_TYPES: ExpectedTypeDict = {
+GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     "line_width": (float, int),
     "line_color": str,
     "line_style": str,
@@ -42,6 +43,7 @@ GROWTH_KW_TYPES: ExpectedTypeDict = {
     "max_ticks": int,
 }
 validate_expected(GROWTH_KW_TYPES, "growth_plot")
+# --- alieses for intuitive compatibility
 
 
 # --- functions

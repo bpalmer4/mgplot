@@ -7,12 +7,14 @@ This module contains a function to create seasonal+trend plots.
 from matplotlib.pyplot import Axes
 
 from mgplot.settings import DataT
-from mgplot.line_plot import line_plot
+from mgplot.line_plot import line_plot, LINE_KW_TYPES
 from mgplot.utilities import get_color_list, get_setting, check_clean_timeseries
 from mgplot.kw_type_checking import report_kwargs
 
 
 # --- constants
+SEASTREND_KW_TYPES = LINE_KW_TYPES
+
 COLOR = "color"
 WIDTH = "width"
 STYLE = "style"

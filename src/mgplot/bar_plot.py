@@ -8,7 +8,7 @@ cannot be plotted on the same axes.
 """
 
 # --- imports
-from typing import Any
+from typing import Any, Final
 from collections.abc import Sequence
 from pandas import DataFrame, period_range, PeriodIndex
 import matplotlib.pyplot as plt
@@ -21,7 +21,7 @@ from mgplot.date_utils import set_labels
 
 
 # --- constants
-BAR_PLOT_KW_TYPES: ExpectedTypeDict = {
+BAR_KW_TYPES: Final[ExpectedTypeDict] = {
     "color": (str, Sequence, (str,)),
     "width": float,
     "stacked": bool,
@@ -30,7 +30,7 @@ BAR_PLOT_KW_TYPES: ExpectedTypeDict = {
     "max_ticks": int,
     "plot_from": (int, PeriodIndex, type(None)),
 }
-validate_expected(BAR_PLOT_KW_TYPES, "bar_plot")
+validate_expected(BAR_KW_TYPES, "bar_plot")
 
 
 # --- functions
@@ -62,7 +62,7 @@ def bar_plot(
     """
 
     # --- validate the kwargs
-    validate_kwargs(BAR_PLOT_KW_TYPES, "bar_plot", **kwargs)
+    validate_kwargs(BAR_KW_TYPES, "bar_plot", **kwargs)
     # note data may not be time-series or have a period index.
 
     # --- get the data

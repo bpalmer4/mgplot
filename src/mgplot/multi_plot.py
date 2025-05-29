@@ -51,10 +51,10 @@ from mgplot.settings import DataT
 from mgplot.test import prepare_for_test
 from mgplot.utilities import check_clean_timeseries
 
-from mgplot.line_plot import line_plot, LP_KW_TYPES
-from mgplot.bar_plot import bar_plot, BAR_PLOT_KW_TYPES
-from mgplot.seastrend_plot import seastrend_plot
-from mgplot.postcovid_plot import postcovid_plot
+from mgplot.line_plot import line_plot, LINE_KW_TYPES
+from mgplot.bar_plot import bar_plot, BAR_KW_TYPES
+from mgplot.seastrend_plot import seastrend_plot, SEASTREND_KW_TYPES
+from mgplot.postcovid_plot import postcovid_plot, POSTCOVID_KW_TYPES
 from mgplot.revision_plot import revision_plot, REVISION_KW_TYPES
 from mgplot.run_plot import run_plot, RUN_KW_TYPES
 from mgplot.summary_plot import summary_plot, SUMMARY_KW_TYPES
@@ -66,12 +66,12 @@ EXPECTED_CALLABLES: Final[dict[Callable, ExpectedTypeDict]] = {
     # used by plot_then_finalise() to (1) check the target function
     # is one of the expected functions, and (2) to limit the kwargs
     # passed on, to the expected keyword arguments for that function.
-    line_plot: LP_KW_TYPES,
-    bar_plot: BAR_PLOT_KW_TYPES,
-    seastrend_plot: LP_KW_TYPES,  # just calls line_plot under the hood
-    postcovid_plot: LP_KW_TYPES,  # just calls line_plot under the hood
+    line_plot: LINE_KW_TYPES,
+    bar_plot: BAR_KW_TYPES,
+    seastrend_plot: SEASTREND_KW_TYPES,
+    postcovid_plot: POSTCOVID_KW_TYPES,
     revision_plot: REVISION_KW_TYPES,
-    run_plot: LP_KW_TYPES | RUN_KW_TYPES,
+    run_plot: RUN_KW_TYPES,
     summary_plot: SUMMARY_KW_TYPES,
     series_growth_plot: GROWTH_KW_TYPES,
     raw_growth_plot: GROWTH_KW_TYPES,

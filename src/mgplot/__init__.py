@@ -14,18 +14,20 @@ __author__ = "Bryan Palmer"
 
 # --- local imports
 #    Do not import the utilities, test nor type-checking modules here.
-from mgplot.finalise_plot import finalise_plot
-from mgplot.bar_plot import bar_plot
-from mgplot.line_plot import line_plot
-from mgplot.seastrend_plot import seastrend_plot
-from mgplot.postcovid_plot import postcovid_plot
-from mgplot.revision_plot import revision_plot
-from mgplot.run_plot import run_plot
-from mgplot.summary_plot import summary_plot
+from mgplot.kw_type_checking import ExpectedTypeDict  # typing for the kwarg types
+from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
+from mgplot.bar_plot import bar_plot, BAR_KW_TYPES
+from mgplot.line_plot import line_plot, LINE_KW_TYPES
+from mgplot.seastrend_plot import seastrend_plot, SEASTREND_KW_TYPES
+from mgplot.postcovid_plot import postcovid_plot, POSTCOVID_KW_TYPES
+from mgplot.revision_plot import revision_plot, REVISION_KW_TYPES
+from mgplot.run_plot import run_plot, RUN_KW_TYPES
+from mgplot.summary_plot import summary_plot, SUMMARY_KW_TYPES
 from mgplot.growth_plot import (
     calc_growth,
     raw_growth_plot,
     series_growth_plot,
+    GROWTH_KW_TYPES,
 )
 from mgplot.multi_plot import (
     multi_start,
@@ -66,6 +68,7 @@ __author__ = "Bryan Palmer"
 
 
 # --- public API
+SERIES_GROWTH_KW_TYPES = RAW_GROWTH_KW_TYPES = GROWTH_KW_TYPES
 __all__ = (
     "__version__",
     "__author__",
@@ -116,6 +119,19 @@ __all__ = (
     "raw_growth_plot_finalise",
     "series_growth_plot_finalise",
     "run_plot_finalise",
+    # --- typing information
+    "ExpectedTypeDict",
+    "FINALISE_KW_TYPES",
+    "BAR_KW_TYPES",
+    "LINE_KW_TYPES",
+    "SEASTREND_KW_TYPES",
+    "POSTCOVID_KW_TYPES",
+    "REVISION_KW_TYPES",
+    "RUN_KW_TYPES",
+    "SUMMARY_KW_TYPES",
+    "GROWTH_KW_TYPES",
+    "SERIES_GROWTH_KW_TYPES",
+    "RAW_GROWTH_KW_TYPES",
     # --- The rest are internal use only
 )
 # __pdoc__: dict[str, Any] = {"test": False}  # hide submodules from documentation
