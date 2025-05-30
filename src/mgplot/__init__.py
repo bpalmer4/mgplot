@@ -8,7 +8,7 @@ with timeseries data that is indexed with a PeriodIndex.
 
 # --- version and author
 # NOTE: update version number here (below) and in pyproject.toml
-__version__ = "0.1.0"
+__version__ = "0.1.2"
 __author__ = "Bryan Palmer"
 
 
@@ -60,11 +60,6 @@ from mgplot.finalisers import (
     series_growth_plot_finalise,
     run_plot_finalise,
 )
-
-
-# --- version and author
-__version__ = "0.0.1"
-__author__ = "Bryan Palmer"
 
 
 # --- public API

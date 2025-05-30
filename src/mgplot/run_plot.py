@@ -162,7 +162,7 @@ def run_plot(series: DataT, **kwargs) -> Axes:
 
     # plot the line
     kwargs["drawstyle"] = kwargs.get("drawstyle", "steps-post")
-    lp_kwargs = limit_kwargs(RUN_KW_TYPES, **kwargs)
+    lp_kwargs = limit_kwargs(LINE_KW_TYPES, **kwargs)
     axes = line_plot(series, **lp_kwargs)
 
     # plot the runs

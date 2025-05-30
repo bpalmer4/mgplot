@@ -149,7 +149,9 @@ def series_growth_plot_finalise(data: DataT, **kwargs) -> None:
     the growth series.
     """
 
-    kwargs["ylabel"] = kwargs.get("ylabel", "Per cent Growth")
+    if "ylabel" in kwargs:
+        print("Check: Did you intend to specify a value for 'ylabel'?")
+    kwargs["ylabel"] = kwargs.get("ylabel", "Per cent growth")
     kwargs["xlabel"] = kwargs.get("xlabel", None)
     plot_then_finalise(
         data=data,

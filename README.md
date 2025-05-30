@@ -38,7 +38,7 @@ The remaining arrguments are passed as keyword arguments:
 - summary_plot() -- plots the latest data in a summary-format against
   the range of previous data. 
 
-Once a plot has been generated and am Axes object is available. The
+Once a plot has been generated and an Axes object is available. The
 plot can be finalised or published, with appropriate titles and
 axis labels using
 - finalise_plot()

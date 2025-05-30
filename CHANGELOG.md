@@ -1,3 +1,13 @@
+Version 0.1.2 - released 30-May-2025 (Canberra, Australia)
+
+* minor changes
+     - fixed an incorrect typing-gate in run_plot()
+     - removed duplicate versioning code in __init__.py
+     - added "numpy-typing" to pyproject.toml
+     - added a warning if ylabel set in series_growth_plot_finalise()
+     - added legend=True default argument to raw_growth_plot()
+---
+
 Version 0.1.1 - released 29-May-2025 (Canberra, Australia)
 
 * minor changes

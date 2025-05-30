@@ -41,6 +41,7 @@ GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     "annotation_rounding": int,
     "plot_from": (type(None), Period, int),
     "max_ticks": int,
+    "legend": (type(None), bool, dict, (str, object)),
 }
 validate_expected(GROWTH_KW_TYPES, "growth_plot")
 # --- alieses for intuitive compatibility
@@ -228,7 +229,13 @@ def raw_growth_plot(
         linestyle=kwargs.get("line_style", "-"),
     )
     _annotations(annual, periodic, axes, **kwargs)
-    axes.set_ylabel("Per cent Growth")
+
+    # --- expose the legend
+    legend = kwargs.get("legend", True)
+    if isinstance(legend, bool):
+        legend = get_setting("legend")
+    if isinstance(legend, dict):
+        axes.legend(**legend)
 
     # --- fix the x-axis labels
     set_labels(axes, save_index, kwargs.get("max_ticks", 10))
