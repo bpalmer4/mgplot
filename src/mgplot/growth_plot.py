@@ -14,6 +14,7 @@ from matplotlib.pyplot import Axes
 import matplotlib.patheffects as pe
 from tabulate import tabulate
 
+from mgplot.finalise_plot import make_legend
 from mgplot.test import prepare_for_test
 from mgplot.settings import get_setting, DataT
 from mgplot.date_utils import set_labels
@@ -30,7 +31,7 @@ from mgplot.kw_type_checking import (
 ANNUAL = "annual"
 PERIODIC = "periodic"
 
-GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
+RAW_GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     "line_width": (float, int),
     "line_color": str,
     "line_style": str,
@@ -43,8 +44,11 @@ GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     "max_ticks": int,
     "legend": (type(None), bool, dict, (str, object)),
 }
-validate_expected(GROWTH_KW_TYPES, "growth_plot")
-# --- alieses for intuitive compatibility
+validate_expected(RAW_GROWTH_KW_TYPES, "growth_plot")
+SERIES_GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
+    "ylabel": (str, type(None)),
+} | RAW_GROWTH_KW_TYPES
+validate_expected(SERIES_GROWTH_KW_TYPES, "growth_plot")
 
 
 # --- functions
@@ -184,10 +188,13 @@ def raw_growth_plot(
     -   ValueError if the annual and periodic series do not have the same index.
     """
 
-    # --- sanity checks
-    report_kwargs(called_from="raw_growth_plot", **kwargs)
-    validate_kwargs(GROWTH_KW_TYPES, "raw_growth_plot", **kwargs)
-    data = check_clean_timeseries(data)
+    # --- check the kwargs
+    me = "raw_growth_plot"
+    report_kwargs(called_from=me, **kwargs)
+    validate_kwargs(RAW_GROWTH_KW_TYPES, me, **kwargs)
+
+    # --- data checks
+    data = check_clean_timeseries(data, me)
     if len(data.columns) != 2:
         raise TypeError("The data argument must be a pandas DataFrame with two columns")
 
@@ -230,12 +237,9 @@ def raw_growth_plot(
     )
     _annotations(annual, periodic, axes, **kwargs)
 
-    # --- expose the legend
+    # --- expose the legend by default
     legend = kwargs.get("legend", True)
-    if isinstance(legend, bool):
-        legend = get_setting("legend")
-    if isinstance(legend, dict):
-        axes.legend(**legend)
+    make_legend(axes, legend)
 
     # --- fix the x-axis labels
     set_labels(axes, save_index, kwargs.get("max_ticks", 10))
@@ -258,18 +262,25 @@ def series_growth_plot(
         -   takes the same kwargs as for growth_plot()
     """
 
+    # --- check the kwargs
+    me = "series_growth_plot"
+    report_kwargs(called_from=me, **kwargs)
+    validate_kwargs(SERIES_GROWTH_KW_TYPES, me, **kwargs)
+
     # --- sanity checks
-    report_kwargs(called_from="series_growth_plot", **kwargs)
-    data = check_clean_timeseries(data)
-    # we will validate kwargs in raw_growth_plot()
     if not isinstance(data, Series):
         raise TypeError(
             "The data argument to series_growth_plot() must be a pandas Series"
         )
 
-    # --- calculate growth and plot
+    # --- calculate growth and plot - add ylabel
+    ylabel: str | None = kwargs.pop("ylabel", None)
+    if ylabel is not None:
+        print(f"Did you intend to specify a value for the 'ylabel' in {me}()?")
+    ylabel = "Growth (%)" if ylabel is None else ylabel
     growth = calc_growth(data)
     ax = raw_growth_plot(growth, **kwargs)
+    ax.set_ylabel(ylabel)
     return ax
 
 

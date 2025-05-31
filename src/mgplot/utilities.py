@@ -25,7 +25,7 @@ from mgplot.settings import DataT
 
 
 # --- functions
-def check_clean_timeseries(data: DataT) -> DataT:
+def check_clean_timeseries(data: DataT, called_by: str) -> DataT:
     """
     Check timeseries data for the following:
     - That the data is a Series or DataFrame.
@@ -71,7 +71,10 @@ def check_clean_timeseries(data: DataT) -> DataT:
     missing = complete.difference(data_index)
     if not missing.empty:
         plural = "s" if len(missing) > 1 else ""
-        print(f"Warning: {len(missing)} period{plural} missing from data index. ")
+        print(
+            f"Warning: {len(missing)} period{plural} missing from data index. "
+            + f"Found by {called_by}."
+        )
 
     # --- return the final data
     return data
@@ -79,7 +82,7 @@ def check_clean_timeseries(data: DataT) -> DataT:
 
 def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
     """
-    Constrain the data to start after a certain point.
+    Constrain the data to start after a certain point - kwargs["plot_from"].
 
     Args:
         data: the data to be constrained
@@ -234,7 +237,7 @@ if __name__ == "__main__":
     my_list = [np.nan, np.nan, 1.12345, 2.12345, 3.12345, 4.12345, 5.12345]
     _ = Series(my_list, period_range(start="2023-01", periods=len(my_list), freq="M"))
     _ = _.drop(index=[_.index[3]])
-    clean = check_clean_timeseries(_)
+    clean = check_clean_timeseries(_, "test")
     print(f"Cleaned data:\n{clean}")
 
     # --- test annotate_series()

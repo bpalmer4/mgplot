@@ -6,7 +6,7 @@ the 'runs' in a series.
 
 # --- imports
 from collections.abc import Sequence
-from pandas import Series, concat
+from pandas import Series, concat, period_range
 from matplotlib.pyplot import Axes
 from matplotlib import patheffects as pe
 
@@ -105,17 +105,17 @@ def _plot_runs(
             ),
             va=vert_align,
             ha="left",
-            fontsize="small",
+            fontsize="x-small",
             rotation=90,
         )
         text.set_path_effects([pe.withStroke(linewidth=5, foreground="w")])
 
 
-def run_plot(series: DataT, **kwargs) -> Axes:
+def run_plot(data: DataT, **kwargs) -> Axes:
     """Plot a series of percentage rates, highlighting the increasing runs.
 
     Arguments
-     - series - ordered pandas Series of percentages, with PeriodIndex
+     - data - ordered pandas Series of percentages, with PeriodIndex
      - **kwargs
         - threshold - float - used to ignore micro noise near zero
           (for example, threshhold=0.01)
@@ -129,16 +129,16 @@ def run_plot(series: DataT, **kwargs) -> Axes:
     Return
      - matplotlib Axes object"""
 
-    # --- sanity checks
-    series = check_clean_timeseries(series)
+    # --- check the kwargs
+    me = "run_plot"
+    report_kwargs(called_from=me, **kwargs)
+    validate_kwargs(RUN_KW_TYPES, me, **kwargs)
+
+    # --- check the data
+    series = check_clean_timeseries(data, me)
     if not isinstance(series, Series):
         raise TypeError("series must be a pandas Series for run_plot()")
     series, kwargs = constrain_data(series, **kwargs)
-
-    # --- check the kwargs
-    report_kwargs(called_from="run_plot", **kwargs)
-    expected = RUN_KW_TYPES
-    validate_kwargs(expected, "run_plot", **kwargs)
 
     # --- default arguments - in **kwargs
     kwargs[THRESHOLD] = kwargs.get(THRESHOLD, 0.1)
@@ -180,3 +180,12 @@ def run_plot(series: DataT, **kwargs) -> Axes:
                 "Expected 'up', 'down', or 'both'."
             )
     return axes
+
+
+# test ---
+if __name__ == "__main__":
+    N_PERIODS = 25
+    periods = period_range(start="2020Q1", periods=N_PERIODS, freq="Q")
+    dataset = Series([1] * N_PERIODS, index=periods).cumsum()
+
+    ax = run_plot(data=dataset, junk="should generate a warning")

@@ -8,7 +8,7 @@ with timeseries data that is indexed with a PeriodIndex.
 
 # --- version and author
 # NOTE: update version number here (below) and in pyproject.toml
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __author__ = "Bryan Palmer"
 
 
@@ -27,7 +27,8 @@ from mgplot.growth_plot import (
     calc_growth,
     raw_growth_plot,
     series_growth_plot,
-    GROWTH_KW_TYPES,
+    SERIES_GROWTH_KW_TYPES,
+    RAW_GROWTH_KW_TYPES,
 )
 from mgplot.multi_plot import (
     multi_start,
@@ -63,7 +64,6 @@ from mgplot.finalisers import (
 
 
 # --- public API
-SERIES_GROWTH_KW_TYPES = RAW_GROWTH_KW_TYPES = GROWTH_KW_TYPES
 __all__ = (
     "__version__",
     "__author__",
@@ -124,7 +124,6 @@ __all__ = (
     "REVISION_KW_TYPES",
     "RUN_KW_TYPES",
     "SUMMARY_KW_TYPES",
-    "GROWTH_KW_TYPES",
     "SERIES_GROWTH_KW_TYPES",
     "RAW_GROWTH_KW_TYPES",
     # --- The rest are internal use only

@@ -149,10 +149,6 @@ def series_growth_plot_finalise(data: DataT, **kwargs) -> None:
     the growth series.
     """
 
-    if "ylabel" in kwargs:
-        print("Check: Did you intend to specify a value for 'ylabel'?")
-    kwargs["ylabel"] = kwargs.get("ylabel", "Per cent growth")
-    kwargs["xlabel"] = kwargs.get("xlabel", None)
     plot_then_finalise(
         data=data,
         function=series_growth_plot,
@@ -167,8 +163,6 @@ def raw_growth_plot_finalise(data: DataT, **kwargs) -> None:
     set the ylabel in kwargs.
     """
 
-    kwargs["ylabel"] = kwargs.get("ylabel", "Growth Units unspecified")
-    kwargs["xlabel"] = kwargs.get("xlabel", None)
     plot_then_finalise(
         data=data,
         function=raw_growth_plot,
@@ -194,46 +188,24 @@ def summary_plot_finalise(
           defaults to "zscores".
     """
 
-    # --- sanity checks
-    if not isinstance(data.index, PeriodIndex):
-        raise ValueError("data must have a PeriodIndex")
-
     # --- standard arguments
-    kwargs["legend"] = kwargs.get(
-        "legend",
-        {
-            # put the legend below the x-axis label
-            "loc": "upper center",
-            "fontsize": "xx-small",
-            "bbox_to_anchor": (0.5, -0.125),
-            "ncol": 4,
-        },
-    )
-    start = kwargs.get("plot_from", None)
+    kwargs["title"] = kwargs.get("title", f"Summary at {data.index[-1]}")
+    kwargs["preserve_lims"] = kwargs.get(
+        "preserve_lims", True
+    )  # preserve the x-axis limits
+
+    start: None | int | Period = kwargs.get("plot_from", None)
+    if start is None:
+        start = data.index[0]
+    if isinstance(start, int):
+        start = data.index[start]
+    kwargs["plot_from"] = start
 
     for plot_type in (ZSCORES, ZSCALED):
         # some sorting of kwargs for plot production
         kwargs["plot_type"] = plot_type
-        kwargs["title"] = kwargs.get("title", f"Summary at {data.index[-1]}")
-        kwargs["pre_tag"] = plot_type  # necessary because the title is same
-        kwargs["preserve_lims"] = kwargs.get(
-            "preserve_lims", True
-        )  # preserve the x-axis limits
+        kwargs["pre_tag"] = plot_type  # necessary because the title is the same
 
-        # get the start date for the plot
-        set_default = start is None
-        if isinstance(start, int):
-            start = data.index[start]
-        if set_default:
-            freq = data.index.freqstr[0]
-            if freq not in ("D", "M", "Q"):
-                raise ValueError(f"Unknown frequency {freq} for data index")
-            start = Period("1995-01-01", freq=data.index.freqstr)
-        kwargs["plot_from"] = start
-
-        if plot_type not in (ZSCORES, ZSCALED):
-            print(f"Unknown plot type {plot_type}, defaulting to {ZSCORES}")
-            plot_type = ZSCORES
         if plot_type == "zscores":
             kwargs["xlabel"] = f"Z-scores for prints since {start}"
             kwargs["x0"] = True

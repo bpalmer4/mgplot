@@ -17,6 +17,7 @@ from pandas import DataFrame, Period
 
 # local imports
 from mgplot.settings import DataT
+from mgplot.finalise_plot import make_legend
 from mgplot.utilities import constrain_data, check_clean_timeseries
 from mgplot.kw_type_checking import (
     report_kwargs,
@@ -35,6 +36,7 @@ SUMMARY_KW_TYPES: ExpectedTypeDict = {
     "middle": float,
     "plot_type": str,
     "plot_from": (int, Period, type(None)),
+    "legend": (type(None), bool, dict, (str, object)),
 }
 validate_expected(SUMMARY_KW_TYPES, "summary_plot")
 
@@ -213,20 +215,31 @@ def summary_plot(
     Returns Axes.
     """
 
-    # --- sanity checks
-    data = check_clean_timeseries(data)
+    # --- check the kwargs
+    me = "summary_plot"
+    report_kwargs(called_from=me, **kwargs)
+    validate_kwargs(SUMMARY_KW_TYPES, me, **kwargs)
+
+    # --- check the data
+    data = check_clean_timeseries(data, me)
     if not isinstance(data, DataFrame):
         raise TypeError("data must be a pandas DataFrame for summary_plot()")
     df = DataFrame(data)  # syntactic sugar for type hinting
-
-    # --- check the arguments
-    report_kwargs("summary_plot", **kwargs)
-    validate_kwargs(SUMMARY_KW_TYPES, "summary_plot", **kwargs)
 
     # --- optional arguments
     verbose = kwargs.pop("verbose", False)
     middle = float(kwargs.pop("middle", 0.8))
     plot_type = kwargs.pop("plot_type", ZSCORES)
+    kwargs["legend"] = kwargs.get(
+        "legend",
+        {
+            # put the legend below the x-axis label
+            "loc": "upper center",
+            "fontsize": "xx-small",
+            "bbox_to_anchor": (0.5, -0.125),
+            "ncol": 4,
+        },
+    )
 
     # get the data, calculate z-scores and scaled scores based on the start period
     subset, kwargs = constrain_data(df, **kwargs)
@@ -236,5 +249,7 @@ def summary_plot(
     adjusted = z_scores if plot_type == ZSCORES else z_scaled
     ax = _horizontal_bar_plot(subset, adjusted, middle, plot_type, kwargs)
     ax.tick_params(axis="y", labelsize="small")
+    make_legend(ax, kwargs["legend"])
     ax.set_xlim(kwargs.get("xlim", None))  # provide space for the labels
+
     return ax

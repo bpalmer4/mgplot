@@ -4,29 +4,31 @@ Plot the pre-COVID trajectory against the current trend.
 """
 
 # --- imports
-from collections.abc import Sequence
 from pandas import DataFrame, Series, Period, PeriodIndex
 from matplotlib.pyplot import Axes
 from numpy import arange, polyfit
 
 from mgplot.settings import DataT, get_setting
-from mgplot.line_plot import line_plot
+from mgplot.line_plot import line_plot, LINE_KW_TYPES
 from mgplot.utilities import check_clean_timeseries
-from mgplot.kw_type_checking import report_kwargs, ExpectedTypeDict, validate_expected
+from mgplot.kw_type_checking import (
+    ExpectedTypeDict,
+    validate_kwargs,
+    validate_expected,
+    report_kwargs,
+)
 
 
 # --- constants
-WIDTH = "width"
-STYLE = "style"
 START_R = "start_r"
 END_R = "end_r"
+WIDTH = "width"
+STYLE = "style"
 
 POSTCOVID_KW_TYPES: ExpectedTypeDict = {
-    WIDTH: (Sequence, (int, float), int, float),
-    STYLE: (Sequence, (str,), str),
     START_R: Period,
     END_R: Period,
-}
+} | LINE_KW_TYPES
 validate_expected(POSTCOVID_KW_TYPES, "postcovid_plot")
 
 
@@ -64,9 +66,13 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
     - ValueError if regression start is after regression end
     """
 
-    # --- sanity checks
-    report_kwargs(called_from="postcovid_plot", **kwargs)
-    data = check_clean_timeseries(data)
+    # --- check the kwargs
+    me = "postcovid_plot"
+    report_kwargs(called_from=me, **kwargs)
+    validate_kwargs(POSTCOVID_KW_TYPES, me, **kwargs)
+
+    # --- check the data
+    data = check_clean_timeseries(data, me)
     if not isinstance(data, Series):
         raise TypeError("The series argument must be a pandas Series")
     series: Series = data
@@ -103,11 +109,14 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
     projection.name = "Pre-COVID projection"
     data_set = DataFrame([projection, recent]).T
 
+    # --- activate plot settings
     kwargs[WIDTH] = kwargs.pop(
-        WIDTH, [get_setting("line_normal"), get_setting("line_wide")]
-    )
-    kwargs[STYLE] = kwargs.pop(STYLE, ["--", "-"])
-    kwargs["legend"] = kwargs.pop("legend", True)
+        WIDTH, (get_setting("line_normal"), get_setting("line_wide"))
+    )  # series line is thicker than projection
+    kwargs[STYLE] = kwargs.pop(STYLE, ("--", "-"))  # dashed regression line
+    kwargs["legend"] = kwargs.pop("legend", True)  # show legend by default
+    kwargs["annotate"] = kwargs.pop("annotate", (False, True))  # annotate series only
+    kwargs["color"] = kwargs.pop("color", ("darkblue", "#dd0000"))
 
     return line_plot(
         data_set,

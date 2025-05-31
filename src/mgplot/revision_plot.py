@@ -40,13 +40,15 @@ def revision_plot(data: DataT, **kwargs) -> Axes:
             apply int rounding.
     """
 
-    # --- sanity checks
-    data = check_clean_timeseries(data)
-    report_kwargs(called_from="revision_plot", **kwargs)
-    validate_kwargs(REVISION_KW_TYPES, "revision_plot", **kwargs)
+    # --- check the kwargs and data
+    me = "revision_plot"
+    report_kwargs(called_from=me, **kwargs)
+    validate_kwargs(REVISION_KW_TYPES, me, **kwargs)
+
+    data = check_clean_timeseries(data, me)
 
     # --- critical defaults
-    kwargs["plot_from"] = kwargs.get("plot_from", -18)
+    kwargs["plot_from"] = kwargs.get("plot_from", -19)
 
     # --- plot
     axes = line_plot(data, **kwargs)

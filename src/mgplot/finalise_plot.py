@@ -5,7 +5,7 @@ file system. It is used to publish plots.
 """
 
 # --- imports
-from typing import Final
+from typing import Final, Any
 import re
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -121,12 +121,31 @@ _internal_consistency_kwargs()
 # - private utility functions for finalise_plot()
 
 
+def make_legend(axes: Axes, legend: None | bool | dict[str, Any]) -> None:
+    """Create a legend for the plot."""
+
+    if legend is None or legend is False:
+        return
+
+    if legend is True:  # use the global default settings
+        legend = get_setting("legend")
+
+    if isinstance(legend, dict):
+        axes.legend(**legend)
+        return
+
+    print(f"Warning: expected dict argument for legend, but got {type(legend)}.")
+
+
 def _apply_value_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
     """Set matplotlib elements by name using Axes.set()."""
 
     for setting in settings:
         value = kwargs.get(setting, None)
         if value is None and setting not in _value_must_kwargs:
+            continue
+        if setting == "ylabel" and value is None and axes.get_ylabel():
+            # already set - probably in series_growth_plot() - so skip
             continue
         axes.set(**{setting: value})
 
@@ -141,6 +160,11 @@ def _apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
     for method_name in settings:
         if method_name in kwargs:
 
+            if method_name == "legend":
+                # special case for legend
+                make_legend(axes, kwargs[method_name])
+                continue
+
             if kwargs[method_name] is None or kwargs[method_name] is False:
                 continue
 
@@ -153,7 +177,7 @@ def _apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
                 method(**kwargs[method_name])
             else:
                 print(
-                    f"Warning expected dict argument: {method_name} but got "
+                    f"Warning expected dict argument for {method_name} but got "
                     + f"{type(kwargs[method_name])}."
                 )
 
@@ -297,9 +321,15 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
         - None
     """
 
+    # --- check the kwargs
+    me = "finalise_plot"
+    report_kwargs(called_from=me, **kwargs)
+    validate_kwargs(FINALISE_KW_TYPES, me, **kwargs)
+
     # --- sanity checks
-    report_kwargs(called_from="finalise_plot", **kwargs)
-    validate_kwargs(FINALISE_KW_TYPES, "finalise_plot", **kwargs)
+    if len(axes.get_children()) < 1:
+        print("Warning: finalise_plot() called with empty axes, which was ignored.")
+        return
 
     # --- remember should we need to restore the axes limits
     xlim, ylim = axes.get_xlim(), axes.get_ylim()

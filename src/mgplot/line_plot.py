@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from pandas import DataFrame, Period
 
 from mgplot.settings import DataT, get_setting
+from mgplot.finalise_plot import make_legend
 from mgplot.kw_type_checking import (
     report_kwargs,
     validate_kwargs,
@@ -119,24 +120,27 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
     - axes: plt.Axes - the axes object for the plot
     """
 
-    # sanity checks
-    report_kwargs(called_from="line_plot", **kwargs)
-    data = check_clean_timeseries(data)
-    validate_kwargs(LINE_KW_TYPES, called_from="line_plot", **kwargs)
+    # --- check the kwargs
+    me = "line_plot"
+    report_kwargs(called_from=me, **kwargs)
+    validate_kwargs(LINE_KW_TYPES, me, **kwargs)
 
-    # the data to be plotted:
+    # --- check the data
+    data = check_clean_timeseries(data, me)
     df = DataFrame(data)  # really we are only plotting DataFrames
     df, kwargs = constrain_data(df, **kwargs)
-    if df.empty:
-        print("Warning: No data to plot.")
 
-    # get the arguments for each line we will plot ...
+    # --- Let's plot
+    axes, kwargs = get_axes(**kwargs)  # get the axes to plot on
+    if df.empty or df.isna().all().all():
+        # Note: finalise plot will ignore an empty axes object
+        print("Warning: No data to plot.")
+        return axes
+
+    # --- get the arguments for each line we will plot ...
     item_count = len(df.columns)
     num_data_points = len(df)
     swce, kwargs = _get_style_width_color_etc(item_count, num_data_points, **kwargs)
-
-    # Let's plot
-    axes, kwargs = get_axes(**kwargs)  # get the axes to plot on
 
     for i, column in enumerate(df.columns):
         series = df[column]
@@ -169,10 +173,8 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
     # add a legend if requested
     if len(df.columns) > 1:
         kwargs[LEGEND] = kwargs.get(LEGEND, get_setting("legend"))
-    if LEGEND in kwargs and kwargs[LEGEND] is not None:
-        legend = kwargs[LEGEND]
-        if isinstance(legend, bool):
-            legend = get_setting("legend")
-        axes.legend(**legend)
+
+    if LEGEND in kwargs:
+        make_legend(axes, kwargs[LEGEND])
 
     return axes

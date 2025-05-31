@@ -16,7 +16,12 @@ from matplotlib.pyplot import Axes
 
 from mgplot.settings import DataT, get_setting
 from mgplot.utilities import apply_defaults, get_color_list, get_axes, constrain_data
-from mgplot.kw_type_checking import validate_kwargs, validate_expected, ExpectedTypeDict
+from mgplot.kw_type_checking import (
+    ExpectedTypeDict,
+    validate_expected,
+    report_kwargs,
+    validate_kwargs,
+)
 from mgplot.date_utils import set_labels
 
 
@@ -61,11 +66,15 @@ def bar_plot(
     - axes: Axes - The axes for the plot.
     """
 
-    # --- validate the kwargs
-    validate_kwargs(BAR_KW_TYPES, "bar_plot", **kwargs)
-    # note data may not be time-series or have a period index.
+    # --- check the kwargs
+    me = "bar_plot"
+    report_kwargs(called_from=me, **kwargs)
+    validate_kwargs(BAR_KW_TYPES, me, **kwargs)
 
     # --- get the data
+    # no call to check_clean_timeseries here, as bar plots are not
+    # necessarily timeseries data. If the data is a Series, it will be
+    # converted to a DataFrame with a single column.
     df = DataFrame(data)  # really we are only plotting DataFrames
     df, kwargs = constrain_data(df, **kwargs)
     item_count = len(df.columns)

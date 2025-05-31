@@ -45,11 +45,11 @@ from mgplot.kw_type_checking import (
     limit_kwargs,
     ExpectedTypeDict,
     report_kwargs,
+    validate_kwargs,
 )
 from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
 from mgplot.settings import DataT
 from mgplot.test import prepare_for_test
-from mgplot.utilities import check_clean_timeseries
 
 from mgplot.line_plot import line_plot, LINE_KW_TYPES
 from mgplot.bar_plot import bar_plot, BAR_KW_TYPES
@@ -58,8 +58,12 @@ from mgplot.postcovid_plot import postcovid_plot, POSTCOVID_KW_TYPES
 from mgplot.revision_plot import revision_plot, REVISION_KW_TYPES
 from mgplot.run_plot import run_plot, RUN_KW_TYPES
 from mgplot.summary_plot import summary_plot, SUMMARY_KW_TYPES
-from mgplot.growth_plot import series_growth_plot, raw_growth_plot, GROWTH_KW_TYPES
-
+from mgplot.growth_plot import (
+    series_growth_plot,
+    raw_growth_plot,
+    RAW_GROWTH_KW_TYPES,
+    SERIES_GROWTH_KW_TYPES,
+)
 
 # --- constants
 EXPECTED_CALLABLES: Final[dict[Callable, ExpectedTypeDict]] = {
@@ -73,8 +77,8 @@ EXPECTED_CALLABLES: Final[dict[Callable, ExpectedTypeDict]] = {
     revision_plot: REVISION_KW_TYPES,
     run_plot: RUN_KW_TYPES,
     summary_plot: SUMMARY_KW_TYPES,
-    series_growth_plot: GROWTH_KW_TYPES,
-    raw_growth_plot: GROWTH_KW_TYPES,
+    series_growth_plot: SERIES_GROWTH_KW_TYPES,
+    raw_growth_plot: RAW_GROWTH_KW_TYPES,
 }
 
 
@@ -139,9 +143,13 @@ def plot_then_finalise(
     Returns None.
     """
 
-    # --- sanity checks
-    report_kwargs(called_from="plot_then_finalise", **kwargs)
-    data = check_clean_timeseries(data)
+    # --- checks
+    me = "plot_then_finalise"
+    report_kwargs(called_from=me, **kwargs)
+    # validate once we have established the first function
+
+    # data is not checked here, assume it is checked by the called
+    # plot function.
 
     # --- check the function argument
     first, kwargs_ = first_unchain(function, **kwargs)
@@ -152,14 +160,21 @@ def plot_then_finalise(
     else:
         # this is an unexpected Callable, so we will give it a try
         print(f"Unknown proposed function: {first}; nonetheless, will give it a try.")
+        expected = {}
         plot_kwargs = kwargs_
+    validate_kwargs(expected | FINALISE_KW_TYPES, me, **plot_kwargs)
 
     # --- call the first function with the data and kwargs
-
     axes = first(data, **plot_kwargs)
 
-    # --- finalise the plot
+    # --- remove potentially overlapping kwargs
     fp_kwargs = limit_kwargs(FINALISE_KW_TYPES, **kwargs)
+    overlapping = expected.keys() & FINALISE_KW_TYPES.keys()
+    if overlapping:
+        for key in overlapping:
+            fp_kwargs.pop(key, None)  # remove overlapping keys from kwargs
+
+    # --- finalise the plot
     finalise_plot(axes, **fp_kwargs)
 
 
@@ -191,10 +206,12 @@ def multi_start(
     """
 
     # --- sanity checks
-    report_kwargs(called_from="multi_start", **kwargs)
-    data = check_clean_timeseries(data)
+    me = "multi_start"
+    report_kwargs(called_from=me, **kwargs)
     if not isinstance(starts, Iterable):
         raise ValueError("starts must be an iterable of None, Period or int")
+    # data not checked here, assume it is checked by the called
+    # plot function.
 
     # --- check the function argument
     original_tag: Final[str] = kwargs.get("tag", "")
@@ -219,7 +236,7 @@ def multi_column(
     The plot title will be the column name.
 
     Parameters
-    - data: DataFrame - The data to be plotted.
+    - data: DataFrame - The data to be plotted
     - function: Callable - The plotting function to be used.
     - **kwargs: Additional keyword arguments to be passed to
       the plotting function.
@@ -228,8 +245,12 @@ def multi_column(
     """
 
     # --- sanity checks
-    report_kwargs(called_from="multi_column", **kwargs)
-    data = check_clean_timeseries(data)
+    me = "multi_column"
+    report_kwargs(called_from=me, **kwargs)
+    if not isinstance(data, DataFrame):
+        raise TypeError("data must be a pandas DataFrame for multi_column()")
+    # Otherwise, the data is assumed to be checked by the called
+    # plot function, so we do not check it here.
 
     # --- check the function argument
     title_stem = kwargs.get("title", "")
