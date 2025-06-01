@@ -18,7 +18,7 @@ from mgplot.finalise_plot import make_legend
 from mgplot.test import prepare_for_test
 from mgplot.settings import get_setting, DataT
 from mgplot.date_utils import set_labels
-from mgplot.utilities import annotate_series, check_clean_timeseries
+from mgplot.utilities import annotate_series, check_clean_timeseries, default_rounding
 from mgplot.kw_type_checking import (
     validate_kwargs,
     report_kwargs,
@@ -31,15 +31,22 @@ from mgplot.kw_type_checking import (
 ANNUAL = "annual"
 PERIODIC = "periodic"
 
+ANNOTATE_BAR = "annotate_bar"
+ANNOTATE_LINE = "annotate_line"
+BAR_ROUNDING = "bar_rounding"
+ROUNDING = "rounding"
+
+
 RAW_GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     "line_width": (float, int),
     "line_color": str,
     "line_style": str,
-    "annotate_line": (type(None), int, str),
+    ANNOTATE_LINE: (type(None), bool, int, str),  # None, True or fontsize
+    ROUNDING: (type(None), bool, int),  # None, True or rounding
     "bar_width": float,
     "bar_color": str,
-    "annotate_bar": (type(None), int, str),
-    "annotation_rounding": int,
+    ANNOTATE_BAR: (type(None), bool, int, str),  # None, True or fontsize
+    BAR_ROUNDING: (type(None), bool, int),  # None, True or rounding
     "plot_from": (type(None), Period, int),
     "max_ticks": int,
     "legend": (type(None), bool, dict, (str, object)),
@@ -108,44 +115,45 @@ def _annotations(
 ) -> None:
     """Apply annotations the annual and periodic growth series."""
 
-    annotate_line = kwargs.get("annotate_line", "small")
-    if annotate_line is not None:
-        annotate_series(
-            annual,
-            axes,
-            rounding=kwargs.get("annotation_rounding", True),
-            fontsize=annotate_line,
-            color=kwargs.get("line_color", "darkblue"),
-        )
+    # --- annotate the end of the line
+    annotate_line = kwargs.get(ANNOTATE_LINE, True)  #
+    if annotate_line is not None and annotate_line is not False:
+        fontsize = kwargs.pop("fontsize", annotate_line)
+        annotate_series(annual, axes, fontsize=fontsize, **kwargs)
 
-    annotate_bar = kwargs.get("annotate_bar", "small")
-    max_annotations = 30
-    if annotate_bar is not None and len(periodic) < max_annotations:
-        annotation_rounding = kwargs.get("annotation_rounding", 1)
-        annotate_style = {
-            "fontsize": annotate_bar,
-            "fontname": "Helvetica",
-        }
-        adjustment = (periodic.max() - periodic.min()) * 0.005
-        for i, value in enumerate(periodic):
-            va = "bottom" if value >= 0 else "top"
-            text = axes.text(
-                periodic.index[i],
-                adjustment if value >= 0 else -adjustment,
-                f"{value:.{annotation_rounding}f}",
-                ha="center",
-                va=va,
-                **annotate_style,
-                fontdict=None,
-                color="white",
-            )
-            text.set_path_effects(
-                [
-                    pe.withStroke(
-                        linewidth=2, foreground=kwargs.get("bar_color", "indianred")
-                    )
-                ]
-            )
+    # --- annotate each bar
+    annotate_bar = kwargs.get(ANNOTATE_BAR, True)  # really fontsize
+    if annotate_bar is None or annotate_bar is False:
+        return
+    if annotate_bar is True:
+        annotate_bar = "small"
+    max_annotations = 25
+    if len(periodic) > max_annotations:
+        return
+
+    rounding = kwargs.get(BAR_ROUNDING, True)
+    if rounding is None or isinstance(rounding, bool):
+        value = periodic.abs().max()
+        rounding = default_rounding(value)
+    annotate_style = {
+        "fontsize": annotate_bar,
+        "fontname": "Helvetica",
+    }
+    adjustment = (periodic.max() - periodic.min()) * 0.01
+    for i, value in enumerate(periodic):
+        va = "bottom" if value >= 0 else "top"
+        text = axes.text(
+            periodic.index[i],
+            adjustment if value >= 0 else -adjustment,
+            f"{value:.{rounding}f}",
+            ha="center",
+            va=va,
+            **annotate_style,
+            color="white",
+        )
+        text.set_path_effects(
+            [pe.withStroke(linewidth=2, foreground=kwargs.get("bar_color", "#dd0000"))]
+        )
 
 
 def raw_growth_plot(
@@ -162,15 +170,17 @@ def raw_growth_plot(
         -   line_width: The width of the line (default is 2).
         -   line_color: The color of the line (default is "darkblue").
         -   line_style: The style of the line (default is "-").
-        -   annotate_line: None | int | str - fontsize to annotate the line
-            (default is "small", which means the line is annotated with
+        -   annotate_line: None | bool | int | str - fontsize to annotate
+            the line (default is "small", which means the line is annotated with
             small text).
+        -   rounding: None | bool | int - the number of decimal places to round
+            the line (default is 0).
         -   bar_width: The width of the bars (default is 0.8).
         -   bar_color: The color of the bars (default is "indianred").
         -   annotate_bar: None | int | str - fontsize to annotate the bars
             (default is "small", which means the bars are annotated with
             small text).
-        -   annotation_rounding: The number of decimal places to round the
+        -   bar_rounding: The number of decimal places to round the
             annotations to (default is 1).
         -   plot_from: None | Period | int -- if:
             -   None: the entire series is plotted
@@ -217,8 +227,10 @@ def raw_growth_plot(
     periodic.name = {"M": "Monthly", "Q": "Quarterly", "D": "Daily"}[
         PeriodIndex(save_index).freqstr[:1]
     ] + " Growth"
+    color = kwargs.get("bar_color", "#dd0000")
+    kwargs["bar_color"] = color  # for annotations
     axes = periodic.plot.bar(
-        color=kwargs.get("bar_color", "indianred"),
+        color=color,
         width=kwargs.get("bar_width}", 0.8),
     )
     thin_threshold = 180

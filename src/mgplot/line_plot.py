@@ -130,6 +130,14 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
     df = DataFrame(data)  # really we are only plotting DataFrames
     df, kwargs = constrain_data(df, **kwargs)
 
+    # --- some special defaults
+    if len(df.columns) > 1:
+        # default to displaying a legend
+        kwargs["legend"] = kwargs.get("legend", True)
+    if len(df.columns) > 4:
+        # default to using a style for the lines
+        kwargs["style"] = kwargs.get("style", ["solid", "dashed", "dashdot", "dotted"])
+
     # --- Let's plot
     axes, kwargs = get_axes(**kwargs)  # get the axes to plot on
     if df.empty or df.isna().all().all():

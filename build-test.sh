@@ -1,13 +1,11 @@
 #!/bin/zsh
-# make sure the version number is correct in both:
-# (1) ~/mgplot/src/mgplot/__init__.py
-# (2) ~/mgplot/pyproject.toml
+# make sure the version number is correct:
+# ~/mgplot/pyproject.toml
 
+# --- cd mgplot home and activate environment
 cd ~/mgplot
-
-# --- remove old arrangement
-rm -rf .venv
-rm uv.lock
+deactivate
+source .venv/bin/activate
 
 # --- clean out the dist folder
 if [ ! -d ./dist ]; then
@@ -17,11 +15,12 @@ if [ -n "$(ls -A ./dist 2>/dev/null)" ]; then
   rm ./dist/*
 fi
 
-# --- sync and build
+# --- remove old arrangement, sync and build
+rm uv.lock
 uv sync
 uv build
 
-# --- install locally
+# --- install new mgplot locally
 uv pip install dist/mgplot*gz
 
 # --- build documentation

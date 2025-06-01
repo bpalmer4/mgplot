@@ -7,14 +7,10 @@ with timeseries data that is indexed with a PeriodIndex.
 """
 
 # --- version and author
-# NOTE: update version number here (below) and in pyproject.toml
-__version__ = "0.1.3"
-__author__ = "Bryan Palmer"
-
+import importlib.metadata
 
 # --- local imports
 #    Do not import the utilities, test nor type-checking modules here.
-from mgplot.kw_type_checking import ExpectedTypeDict  # typing for the kwarg types
 from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
 from mgplot.bar_plot import bar_plot, BAR_KW_TYPES
 from mgplot.line_plot import line_plot, LINE_KW_TYPES
@@ -61,6 +57,14 @@ from mgplot.finalisers import (
     series_growth_plot_finalise,
     run_plot_finalise,
 )
+
+
+# --- version and author
+try:
+    __version__ = importlib.metadata.version(__name__)
+except importlib.metadata.PackageNotFoundError:
+    __version__ = "0.0.0"  # Fallback for development mode
+__author__ = "Bryan Palmer"
 
 
 # --- public API
@@ -115,7 +119,6 @@ __all__ = (
     "series_growth_plot_finalise",
     "run_plot_finalise",
     # --- typing information
-    "ExpectedTypeDict",
     "FINALISE_KW_TYPES",
     "BAR_KW_TYPES",
     "LINE_KW_TYPES",

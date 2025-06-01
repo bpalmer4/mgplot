@@ -1,3 +1,18 @@
+Version 0.1.4 - released 01-Jun-2025 (Canberra, Australia)
+
+* minor changes
+     - changed the build-system
+     - added dynamic version numbering to __init__.py
+     - reworked annotations in the growth_plot.py module
+       and the utilities module,
+     - reworked kwargs validation in plot_then_finalise() 
+     - typo in kw_type_checking.py
+     - tightened up function chaining in the multi-plot modules
+     - moved some default arguments from the finalisers module
+       to the line_plot module.
+     
+---
+
 Version 0.1.3 - released 31-May-2025 (Canberra, Australia)
 
 * minor changes
@@ -15,7 +30,7 @@ Version 0.1.2 - released 30-May-2025 (Canberra, Australia)
 
 * minor changes
      - fixed an incorrect typing-gate in run_plot()
-     - removed duplicate versioning code in __init__.py
+     - removed repeated version code in __init__.py
      - added "numpy-typing" to pyproject.toml
      - added a warning if ylabel set in series_growth_plot_finalise()
      - added legend=True default argument to raw_growth_plot()

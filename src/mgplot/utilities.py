@@ -189,35 +189,51 @@ def get_axes(**kwargs) -> tuple[Axes, dict[str, Any]]:
     return axes, kwargs
 
 
+def default_rounding(t: int | float) -> int:
+    """Default rounding regime."""
+
+    return 0 if t >= 100 else 1 if t >= 10 else 2
+
+
 def annotate_series(
     series: Series,
     axes: Axes,
-    rounding: int | bool = False,
-    color: str = "#444444",
-    fontsize: int | str = "small",
-    **kwargs,
+    **kwargs,  # "fontsize", "rounding",
 ) -> None:
     """Annotate the right-hand end-point of a line-plotted series."""
 
+    # --- check the series has a value to annotate
     latest = series.dropna()
-    if latest.empty:
+    if series.empty:
         return
-
     x, y = latest.index[-1], latest.iloc[-1]
     if y is None or math.isnan(y):
         return
 
-    r_string = f" {y}"  # default to no rounding
-    original = rounding
-    if isinstance(rounding, bool) and rounding:
-        rounding = 0 if y >= 100 else 1 if y >= 10 else 2
-    if not isinstance(rounding, bool) and isinstance(rounding, int):
-        r_string = f" {y:.{rounding}f}"
+    # --- extract fontsize - could be None, bool, int or str.
+    fontsize = kwargs.get("fontsize", "small")
+    if fontsize is None or isinstance(fontsize, bool):
+        fontsize = "small"
 
-    if "test" in kwargs:
-        print(f"annotate_series: {x=}, {y=}, {original=} {rounding=} {r_string=}")
+    # --- extract rounding - could be None, bool or int
+    rounding = default_rounding(y)  # the case for None or bool
+    if "rounding" in kwargs:
+        possible = kwargs["rounding"]
+        if not isinstance(possible, bool):
+            if isinstance(possible, int):
+                rounding = possible
+
+    # --- do the rounding
+    r_string = f"  {int(y)}"  # default to no rounding
+    if rounding > 0:
+        r_string = f"  {y:.{rounding}f}"
+
+    # --- add the annotation
+    if "test" in kwargs and kwargs["test"]:
+        print(f"annotate_series: {x=}, {y=}, {rounding=} {r_string=}")
         return
 
+    color = kwargs.get("color", "black")
     axes.text(
         x=x,
         y=y,

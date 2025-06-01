@@ -379,7 +379,7 @@ def validate_kwargs(
             continue
         if key not in expected:
             problems += (
-                f"{key}: unexpected keyword argument with {value=}in {called_from}.\n"
+                f"{key}: keyword not recognised. Has {value=} " + f"in {called_from}.\n"
             )
             continue
         if not _type_check_kwargs(value, expected[key]):

@@ -46,15 +46,6 @@ def line_plot_finalise(
     wraps calls to line_plot() and finalise_plot().
     """
 
-    if isinstance(data, DataFrame):
-        if len(data.columns) > 1:
-            # default to displaying a legend
-            kwargs["legend"] = kwargs.get("legend", True)
-        if len(data.columns) > 4:
-            # default to using a style for the lines
-            kwargs["style"] = kwargs.get(
-                "style", ["solid", "dashed", "dashdot", "dotted"]
-            )
     plot_then_finalise(
         data,
         function=line_plot,
@@ -249,6 +240,7 @@ if __name__ == "__main__":
             data=test_frame,
             title="Test Line Plot",
             ylabel="Value",
+            annotate=True,
             xlabel=None,
         )
 
@@ -306,7 +298,6 @@ if __name__ == "__main__":
             function=series_growth_plot_finalise,
             starts=[0, -19],
             title="Test Multi Start Series Growth Plot: ",
-            ylabel="Per cent Growth",
             xlabel=None,
         )
 

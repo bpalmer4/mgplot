@@ -36,7 +36,7 @@ Note: rather than pass the kwargs dict directly, we will re-pack-it
 """
 
 # --- imports
-from typing import Any, Callable, Final
+from typing import Callable, Final
 from collections.abc import Iterable
 from pandas import Period, DataFrame, Series, period_range
 from numpy import random
@@ -85,8 +85,7 @@ EXPECTED_CALLABLES: Final[dict[Callable, ExpectedTypeDict]] = {
 # --- private functions
 def first_unchain(
     function: Callable | list[Callable],
-    **kwargs,
-) -> tuple[Callable, dict[str, Any]]:
+) -> tuple[Callable, list[Callable]]:
     """
     Extract the first Callable from function (which may be
     a stand alone Callable or a nonr-empty list of Callables).
@@ -94,12 +93,10 @@ def first_unchain(
     This allows for chaining multiple functions together.
 
     Parameters
-    - kwargs - keyword arguments
+    - function - a Callable or a non-empty list of Callables
 
-    Returns a tuple containing the first function and the updated kwargs.
-    if function is a list of Callables, the first function will be removed
-    from the the list, and the remaining functions will be stored in a
-    list under the key "function" in kwargs.
+    Returns a tuple containing the first function and a list of the remaining
+    functions (which may be empty if there are no remaining functions).
 
     Raises ValueError if function is an empty list.
 
@@ -117,10 +114,7 @@ def first_unchain(
     else:
         raise ValueError(error_msg)
 
-    if rest:
-        kwargs["function"] = rest
-
-    return first, kwargs
+    return first, rest
 
 
 # --- public functions
@@ -151,8 +145,17 @@ def plot_then_finalise(
     # data is not checked here, assume it is checked by the called
     # plot function.
 
-    # --- check the function argument
-    first, kwargs_ = first_unchain(function, **kwargs)
+    first, kwargs["function"] = first_unchain(function)
+    if not kwargs["function"]:
+        del kwargs["function"]  # remove the function key if it is empty
+
+    bad_next = (multi_start, multi_column)
+    if first in bad_next:
+        # these functions should not be called by plot_then_finalise()
+        raise ValueError(
+            f"[{', '.join(k.__name__ for k in bad_next)}] should not be called by {me}. "
+            "Call them before calling {me}. "
+        )
 
     if first in EXPECTED_CALLABLES:
         expected = EXPECTED_CALLABLES[first]
@@ -161,10 +164,12 @@ def plot_then_finalise(
         # this is an unexpected Callable, so we will give it a try
         print(f"Unknown proposed function: {first}; nonetheless, will give it a try.")
         expected = {}
-        plot_kwargs = kwargs_
-    validate_kwargs(expected | FINALISE_KW_TYPES, me, **plot_kwargs)
+        plot_kwargs = kwargs.copy()
 
-    # --- call the first function with the data and kwargs
+    # --- validate the original kwargs (could not do before now)
+    validate_kwargs(FINALISE_KW_TYPES | expected, me, **kwargs)
+
+    # --- call the first function with the data and selected plot kwargs
     axes = first(data, **plot_kwargs)
 
     # --- remove potentially overlapping kwargs
@@ -215,7 +220,9 @@ def multi_start(
 
     # --- check the function argument
     original_tag: Final[str] = kwargs.get("tag", "")
-    first, kwargs = first_unchain(function, **kwargs)
+    first, kwargs["function"] = first_unchain(function)
+    if not kwargs["function"]:
+        del kwargs["function"]  # remove the function key if it is empty
 
     # --- iterate over the starts
     for i, start in enumerate(starts):
@@ -255,7 +262,9 @@ def multi_column(
     # --- check the function argument
     title_stem = kwargs.get("title", "")
     tag: Final[str] = kwargs.get("tag", "")
-    first, kwargs = first_unchain(function, **kwargs)
+    first, kwargs["function"] = first_unchain(function)
+    if not kwargs["function"]:
+        del kwargs["function"]  # remove the function key if it is empty
 
     # --- iterate over the columns
     for i, col in enumerate(data.columns):
@@ -304,7 +313,8 @@ if __name__ == "__main__":
         [multi_start, plot_then_finalise, line_plot],
         title="Test Multi Column / Multi start: ",
         starts=[None, 180],
-        verbose=False,
+        garbage=True,  # this is an unexpected argument - should trigger a warning
+        annotate=True,  # this is an expected argument
     )
 
     # bar plot
@@ -327,10 +337,6 @@ if __name__ == "__main__":
         ylabel="Y-axis Label",
     )
 
-
-# --- test
-if __name__ == "__main__":
-
     # --- check that this fails
     try:
         multi_start(
@@ -341,7 +347,7 @@ if __name__ == "__main__":
     except (ValueError, TypeError) as e:
         print(f"Expected error: {e}")
 
-    # --- check that tjis fails
+    # --- check that this fails
     try:
         multi_column(
             data=Series([1, 2, 3]),  # type: ignore # Series is not a DataFrame
@@ -355,6 +361,19 @@ if __name__ == "__main__":
         plot_then_finalise(
             data=Series([1, 2, 3]),
             function=[],
+        )
+    except (ValueError, TypeError) as e:
+        print(f"Expected error: {e}")
+
+    # --- check this fails
+    try:
+        plot_then_finalise(
+            data=Series([1, 2, 3]),
+            function=[multi_start, bar_plot],
+            starts=[0, 1],
+            title="Test Multi Start with Bar Plot",
+            xlabel="X-axis Label",
+            ylabel="Y-axis Label",
         )
     except (ValueError, TypeError) as e:
         print(f"Expected error: {e}")
