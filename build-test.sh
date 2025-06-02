@@ -2,10 +2,10 @@
 # make sure the version number is correct:
 # ~/mgplot/pyproject.toml
 
-# --- cd mgplot home and activate environment
+# --- cd mgplot home and get ready
 cd ~/mgplot
+uv pip uninstall mgplot
 deactivate
-source .venv/bin/activate
 
 # --- clean out the dist folder
 if [ ! -d ./dist ]; then
@@ -15,13 +15,14 @@ if [ -n "$(ls -A ./dist 2>/dev/null)" ]; then
   rm ./dist/*
 fi
 
-# --- remove old arrangement, sync and build
-rm uv.lock
-uv sync
+# --- sync and build
+uv lock --upgrade  # --upgrade to get the latest dependencies
+uv sync --no-dev  # --no-dev to avoid installing dev dependencies
 uv build
 
 # --- install new mgplot locally
-uv pip install dist/mgplot*gz
+uv sync  # install with the development dependencies
+uv pip install dist/mgplot*gz  # add in the new package
 
 # --- build documentation
 ~/mgplot/build-docs.sh

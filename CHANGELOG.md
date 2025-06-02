@@ -1,3 +1,10 @@
+Version 0.1.5 - released 02-Jun-2025 (Canberra, Australia)
+
+* minor changes
+     - minor changes to pyproject.toml and build-test.sh
+
+---
+
 Version 0.1.4 - released 01-Jun-2025 (Canberra, Australia)
 
 * minor changes

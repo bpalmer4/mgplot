@@ -298,41 +298,49 @@ wheels = [
 
 [[package]]
 name = "mgplot"
-version = "0.1.4"
+version = "0.1.5"
 source = { editable = "." }
 dependencies = [
-    { name = "black" },
     { name = "matplotlib" },
-    { name = "mypy" },
     { name = "numpy" },
-    { name = "numpy-typing" },
     { name = "pandas" },
-    { name = "pandas-stubs" },
     { name = "pathlib" },
+    { name = "tabulate" },
+    { name = "typing" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "black" },
+    { name = "mypy" },
+    { name = "numpy-typing" },
+    { name = "pandas-stubs" },
     { name = "pdoc" },
     { name = "pylint" },
     { name = "ruff" },
-    { name = "tabulate" },
     { name = "types-tabulate" },
-    { name = "typing" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "black" },
     { name = "matplotlib" },
-    { name = "mypy" },
     { name = "numpy" },
-    { name = "numpy-typing" },
     { name = "pandas" },
-    { name = "pandas-stubs" },
     { name = "pathlib" },
+    { name = "tabulate" },
+    { name = "typing" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "black" },
+    { name = "mypy" },
+    { name = "numpy-typing" },
+    { name = "pandas-stubs" },
     { name = "pdoc" },
     { name = "pylint" },
     { name = "ruff" },
-    { name = "tabulate" },
     { name = "types-tabulate" },
-    { name = "typing" },
 ]
 
 [[package]]
