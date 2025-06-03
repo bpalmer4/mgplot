@@ -1,3 +1,12 @@
+Version 0.1.6 - released 03-Jun-2025 (Canberra, Australia)
+
+* minor changes
+     - sorted the three remaining pylint issues with the 
+       kw_type_checking module. Also improved error
+       messages in the same module. 
+
+---
+
 Version 0.1.5 - released 02-Jun-2025 (Canberra, Australia)
 
 * minor changes

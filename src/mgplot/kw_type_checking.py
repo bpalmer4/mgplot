@@ -14,7 +14,9 @@ This module is not intended to be used directly by the user.
 
 The assumption is that most keyword arguments are one of the
 following types:
-- simple types (such as str, int, float, bool, complex, NoneType)
+- simple types (such as str, int, float, bool, NoneType)
+- user or package specified classes (such as a class
+  MyClass, or a package class like matplotlib.axes.Axes)
 - Sequences (such as list, tuple, but excluding strings, and without
   being infinitely recursive, like a list of lists of lists ...)
 - Sets (such as set, frozenset)
@@ -22,7 +24,8 @@ following types:
 
 Note: this means some Python types are only partially supported.
 Others are unsupported, such as: generators, iterators, and
-coroutines.
+coroutines. Unsupported types can be used, if they are described
+as an object, but this means they wont be tested for type.
 
 In  order to check the **kwargs dictionary, we need to construct
 a dictionary of expected keywords and their expected types.
@@ -55,7 +58,7 @@ Parsing Rules:
 - Sets are treated like Sequences.
 
 Limitations:
-- cannot specify multiple types of Sequence as a type - for example
+- cannot easily specify multiple types of Sequence as a type - for example:
     ((list, tuple), int) - but you can specify (Sequence, int) which
     will match list and tuple types. or you might do it as follows:
     (list, (int, float), tuple, (int, float)).
@@ -79,6 +82,7 @@ from collections.abc import Mapping
 from collections.abc import Iterable, Sized, Container, Callable, Generator, Iterator
 
 import textwrap
+from enum import Enum
 
 
 # --- constants
@@ -86,16 +90,16 @@ type NestedTypeTuple = tuple[type | NestedTypeTuple, ...]  # recursive type
 type ExpectedTypeDict = dict[str, type | NestedTypeTuple]
 
 NOT_SEQUENCE: Final[tuple[type, ...]] = (str, bytearray, bytes, memoryview)
-REPORT_KWARGS: Final[str] = "report_kwargs"  # special case
+REPORT_KWARGS: Final[str] = "report_kwargs"  # special case keyword argument.
 
 
 # --- module-scoped global variable
-module_testing: bool = False
+MODULE_TESTING: bool = False
 
 
-# --- functions
+# === functions
 
-# === keyword argument reporting ===
+# --- keyword argument reporting
 
 
 def report_kwargs(
@@ -118,7 +122,7 @@ def report_kwargs(
         print(f"{called_from} kwargs:\n{wrapped}\n".strip())
 
 
-# === limit kwargs to those in an approved list
+# --- limit kwargs to those in an approved list
 
 
 def limit_kwargs(
@@ -132,70 +136,22 @@ def limit_kwargs(
     return {k: v for k, v in kwargs.items() if k in expected or k == REPORT_KWARGS}
 
 
-# === Keyword expectation validation ===
+# --- Keyword expectation validation
 
 
-def _check_expected_tuple(
-    t: NestedTypeTuple,
-) -> bool:
+class PreviousToken(Enum):
+    """Information about the previous token in a tuple."""
 
-    post_mapping = post_sequence = False
-    empty = True
-    for element in t:
-        empty = False
-
-        if isinstance(element, type):
-            if post_mapping or post_sequence:
-                return False
-            if issubclass(element, NOT_SEQUENCE):
-                post_mapping = post_sequence = False
-                continue
-            if issubclass(element, (Sequence, Set)):
-                post_sequence = True
-                continue
-            if issubclass(element, Mapping):
-                post_mapping = True
-                continue
-            post_mapping = post_sequence = False
-            continue
-
-        if isinstance(element, tuple):
-            if not (post_mapping or post_sequence):
-                return False
-            if post_sequence:
-                check = _check_expectations(element)
-                if not check:
-                    return False
-                post_sequence = False
-            if post_mapping:
-                if len(element) != 2:
-                    return False
-                check = _check_expectations(element[0]) and _check_expectations(
-                    element[1]
-                )
-                if not check:
-                    return False
-                post_mapping = False
-    if empty:
-        return False
-    return True
-
-
-def _check_expected_type(t: type) -> bool:
-    """
-    Check t is an acceptable stand alone type
-    """
-
-    if issubclass(t, NOT_SEQUENCE):
-        return True
-    if issubclass(t, (Sequence, Set, Mapping)):
-        return False
-    return True
+    NONE = 0
+    SIMPLE_TYPE = 1
+    MAPPING = 2
+    SEQUENCE = 3
+    TUPLE = 4
 
 
 def _check_expectations(
     t: type | NestedTypeTuple,
-) -> bool:
+) -> str:  # an empty str is all_good, a non-empty str is a problem
     """
     Check t is a type or a tuple of types.
 
@@ -203,15 +159,103 @@ def _check_expectations(
     the subsequent tuple contains valid member types.
     """
 
-    # --- simple case
+    # --- simple single type case
     if isinstance(t, type):
-        return _check_expected_type(t)
+        if issubclass(t, NOT_SEQUENCE):
+            return ""
+        if issubclass(t, (Sequence, Set, Mapping)):
+            return "Provide a tuple of types after a Sequence, Set or Mapping. "
+        return ""
 
-    # --- more challenging case
+    # --- more challenging tuple of whatever case
     if isinstance(t, tuple):
         return _check_expected_tuple(t)
 
-    return False
+    return f"{t=} is not a type or a tuple of types"
+
+
+def _group_previous_token_type_case(
+    element: type,
+) -> PreviousToken:
+    """
+    Determine the type of the previous token based on the element type.
+    Returns a PreviousToken value.
+    """
+
+    if issubclass(element, NOT_SEQUENCE):  # strings are a simple type
+        return PreviousToken.SIMPLE_TYPE
+    if issubclass(element, (Sequence, Set)):
+        return PreviousToken.SEQUENCE
+    if issubclass(element, Mapping):
+        return PreviousToken.MAPPING
+    return PreviousToken.SIMPLE_TYPE
+
+
+def _check_expected_tuple(
+    t: NestedTypeTuple,
+) -> str:  # an empty str means all is good, a non-empty str is a problem
+    """
+    iterate through the elements of the tuple t, checking
+    that each elements is either:
+    - a type, or
+    - a tuple of types.
+    Also check that a Sequence, Set or Mapping type is followed
+    by a tuple of types that are valid members for the Sequence,
+    Set or Mapping.
+    Returns True if the tuple is valid, False otherwise.
+    """
+
+    previous = PreviousToken.NONE
+    problem = ""
+    for element in t:
+
+        if isinstance(element, type):
+            if previous in (PreviousToken.SEQUENCE, PreviousToken.MAPPING):
+                problem += (
+                    "The token after a Sequence, Mapping or Set type was not a tuple. "
+                )
+                break
+            previous = _group_previous_token_type_case(element)
+            continue
+
+        if isinstance(element, tuple):
+            if previous not in (PreviousToken.SEQUENCE, PreviousToken.MAPPING):
+                problem += (
+                    "The token before a tuple must be a Sequence, Set or Mapping type. "
+                )
+                break
+            if previous == PreviousToken.SEQUENCE:
+                check = _check_expectations(element)
+                if check:
+                    problem += check
+                    break
+            if previous == PreviousToken.MAPPING:
+                if len(element) != 2:
+                    problem += (
+                        "The tuple following a Mapping type must have 2 elements. "
+                    )
+                    break
+                check = _check_expectations(element[0]) + _check_expectations(
+                    element[1]
+                )
+                if check:
+                    problem += (
+                        "The Mapping type tuple elements are malformed as follows: "
+                        f"{check}. "
+                    )
+                    break
+            previous = PreviousToken.TUPLE
+            continue
+
+        # each element must be a type or a tuple of types
+        # so if we get here we have a problem
+        problem += f"The {element=} is neither a type nor a tuple of types. "
+        break
+
+    if previous == PreviousToken.NONE and not problem:
+        problem = "An empty tuple is not allowed. "
+
+    return problem
 
 
 def validate_expected(
@@ -229,7 +273,7 @@ def validate_expected(
     types dictionary is malformed.
     """
 
-    def check_members(key: str, t: type | NestedTypeTuple) -> str:
+    def check_members(t: type | NestedTypeTuple) -> str:
         """
         Recursively check each element of the NestedTypeTuple.
         to ensure it is a type or a tuple of types. Returns a string
@@ -240,16 +284,18 @@ def validate_expected(
         # --- start with the things that are types
         if t in (Iterable, Sized, Container, Callable, Generator, Iterator):
             # note: these collections.abc types *are* types
-            problems += f"{key}: the collections.abc type {t} in {called_from} is unsupported.\n"
+            problems += (
+                f"the collections.abc type {t} in {called_from} is unsupported. "
+            )
         elif t in (Any,):
             # Any is also an instance of type
-            problems += f"{key}: please use 'object' rather than 'typing.Any'.\n"
+            problems += "Please use 'object' rather than 'Any'. "
         elif isinstance(t, type):
             pass  # Fantastic!
         # --- then the things that are not types
         elif isinstance(t, tuple):
             for element in t:
-                problems += check_members(key, element)
+                problems += check_members(element)
         elif t in (
             # note: these typing types *are not* types
             TypingSequence,
@@ -259,97 +305,107 @@ def validate_expected(
             Union,
             Optional,
         ):
-            problems += (
-                f"{key}: Only use the collection.abc types: {t} in {called_from}.\n"
-            )
+            problems += f"Only use the collection.abc types: {t} in {called_from}. "
         else:
-            problems += f"{key}: Malformed typing '{t}' in {called_from}.\n"
+            problems += f"Malformed typing '{t}' in {called_from}. "
         return problems
+
+    # ---
 
     problems = ""
     for key, value in expected.items():
+        line_problems = ""
         if not isinstance(key, str):
-            problems += f"Key '{key}' is not a string - {called_from=}.\n"
-            continue
-        problems += check_members(key, value)
-        if not _check_expectations(value):
-            problems += f"{key}: Malformed '{value}' in {called_from}.\n"
+            line_problems += f"'{key}' is not a string - {called_from=}.\n"
+        if details := _check_expectations(value):
+            line_problems += f"Malformed '{value}' in {called_from}. {details}"
+        line_problems += check_members(value)
+        if line_problems:
+            problems += "\n" + textwrap.fill(f"{key}: {line_problems}\n", width=75)
     if problems:
         # Other than testing, we want to raise an exception here
         statement = (
-            "Expected types validation failed "
-            + f"(this is an internal package error):\n{problems}"
+            "Expected keywords types validation failed: "
+            + f"(this is an internal package error):\n{problems}\n"
         )
-        if not module_testing:
+        if not MODULE_TESTING:
             raise ValueError(statement)
         print(statement)
 
 
-# === keyword validation: (1) if expected, (2) of the right type ===
+# --- keyword validation: (1) if expected, (2) of the right type ===
 
 
-def _check_tuple(
-    value: Any,
-    typeinfo: NestedTypeTuple,  # we know this is a tuple
+def _tuple_check_kwargs(
+    argument: Any,  # The argument we are checking
+    typeinfo: NestedTypeTuple,  # The rule we are checking it against
 ) -> bool:
     """
-    Check the value against the expected tuple type.
+    Check the argument against the expected tuple type.
+    Return True if the argument matches the expected type,
+    False otherwise.
     """
 
-    check_sequence = check_mapping = False
+    prev_tok_sequence = prev_tok_mapping = False
+    # --- iterate over the typeinfo tuple, and check the argument
+    #     if good it should match one of the types in the tuple (union)
     for thistype in typeinfo:
 
-        if check_mapping or check_sequence:  # the guard-rail
-            if not isinstance(thistype, tuple):
-                return False
+        if (prev_tok_mapping or prev_tok_sequence) and not isinstance(thistype, tuple):
+            return False
 
-        if check_sequence and isinstance(thistype, tuple):
-            for v in value:
-                check = _type_check_kwargs(v, thistype)
-                if not check:
-                    check_sequence = False
+        if prev_tok_sequence and isinstance(thistype, tuple):
+            # this could be very complex / time-consuming
+            for a in argument:
+                if not (check := _type_check_kwargs(a, thistype)):
+                    prev_tok_sequence = False
                     continue
             return True
 
-        if check_mapping and isinstance(thistype, tuple):
-            for k, v in value.items():
+        if prev_tok_mapping and isinstance(thistype, tuple):
+            # this could be very complex / time-consuming
+            for k, v in argument.items():
                 check = _type_check_kwargs(k, thistype[0]) and _type_check_kwargs(
                     v, thistype[1]
                 )
                 if not check:
-                    check_mapping = False
+                    prev_tok_mapping = False
                     continue
             return True
 
-        if isinstance(thistype, type) and isinstance(value, thistype):
-            if thistype in NOT_SEQUENCE:
+        # --- remember the type of the current, soon to be previous token
+        if isinstance(thistype, type) and isinstance(argument, thistype):
+            if isinstance(thistype, NOT_SEQUENCE):
                 return True
-            if issubclass(thistype, (Sequence, Set)):
-                check_sequence = True
-                continue
-            if issubclass(thistype, Mapping):
-                check_mapping = True
-                continue
-            return True
+            match thistype:
+                case Sequence() | Set():
+                    prev_tok_sequence = True
+                    continue
+                case Mapping():
+                    prev_tok_mapping = True
+                    continue
+                case _:
+                    return True
 
+    # --- if we get here, we have not matched any of the types in the tuple
     return False
 
 
 def _type_check_kwargs(
-    value: Any,
+    argument: Any,
     typeinfo: type | NestedTypeTuple,
 ) -> bool:
     """
-    Check the type of the value against the expected type.
+    Check the type of the argument against the expected typeinfo.
     """
 
-    # --- the simple case
+    # --- the simple type case
     if isinstance(typeinfo, type):
-        return isinstance(value, typeinfo)
+        return isinstance(argument, typeinfo)
 
-    # --- complex
+    # --- the complex tuple case
     if isinstance(typeinfo, tuple):
-        return _check_tuple(value, typeinfo)
+        return _tuple_check_kwargs(argument, typeinfo)
 
     return False
 
@@ -373,31 +429,45 @@ def validate_kwargs(
     """
 
     problems = ""
-    for key, value in kwargs.items():
-        if key == REPORT_KWARGS and isinstance(value, bool):
+    twrap = textwrap.TextWrapper(width=75)
+    for key, argument in kwargs.items():
+
+        # --- the "report_kwargs" is always allowed, as long as its value is bool
+        if key == REPORT_KWARGS and isinstance(argument, bool):
             # This is a special case - and always okay if the value is boolean
             continue
+
+        # --- keywords not in expected are typically ignored, but let's report them
         if key not in expected:
             problems += (
-                f"{key}: keyword not recognised. Has {value=} " + f"in {called_from}.\n"
+                twrap.fill(
+                    f"{key}: keyword not recognised. Has {argument=} "
+                    + f"in {called_from}. "
+                )
+                + "\n"
             )
             continue
-        if not _type_check_kwargs(value, expected[key]):
+
+        # --- if the keyword is in expected, check the type, and report mismatches
+        if not _type_check_kwargs(argument, expected[key]):
             problems += (
-                f"{key}: with {value=} had the type "
-                f"'{type(value)}' in {called_from}. Expected: {expected[key]}\n"
+                twrap.fill(
+                    f"{key}: with {argument=} had the type {type(argument)} in "
+                    f"{called_from}, but the expected type was {expected[key]}"
+                )
+                + "\n"
             )
 
     if problems:
         # don't raise an exception - just warn instead
-        statement = f"Keyword argument validation issues:\n{problems}"
+        statement = f"{called_from}: Keyword argument validation issues:\n{problems}"
         print(statement)
 
 
 # --- test code
 if __name__ == "__main__":
     # Test the type_check_kwargs function
-    module_testing = True  # pylint: disable=invalid-name
+    MODULE_TESTING = True
 
     # --- test the validate_expected() function
     expected_gb: ExpectedTypeDict = {
@@ -425,10 +495,11 @@ if __name__ == "__main__":
         "bad6": ((list, tuple), (int, float)),
         "bad7": (dict, (str, int), (int, float)),
         "bad8": (TypingSequence, (int, float)),
-        # "bad9": (list, [int, float]),
+        "bad9": (list, [int, float]),  # type: ignore[dict-item]  # for testing
         "bad10": (dict, (str,)),
         "bad11": (Iterable, (int, float)),
-        # "bad12": Any,
+        "bad12": Any,
+        "bad13": (bool, (int, float), int, (int, float)),
     }
     validate_expected(expected_gb, "testing")
 
