@@ -62,7 +62,7 @@ _mgplot_defaults = _DefaultValues(
     },
     colors={
         1: ["#dd0000"],
-        5: ["royalblue", "darkorange", "forestgreen", "#dd0000", "gray"],
+        5: ["darkblue", "darkorange", "mediumseagreen", "#dd0000", "gray"],
         9: [
             "darkblue",
             "darkorange",

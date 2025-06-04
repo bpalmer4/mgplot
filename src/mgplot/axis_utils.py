@@ -1,15 +1,65 @@
 """
-date_utils.py
-This module contains functions to work with date-like
-(i.e. not time-like) PeriodIndex frequencies in Pandas.
-It is used to label the x-axis of a plot with the
-appropriate date-like labels.
+axis_utils.py
+
+This module contains functions to work with categorical
+axis in Matplotlib, specifically:
+1) integers
+2) date-like PeriodIndex frequencies
+3) strings
 """
 
 import calendar
 from enum import Enum
-from pandas import Period, PeriodIndex, period_range
+from pandas import Series, Index, Period, PeriodIndex, period_range
+from pandas.api.types import is_integer_dtype, is_string_dtype
 from matplotlib.pyplot import Axes
+
+from mgplot.settings import DataT
+
+
+def is_categorical(data: DataT) -> bool:
+    """
+    Check if the data.index is usefully categorical
+    (index needs to be complete, and unique).
+
+    Note: we plot categoricals using bar plots.
+    """
+
+    if data.index.has_duplicates or data.index.hasnans or data.index.empty:
+        return False
+    if is_string_dtype(data.index.dtype):
+        # unique strings are categoricals by default
+        return True
+    if (
+        not data.index.is_monotonic_increasing
+        and not data.index.is_monotonic_decreasing
+    ):
+        # these categoricals should be monotonic
+        return False
+    if is_integer_dtype(data.index.dtype):
+        # completeness check for integers
+        return data.index.max() - data.index.min() == len(data.index) - 1
+    if isinstance(data.index, PeriodIndex):
+        # completeness check for PeriodIndex
+        return (
+            data.index.max().ordinal - data.index.min().ordinal == len(data.index) - 1
+        )
+
+    return False
+
+
+def map_periodindex(data: DataT) -> None | tuple[DataT, PeriodIndex]:
+    """
+    map a PeriodIndex to an integer index.
+    """
+    if not is_categorical(data):
+        return None
+    if not isinstance(data.index, PeriodIndex):
+        return None
+    original_index = data.index
+    ordinals = tuple(p.ordinal for p in PeriodIndex(data.index))
+    data.index = Index(ordinals)
+    return data, original_index
 
 
 class DateLike(Enum):
@@ -285,8 +335,7 @@ def make_ilabels(p: PeriodIndex, max_ticks: int) -> tuple[list[int], list[str]]:
     """
 
     labels = make_labels(p, max_ticks)
-    base = p.min().ordinal
-    ticks = [x.ordinal - base for x in sorted(labels.keys())]
+    ticks = [x.ordinal for x in sorted(labels.keys())]
     ticklabels = [labels[x] for x in sorted(labels.keys())]
 
     return ticks, ticklabels
@@ -321,4 +370,15 @@ if __name__ == "__main__":
     for index, test in enumerate(tests):
         print(f"Test {index + 1}")
         print("Labels:", make_labels(test, 10), "\n")
+        print("========")
+
+    N = 4
+    int_test1: Series = Series(range(N), index=range(N))
+    int_test2: Series = Series(range(N), index=[1, 2, 3, 4])
+    str_test3: Series = Series(range(N), index=[f"Item {i}" for i in range(N)])
+    pi_test4: Series = Series(
+        range(N), index=period_range(start="2020-01", periods=N, freq="M")
+    )
+    for s_test in (int_test1, int_test2, str_test3, pi_test4):
+        print(f"Testing is_categorical {s_test.index}:", is_categorical(s_test))
         print("========")

@@ -10,6 +10,7 @@ Functions:
 - get_color_list()
 - get_axes()
 - annotate_series()
+- default_rounding()
 """
 
 # --- imports
@@ -178,11 +179,12 @@ def get_axes(**kwargs) -> tuple[Axes, dict[str, Any]]:
     """
 
     ax = "ax"
-    if ax in kwargs and kwargs[ax] is not None:
-        axes: Axes = kwargs[ax]
-        if not isinstance(axes, Axes):
-            raise TypeError("The ax argument must be a matplotlib Axes object")
-        return axes, {}
+    axes: Axes = kwargs.pop(ax, None)
+    if axes and isinstance(axes, Axes):
+        return axes, kwargs
+
+    if axes is not None:
+        raise TypeError(f"{ax} must be a matplotlib Axes object, not {type(axes)}")
 
     figsize = kwargs.pop("figsize", get_setting("figsize"))
     _fig, axes = subplots(figsize=figsize)

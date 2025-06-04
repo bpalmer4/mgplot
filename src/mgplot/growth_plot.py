@@ -8,17 +8,22 @@ plot period and annual/through-the-year growth rates on the same axes.
 
 # --- imports
 from typing import Final
-from pandas import Series, DataFrame, Index, Period, PeriodIndex, period_range
+from pandas import Series, DataFrame, Period, PeriodIndex, period_range
 from numpy import nan
 from matplotlib.pyplot import Axes
-import matplotlib.patheffects as pe
 from tabulate import tabulate
 
+from mgplot.bar_plot import bar_plot
+from mgplot.line_plot import line_plot
+from mgplot.axis_utils import map_periodindex
 from mgplot.finalise_plot import make_legend
 from mgplot.test import prepare_for_test
 from mgplot.settings import get_setting, DataT
-from mgplot.date_utils import set_labels
-from mgplot.utilities import annotate_series, check_clean_timeseries, default_rounding
+from mgplot.axis_utils import set_labels
+from mgplot.utilities import (
+    check_clean_timeseries,
+    default_rounding,
+)
 from mgplot.kw_type_checking import (
     validate_kwargs,
     report_kwargs,
@@ -52,6 +57,7 @@ RAW_GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     "legend": (type(None), bool, dict, (str, object)),
 }
 validate_expected(RAW_GROWTH_KW_TYPES, "growth_plot")
+
 SERIES_GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     "ylabel": (str, type(None)),
 } | RAW_GROWTH_KW_TYPES
@@ -107,62 +113,13 @@ def calc_growth(series: Series) -> DataFrame:
     )
 
 
-def _annotations(
-    annual: Series,
-    periodic: Series,
-    axes: Axes,
-    **kwargs,
-) -> None:
-    """Apply annotations the annual and periodic growth series."""
-
-    # --- annotate the end of the line
-    annotate_line = kwargs.get(ANNOTATE_LINE, True)  #
-    if annotate_line is not None and annotate_line is not False:
-        fontsize = kwargs.pop("fontsize", annotate_line)
-        annotate_series(annual, axes, fontsize=fontsize, **kwargs)
-
-    # --- annotate each bar
-    annotate_bar = kwargs.get(ANNOTATE_BAR, True)  # really fontsize
-    if annotate_bar is None or annotate_bar is False:
-        return
-    if annotate_bar is True:
-        annotate_bar = "small"
-    max_annotations = 25
-    if len(periodic) > max_annotations:
-        return
-
-    rounding = kwargs.get(BAR_ROUNDING, True)
-    if rounding is None or isinstance(rounding, bool):
-        value = periodic.abs().max()
-        rounding = default_rounding(value)
-    annotate_style = {
-        "fontsize": annotate_bar,
-        "fontname": "Helvetica",
-    }
-    adjustment = (periodic.max() - periodic.min()) * 0.01
-    for i, value in enumerate(periodic):
-        va = "bottom" if value >= 0 else "top"
-        text = axes.text(
-            periodic.index[i],
-            adjustment if value >= 0 else -adjustment,
-            f"{value:.{rounding}f}",
-            ha="center",
-            va=va,
-            **annotate_style,
-            color="white",
-        )
-        text.set_path_effects(
-            [pe.withStroke(linewidth=2, foreground=kwargs.get("bar_color", "#dd0000"))]
-        )
-
-
 def raw_growth_plot(
     data: DataT,
     **kwargs,
 ) -> Axes:
     """
-    Plot annual (as a line) and periodic (as bars) growth on the
-    same axes.
+    Plot annual growth (as a line) and periodic growth (as bars)
+    on the same axes.
 
     Args:
     -   data: A pandas DataFrame with two columns:
@@ -212,32 +169,45 @@ def raw_growth_plot(
     annual = data[data.columns[0]]
     periodic = data[data.columns[1]]
 
-    # --- plot
+    # --- data time frame
     plot_from: None | Period | int = kwargs.get("plot_from", None)
     if plot_from is not None:
-        if isinstance(plot_from, int):
+        if isinstance(plot_from, int) and isinstance(annual.index, PeriodIndex):
+            # convert the integer to a Period
             plot_from = annual.index[plot_from]
-        annual = annual[annual.index >= plot_from]
-        periodic = periodic[periodic.index >= plot_from]
+        annual = annual.loc[annual.index >= plot_from]
+        periodic = periodic.loc[periodic.index >= plot_from]
 
-    save_index = PeriodIndex(annual.index).copy()
-    annual.index = Index(range(len(annual)))
+    # --- series names
     annual.name = "Annual Growth"
-    periodic.index = annual.index
     periodic.name = {"M": "Monthly", "Q": "Quarterly", "D": "Daily"}[
-        PeriodIndex(save_index).freqstr[:1]
+        PeriodIndex(periodic.index).freqstr[:1]
     ] + " Growth"
-    color = kwargs.get("bar_color", "#dd0000")
-    kwargs["bar_color"] = color  # for annotations
-    axes = periodic.plot.bar(
-        color=color,
-        width=kwargs.get("bar_width}", 0.8),
+    saved_pi = map_periodindex(periodic)
+    if saved_pi is not None:
+        periodic = saved_pi[0]  # extract the reindexed DataFrame
+
+    # --- simple bar chart for the periodic growth
+    annotate = kwargs.get(ANNOTATE_BAR, True)
+    rounding = kwargs.get(BAR_ROUNDING, default_rounding(periodic.max()))
+    print(rounding)
+    axes = bar_plot(
+        periodic,
+        color=kwargs.get("bar_color", "#dd0000"),
+        width=kwargs.get("bar_width", 0.85),
+        annotate=annotate,
+        rounding=rounding,
+        label_series=True,
     )
+
+    # --- and now the annual growth as a line
     thin_threshold = 180
-    annual.plot(
+    line_plot(
+        annual,
         ax=axes,
         color=kwargs.get("line_color", "darkblue"),
-        lw=kwargs.get(
+        annotate=True,
+        width=kwargs.get(
             "line_width",
             (
                 get_setting("line_normal")
@@ -245,16 +215,16 @@ def raw_growth_plot(
                 else get_setting("line_wide")
             ),
         ),
-        linestyle=kwargs.get("line_style", "-"),
+        style=kwargs.get("line_style", "-"),
     )
-    _annotations(annual, periodic, axes, **kwargs)
 
     # --- expose the legend by default
     legend = kwargs.get("legend", True)
     make_legend(axes, legend)
 
     # --- fix the x-axis labels
-    set_labels(axes, save_index, kwargs.get("max_ticks", 10))
+    if saved_pi is not None:
+        set_labels(axes, saved_pi[1], kwargs.get("max_ticks", 10))
 
     # --- and done ...
     return axes

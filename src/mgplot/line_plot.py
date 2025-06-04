@@ -76,7 +76,7 @@ def _get_style_width_color_etc(
             if num_data_points > data_point_thresh
             else get_setting("line_wide")
         ),
-        COLOR: kwargs.get(COLOR, get_color_list(item_count)),
+        COLOR: get_color_list(item_count),
         ALPHA: 1.0,
         DRAWSTYLE: None,
         MARKER: None,
@@ -154,6 +154,7 @@ def line_plot(data: DataT, **kwargs) -> plt.Axes:
         series = df[column]
         series = series.dropna() if DROPNA in swce and swce[DROPNA][i] else series
         if series.empty or series.isna().all():
+            print(f"Warning: No data to plot for {column} in line_plot().")
             continue
 
         axes = series.plot(

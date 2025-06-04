@@ -12,11 +12,15 @@ Simple convenience functions to finalise and produce plots.
 - series_growth_plot_finalise()
 - summary_plot_finalise()
 
-Note: we keep these functions in a separate module to
-stop circular imports
+In the main, these are wrappers around the plot functions
+to call plot_then_finalise() with the correct arguments.
+Most functions are just a single line of code.
 
-We also do most of the indicative code testing from this
-module.
+Note: these functions are in a separate module to stop circular imports
+
+Note: Most of the indicative code testing is in this module. Why?
+Because these function produce completed charts, so they are
+the best place to test the plotting functions.
 """
 
 # --- imports
@@ -42,15 +46,9 @@ def line_plot_finalise(
     **kwargs,
 ) -> None:
     """
-    A convenience function to call plot_then_finalise(), which
-    wraps calls to line_plot() and finalise_plot().
+    A convenience function to call line_plot() then finalise_plot().
     """
-
-    plot_then_finalise(
-        data,
-        function=line_plot,
-        **kwargs,
-    )
+    plot_then_finalise(data, function=line_plot, **kwargs)
 
 
 def bar_plot_finalise(
@@ -58,10 +56,8 @@ def bar_plot_finalise(
     **kwargs,
 ) -> None:
     """
-    A convenience function to call plot_then_finalise(), which
-    wraps calls to bar_plot() and finalise_plot().
+    A convenience function to call bar_plot() and finalise_plot().
     """
-
     plot_then_finalise(
         data,
         function=bar_plot,
@@ -76,12 +72,7 @@ def seastrend_plot_finalise(
     """
     A convenience function to call seas_trend_plot() and finalise_plot().
     """
-
-    plot_then_finalise(
-        data,
-        function=seastrend_plot,
-        **kwargs,
-    )
+    plot_then_finalise(data, function=seastrend_plot, **kwargs)
 
 
 def postcovid_plot_finalise(
@@ -91,12 +82,7 @@ def postcovid_plot_finalise(
     """
     A convenience function to call postcovid_plot() and finalise_plot().
     """
-
-    plot_then_finalise(
-        data,
-        function=postcovid_plot,
-        **kwargs,
-    )
+    plot_then_finalise(data, function=postcovid_plot, **kwargs)
 
 
 def revision_plot_finalise(
@@ -106,16 +92,7 @@ def revision_plot_finalise(
     """
     A convenience function to call revision_plot() and finalise_plot().
     """
-
-    kwargs["legend"] = kwargs.get(
-        "legend", {"loc": "best", "fontsize": "x-small", "ncol": 2}
-    )
-    kwargs["style"] = kwargs.get("style", ["solid", "dashed", "dashdot", "dotted"])
-    plot_then_finalise(
-        data,
-        function=revision_plot,
-        **kwargs,
-    )
+    plot_then_finalise(data=data, function=revision_plot, **kwargs)
 
 
 def run_plot_finalise(
@@ -125,26 +102,14 @@ def run_plot_finalise(
     """
     A convenience function to call run_plot() and finalise_plot().
     """
-
-    plot_then_finalise(
-        data=data,
-        function=run_plot,
-        **kwargs,
-    )
+    plot_then_finalise(data=data, function=run_plot, **kwargs)
 
 
 def series_growth_plot_finalise(data: DataT, **kwargs) -> None:
     """
     A convenience function to call series_growth_plot() and finalise_plot().
-    Use this when you are providing the series data, for mgplot to calculate
-    the growth series.
     """
-
-    plot_then_finalise(
-        data=data,
-        function=series_growth_plot,
-        **kwargs,
-    )
+    plot_then_finalise(data=data, function=series_growth_plot, **kwargs)
 
 
 def raw_growth_plot_finalise(data: DataT, **kwargs) -> None:
@@ -153,12 +118,7 @@ def raw_growth_plot_finalise(data: DataT, **kwargs) -> None:
     Use this when you are providing the raw growth data. Don't forget to
     set the ylabel in kwargs.
     """
-
-    plot_then_finalise(
-        data=data,
-        function=raw_growth_plot,
-        **kwargs,
-    )
+    plot_then_finalise(data=data, function=raw_growth_plot, **kwargs)
 
 
 def summary_plot_finalise(
@@ -183,7 +143,7 @@ def summary_plot_finalise(
     kwargs["title"] = kwargs.get("title", f"Summary at {data.index[-1]}")
     kwargs["preserve_lims"] = kwargs.get(
         "preserve_lims", True
-    )  # preserve the x-axis limits
+    )
 
     start: None | int | Period = kwargs.get("plot_from", None)
     if start is None:
@@ -223,7 +183,7 @@ if __name__ == "__main__":
         {
             "Series 1": [0.1] * len(index),
             "Series 2": [0.1] * len(index),
-            "Series 3": [1.1] * len(index),
+            "Series 3": [1.01] * len(index),
         },
         index=index,
     )
@@ -235,6 +195,18 @@ if __name__ == "__main__":
 
     SKIP = False
     if not SKIP:
+
+        for stacked in (False, True):
+            bar_plot_finalise(
+                data=test_frame,
+                title=f"Test Bar Plot {'Stacked' if stacked else 'Grouped'}",
+                ylabel="Value",
+                xlabel=None,
+                width=0.8,
+                stacked=stacked,
+                rotation=0,
+                y0=True,
+            )
 
         line_plot_finalise(
             data=test_frame,
