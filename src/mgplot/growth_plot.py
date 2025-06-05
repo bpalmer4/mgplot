@@ -2,12 +2,12 @@
 growth_plot.py:
 plot period and annual/through-the-year growth rates on the same axes.
 - calc_growth()
-- raw_growth_plot()
+- growth_plot()
 - series_growth_plot()
 """
 
 # --- imports
-from typing import Final
+from typing import Final, Any
 from pandas import Series, DataFrame, Period, PeriodIndex, period_range
 from numpy import nan
 from matplotlib.pyplot import Axes
@@ -18,11 +18,10 @@ from mgplot.line_plot import line_plot
 from mgplot.axis_utils import map_periodindex
 from mgplot.finalise_plot import make_legend
 from mgplot.test import prepare_for_test
-from mgplot.settings import get_setting, DataT
+from mgplot.settings import DataT
 from mgplot.axis_utils import set_labels
 from mgplot.utilities import (
-    check_clean_timeseries,
-    default_rounding,
+    check_clean_timeseries
 )
 from mgplot.kw_type_checking import (
     validate_kwargs,
@@ -33,34 +32,91 @@ from mgplot.kw_type_checking import (
 
 
 # --- constants
+type TransitionKwargs = dict[str, tuple[str, Any]]
+
+# - overarching constants
 ANNUAL = "annual"
 PERIODIC = "periodic"
+AXES = "ax"
+PLOT_FROM = "plot_from"  # used to constrain the data to a starting point
+MAX_TICKS = "max_ticks"  # maximum number of ticks to show on the x-axis
+LEGEND = "legend"  # legend to show on the plot, None, True, or a dict
 
-ANNOTATE_BAR = "annotate_bar"
+# - constants for the line plot
+LINE_WIDTH = "line_width"
+LINE_COLOR = "line_color"
+LINE_STYLE = "line_style"
 ANNOTATE_LINE = "annotate_line"
-BAR_ROUNDING = "bar_rounding"
-ROUNDING = "rounding"
-
-
-RAW_GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
-    "line_width": (float, int),
-    "line_color": str,
-    "line_style": str,
-    ANNOTATE_LINE: (type(None), bool, int, str),  # None, True or fontsize
-    ROUNDING: (type(None), bool, int),  # None, True or rounding
-    "bar_width": float,
-    "bar_color": str,
-    ANNOTATE_BAR: (type(None), bool, int, str),  # None, True or fontsize
-    BAR_ROUNDING: (type(None), bool, int),  # None, True or rounding
-    "plot_from": (type(None), Period, int),
-    "max_ticks": int,
-    "legend": (type(None), bool, dict, (str, object)),
+LINE_ROUNDING = "line_rounding"
+LINE_FONTSIZE = "line_fontsize"  # fontsize for the line annotations
+# - transition of kwargs from growth_plot to line_plot
+to_line_plot: TransitionKwargs = {
+    # arg-to-growth_plot : (arg-to-line_plot, default_value)
+    AXES: ("ax", None),  # axes to plot on
+    LINE_WIDTH: ("width", 2),
+    LINE_COLOR: ("color", "darkblue"),
+    LINE_STYLE: ("style", "-"),
+    ANNOTATE_LINE: ("annotate", True),
+    LINE_ROUNDING: ("rounding", True),
+    LINE_FONTSIZE: ("fontsize", "small"),  # fontsize for the line annotations
+    PLOT_FROM: ("plot_from", 0),  # used to constrain the data to a starting point
 }
-validate_expected(RAW_GROWTH_KW_TYPES, "growth_plot")
+
+# - constants for the bar plot
+ANNOTATE_BARS = "annotate_bars"
+BAR_ROUNDING = "bar_rounding"
+BAR_WIDTH = "bar_width"
+BAR_COLOR = "bar_color"
+BAR_ANNO_COLOR = "bar_annotate_color"  # color for the bar annotations
+BAR_FONTSIZE = "bar_fontsize"  # fontsize for the bar annotations
+ABOVE = "above"  # if True, annotations are above the bar
+BAR_ROTATION = "bar_rotation"  # rotation of bar labels
+LABEL_SERIES = "label_series"  # if True, the series name is used as the label
+to_bar_plot: TransitionKwargs = {
+    # arg-to-growth_plot : (arg-to-bar_plot, default_value)
+    AXES: ("ax", None),  # axes to plot on
+    ANNOTATE_BARS: ("annotate", True),
+    BAR_ROUNDING: ("rounding", True),
+    BAR_WIDTH: ("width", 0.8),
+    BAR_COLOR: ("color", "#dd0000"),
+    ABOVE: ("above", False),
+    BAR_ROTATION: ('bar_rotation', 0),
+    BAR_FONTSIZE: ("fontsize", "small"),  # fontsize for the bar annotations
+    PLOT_FROM: ("plot_from", 0),  # used to constrain the data to a starting point
+    BAR_ANNO_COLOR: ("annotate_color", type(None)),  # color for the bar annotations
+    LABEL_SERIES: ("label_series", True),  # if True, the series name is used as the label
+}
+
+GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
+    # --- options passed to the line plot
+    LINE_WIDTH: (float, int),
+    LINE_COLOR: str,
+    LINE_STYLE: str,
+    ANNOTATE_LINE: (type(None), bool),  # None, True
+    LINE_ROUNDING: (bool, int),  # None, True or rounding
+    LINE_FONTSIZE: (str, int, float),  # fontsize for the line annotations
+
+    # --- options passed to the bar plot
+    ANNOTATE_BARS: (type(None), bool),
+    BAR_FONTSIZE: (str, int, float),
+    BAR_ROUNDING: (bool, int),
+    BAR_WIDTH: float,
+    BAR_COLOR: str,
+    BAR_ANNO_COLOR: (str, type(None)),
+    BAR_ROTATION: (int, float),
+    ABOVE: bool,
+
+    # --- other options for the plot
+    AXES: (type(None), Axes),
+    PLOT_FROM: (type(None), Period, int),
+    MAX_TICKS: int,
+    LEGEND: (type(None), bool, dict, (str, object)),
+}
+validate_expected(GROWTH_KW_TYPES, "growth_plot")
 
 SERIES_GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     "ylabel": (str, type(None)),
-} | RAW_GROWTH_KW_TYPES
+} | GROWTH_KW_TYPES
 validate_expected(SERIES_GROWTH_KW_TYPES, "growth_plot")
 
 
@@ -113,7 +169,25 @@ def calc_growth(series: Series) -> DataFrame:
     )
 
 
-def raw_growth_plot(
+def package_kwargs(
+    mapping: dict[str, str],
+    **kwargs: Any
+) -> dict[str, Any]:
+    """ 
+    Package the keyword arguments for plotting functions.
+    Substitute defaults where arguments are not provided.
+
+    Args:
+    -   kwargs: The original keyword arguments.
+    -   mapping: A mapping of original keys to new keys.
+
+    Returns:
+    -   A dictionary with the packaged keyword arguments.
+    """
+    return {v[0]: kwargs.get(k, v[1]) for k, v in mapping.items() if v[1] is not None}
+
+
+def growth_plot(
     data: DataT,
     **kwargs,
 ) -> Axes:
@@ -156,9 +230,9 @@ def raw_growth_plot(
     """
 
     # --- check the kwargs
-    me = "raw_growth_plot"
+    me = "growth_plot"
     report_kwargs(called_from=me, **kwargs)
-    validate_kwargs(RAW_GROWTH_KW_TYPES, me, **kwargs)
+    validate_kwargs(GROWTH_KW_TYPES, me, **kwargs)
 
     # --- data checks
     data = check_clean_timeseries(data, me)
@@ -188,34 +262,20 @@ def raw_growth_plot(
         periodic = saved_pi[0]  # extract the reindexed DataFrame
 
     # --- simple bar chart for the periodic growth
-    annotate = kwargs.get(ANNOTATE_BAR, True)
-    rounding = kwargs.get(BAR_ROUNDING, default_rounding(periodic.max()))
-    print(rounding)
+    if BAR_ANNO_COLOR not in kwargs or kwargs[BAR_ANNO_COLOR] is None:
+        kwargs[BAR_ANNO_COLOR] = "black" if kwargs.get(ABOVE, False) else "white"
+    selected = package_kwargs(to_bar_plot, **kwargs)
     axes = bar_plot(
         periodic,
-        color=kwargs.get("bar_color", "#dd0000"),
-        width=kwargs.get("bar_width", 0.85),
-        annotate=annotate,
-        rounding=rounding,
-        label_series=True,
+        **selected
     )
 
     # --- and now the annual growth as a line
-    thin_threshold = 180
+    selected = package_kwargs(to_line_plot, **kwargs)
     line_plot(
         annual,
         ax=axes,
-        color=kwargs.get("line_color", "darkblue"),
-        annotate=True,
-        width=kwargs.get(
-            "line_width",
-            (
-                get_setting("line_normal")
-                if len(annual) >= thin_threshold
-                else get_setting("line_wide")
-            ),
-        ),
-        style=kwargs.get("line_style", "-"),
+        **selected
     )
 
     # --- expose the legend by default
@@ -235,8 +295,8 @@ def series_growth_plot(
     **kwargs,
 ) -> Axes:
     """
-    Plot annual and periodic growth from a pandas Series,
-    and finalise the plot.
+    Plot annual and periodic growth in percentage terms from 
+    a pandas Series, and finalise the plot.
 
     Args:
     -   data: A pandas Series with an appropriate PeriodIndex.
@@ -261,7 +321,7 @@ def series_growth_plot(
         print(f"Did you intend to specify a value for the 'ylabel' in {me}()?")
     ylabel = "Growth (%)" if ylabel is None else ylabel
     growth = calc_growth(data)
-    ax = raw_growth_plot(growth, **kwargs)
+    ax = growth_plot(growth, **kwargs)
     ax.set_ylabel(ylabel)
     return ax
 

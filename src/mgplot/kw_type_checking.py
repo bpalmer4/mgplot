@@ -81,6 +81,7 @@ from collections.abc import Sequence, Set  # Iterable and Sized
 from collections.abc import Mapping
 from collections.abc import Iterable, Sized, Container, Callable, Generator, Iterator
 
+import inspect
 import textwrap
 from enum import Enum
 
@@ -132,7 +133,6 @@ def limit_kwargs(
     """
     Limit the keyword arguments to those in the expected dict.
     """
-
     return {k: v for k, v in kwargs.items() if k in expected or k == REPORT_KWARGS}
 
 
@@ -272,6 +272,14 @@ def validate_expected(
     This function raises an ValueError exception if the expected
     types dictionary is malformed.
     """
+
+    # --- confirm "ax" is in the expected keyword arguments.
+    frame = inspect.stack()[1]
+    module = inspect.getmodule(frame[0])
+    if "ax" not in expected and module.__name__ != "mgplot.finalise_plot":
+        print(
+            f"Expected keyword arguments should contain 'ax' in {called_from} {module.__name__}."
+        )
 
     def check_members(t: type | NestedTypeTuple) -> str:
         """

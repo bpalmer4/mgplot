@@ -4,11 +4,9 @@ Plot ABS revisions to estimates over time.
 """
 
 # --- imports
-from pandas import Series
 from matplotlib.pyplot import Axes
 
-
-from mgplot.utilities import annotate_series, check_clean_timeseries
+from mgplot.utilities import check_clean_timeseries
 from mgplot.line_plot import LINE_KW_TYPES, line_plot
 from mgplot.kw_type_checking import validate_kwargs, validate_expected
 from mgplot.kw_type_checking import report_kwargs
@@ -48,15 +46,10 @@ def revision_plot(data: DataT, **kwargs) -> Axes:
     data = check_clean_timeseries(data, me)
 
     # --- critical defaults
-    kwargs["plot_from"] = kwargs.get("plot_from", -19)
+    kwargs["plot_from"] = kwargs.get("plot_from", -15)
+    kwargs["annotate"] = True
 
     # --- plot
     axes = line_plot(data, **kwargs)
-
-    # --- Annotate the last value in each series ...
-    rounding: int | bool = kwargs.pop(ROUNDING, True)
-    for c in data.columns:
-        col: Series = data.loc[:, c].dropna()
-        annotate_series(col, axes, color="#222222", rounding=rounding, fontsize="small")
 
     return axes

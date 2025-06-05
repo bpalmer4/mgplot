@@ -60,8 +60,8 @@ from mgplot.run_plot import run_plot, RUN_KW_TYPES
 from mgplot.summary_plot import summary_plot, SUMMARY_KW_TYPES
 from mgplot.growth_plot import (
     series_growth_plot,
-    raw_growth_plot,
-    RAW_GROWTH_KW_TYPES,
+    growth_plot,
+    GROWTH_KW_TYPES,
     SERIES_GROWTH_KW_TYPES,
 )
 
@@ -78,7 +78,7 @@ EXPECTED_CALLABLES: Final[dict[Callable, ExpectedTypeDict]] = {
     run_plot: RUN_KW_TYPES,
     summary_plot: SUMMARY_KW_TYPES,
     series_growth_plot: SERIES_GROWTH_KW_TYPES,
-    raw_growth_plot: RAW_GROWTH_KW_TYPES,
+    growth_plot: GROWTH_KW_TYPES,
 }
 
 

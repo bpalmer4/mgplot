@@ -5,7 +5,7 @@ Simple convenience functions to finalise and produce plots.
 - bar_plot_finalise()
 - line_plot_finalise()
 - postcovid_plot_finalise()
-- raw_growth_plot_finalise()
+- growth_plot_finalise()
 - revision_plot_finalise()
 - run_plot_finalise()
 - seastrend_plot_finalise()
@@ -36,7 +36,7 @@ from mgplot.seastrend_plot import seastrend_plot
 from mgplot.postcovid_plot import postcovid_plot
 from mgplot.revision_plot import revision_plot
 from mgplot.run_plot import run_plot
-from mgplot.growth_plot import series_growth_plot, raw_growth_plot
+from mgplot.growth_plot import series_growth_plot, growth_plot
 from mgplot.summary_plot import summary_plot, ZSCORES, ZSCALED
 
 
@@ -112,13 +112,13 @@ def series_growth_plot_finalise(data: DataT, **kwargs) -> None:
     plot_then_finalise(data=data, function=series_growth_plot, **kwargs)
 
 
-def raw_growth_plot_finalise(data: DataT, **kwargs) -> None:
+def growth_plot_finalise(data: DataT, **kwargs) -> None:
     """
     A convenience function to call series_growth_plot() and finalise_plot().
     Use this when you are providing the raw growth data. Don't forget to
     set the ylabel in kwargs.
     """
-    plot_then_finalise(data=data, function=raw_growth_plot, **kwargs)
+    plot_then_finalise(data=data, function=growth_plot, **kwargs)
 
 
 def summary_plot_finalise(
@@ -196,6 +196,25 @@ if __name__ == "__main__":
     SKIP = False
     if not SKIP:
 
+        multi_start(
+            data=test_frame["Series 1"],
+            function=series_growth_plot_finalise,
+            starts=[0, -19],
+            title="Test Multi Start Series Growth Plot: ",
+            xlabel=None,
+        )
+
+        series_growth_plot_finalise(
+            data=test_frame["Series 1"],
+            plot_from=-19,
+            title="Test Series Growth Plot",
+            annotate_line=True,
+            annotate_bars=True,
+            above=True,
+            bar_annotate_color="black",
+            bar_rotation=0,
+        )
+
         for stacked in (False, True):
             bar_plot_finalise(
                 data=test_frame,
@@ -262,14 +281,6 @@ if __name__ == "__main__":
             data=summary_data,
             title=f"Summary Plot at {summary_data.index[-1]}",
             ylabel="Value",
-            xlabel=None,
-        )
-
-        multi_start(
-            data=test_frame["Series 1"],
-            function=series_growth_plot_finalise,
-            starts=[0, -19],
-            title="Test Multi Start Series Growth Plot: ",
             xlabel=None,
         )
 

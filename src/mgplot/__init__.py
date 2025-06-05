@@ -21,10 +21,10 @@ from mgplot.run_plot import run_plot, RUN_KW_TYPES
 from mgplot.summary_plot import summary_plot, SUMMARY_KW_TYPES
 from mgplot.growth_plot import (
     calc_growth,
-    raw_growth_plot,
+    growth_plot,
     series_growth_plot,
     SERIES_GROWTH_KW_TYPES,
-    RAW_GROWTH_KW_TYPES,
+    GROWTH_KW_TYPES,
 )
 from mgplot.multi_plot import (
     multi_start,
@@ -53,7 +53,7 @@ from mgplot.finalisers import (
     postcovid_plot_finalise,
     revision_plot_finalise,
     summary_plot_finalise,
-    raw_growth_plot_finalise,
+    growth_plot_finalise,
     series_growth_plot_finalise,
     run_plot_finalise,
 )
@@ -102,7 +102,7 @@ __all__ = (
     "summary_plot",
     # --- growth_plot
     "calc_growth",
-    "raw_growth_plot",
+    "growth_plot",
     "series_growth_plot",
     # --- multi_plot
     "multi_start",
@@ -115,7 +115,7 @@ __all__ = (
     "postcovid_plot_finalise",
     "revision_plot_finalise",
     "summary_plot_finalise",
-    "raw_growth_plot_finalise",
+    "growth_plot_finalise",
     "series_growth_plot_finalise",
     "run_plot_finalise",
     # --- typing information
@@ -128,7 +128,7 @@ __all__ = (
     "RUN_KW_TYPES",
     "SUMMARY_KW_TYPES",
     "SERIES_GROWTH_KW_TYPES",
-    "RAW_GROWTH_KW_TYPES",
+    "GROWTH_KW_TYPES",
     # --- The rest are internal use only
 )
 # __pdoc__: dict[str, Any] = {"test": False}  # hide submodules from documentation

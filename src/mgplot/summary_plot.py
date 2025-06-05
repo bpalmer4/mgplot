@@ -30,8 +30,10 @@ from mgplot.kw_type_checking import (
 # --- constants
 ZSCORES = "zscores"
 ZSCALED = "zscaled"
+AXES = "ax"  # Axes object to plot on
 
 SUMMARY_KW_TYPES: ExpectedTypeDict = {
+    AXES: (Axes, type(None)),
     "verbose": bool,
     "middle": float,
     "plot_type": str,

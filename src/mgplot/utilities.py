@@ -9,7 +9,6 @@ Functions:
 - apply_defaults()
 - get_color_list()
 - get_axes()
-- annotate_series()
 - default_rounding()
 """
 
@@ -197,56 +196,6 @@ def default_rounding(t: int | float) -> int:
     return 0 if t >= 100 else 1 if t >= 10 else 2
 
 
-def annotate_series(
-    series: Series,
-    axes: Axes,
-    **kwargs,  # "fontsize", "rounding",
-) -> None:
-    """Annotate the right-hand end-point of a line-plotted series."""
-
-    # --- check the series has a value to annotate
-    latest = series.dropna()
-    if series.empty:
-        return
-    x, y = latest.index[-1], latest.iloc[-1]
-    if y is None or math.isnan(y):
-        return
-
-    # --- extract fontsize - could be None, bool, int or str.
-    fontsize = kwargs.get("fontsize", "small")
-    if fontsize is None or isinstance(fontsize, bool):
-        fontsize = "small"
-
-    # --- extract rounding - could be None, bool or int
-    rounding = default_rounding(y)  # the case for None or bool
-    if "rounding" in kwargs:
-        possible = kwargs["rounding"]
-        if not isinstance(possible, bool):
-            if isinstance(possible, int):
-                rounding = possible
-
-    # --- do the rounding
-    r_string = f"  {int(y)}"  # default to no rounding
-    if rounding > 0:
-        r_string = f"  {y:.{rounding}f}"
-
-    # --- add the annotation
-    if "test" in kwargs and kwargs["test"]:
-        print(f"annotate_series: {x=}, {y=}, {rounding=} {r_string=}")
-        return
-
-    color = kwargs.get("color", "black")
-    axes.text(
-        x=x,
-        y=y,
-        s=r_string,
-        ha="left",
-        va="center",
-        fontsize=fontsize,
-        color=color,
-        font="Helvetica",
-    )
-
 
 # --- test code
 if __name__ == "__main__":
@@ -257,19 +206,3 @@ if __name__ == "__main__":
     _ = _.drop(index=[_.index[3]])
     clean = check_clean_timeseries(_, "test")
     print(f"Cleaned data:\n{clean}")
-
-    # --- test annotate_series()
-    print()
-    _fig, ax_ = subplots(figsize=(9, 4.5))
-    series2_ = Series([1.12345, 2.12345, 3.12345, 4.12345, 5.12345])
-    rounding_ = (
-        False,
-        True,
-        0,
-        1,
-        2,
-        3,
-    )
-    for r in rounding_:
-        annotate_series(series2_, ax_, rounding=r, test=True)
-    print("Done")
