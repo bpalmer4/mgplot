@@ -20,9 +20,7 @@ from mgplot.finalise_plot import make_legend
 from mgplot.test import prepare_for_test
 from mgplot.settings import DataT
 from mgplot.axis_utils import set_labels
-from mgplot.utilities import (
-    check_clean_timeseries
-)
+from mgplot.utilities import check_clean_timeseries, constrain_data
 from mgplot.kw_type_checking import (
     validate_kwargs,
     report_kwargs,
@@ -41,6 +39,7 @@ AXES = "ax"
 PLOT_FROM = "plot_from"  # used to constrain the data to a starting point
 MAX_TICKS = "max_ticks"  # maximum number of ticks to show on the x-axis
 LEGEND = "legend"  # legend to show on the plot, None, True, or a dict
+REPORT_KWARGS = "report_kwargs"
 
 # - constants for the line plot
 LINE_WIDTH = "line_width"
@@ -48,18 +47,21 @@ LINE_COLOR = "line_color"
 LINE_STYLE = "line_style"
 ANNOTATE_LINE = "annotate_line"
 LINE_ROUNDING = "line_rounding"
-LINE_FONTSIZE = "line_fontsize"  # fontsize for the line annotations
+LINE_FONTSIZE = "line_fontsize"
+LINE_ANNO_COLOR = "line_annotate_color"  # color for the line annotations
 # - transition of kwargs from growth_plot to line_plot
 to_line_plot: TransitionKwargs = {
     # arg-to-growth_plot : (arg-to-line_plot, default_value)
     AXES: ("ax", None),  # axes to plot on
-    LINE_WIDTH: ("width", 2),
+    LINE_WIDTH: ("width", None),
     LINE_COLOR: ("color", "darkblue"),
     LINE_STYLE: ("style", "-"),
     ANNOTATE_LINE: ("annotate", True),
     LINE_ROUNDING: ("rounding", True),
     LINE_FONTSIZE: ("fontsize", "small"),  # fontsize for the line annotations
+    LINE_ANNO_COLOR: ("annotate_color", True),  # color for the line annotations
     PLOT_FROM: ("plot_from", 0),  # used to constrain the data to a starting point
+    REPORT_KWARGS: (REPORT_KWARGS, None),
 }
 
 # - constants for the bar plot
@@ -80,11 +82,15 @@ to_bar_plot: TransitionKwargs = {
     BAR_WIDTH: ("width", 0.8),
     BAR_COLOR: ("color", "#dd0000"),
     ABOVE: ("above", False),
-    BAR_ROTATION: ('bar_rotation', 0),
+    BAR_ROTATION: ("bar_rotation", 0),
     BAR_FONTSIZE: ("fontsize", "small"),  # fontsize for the bar annotations
     PLOT_FROM: ("plot_from", 0),  # used to constrain the data to a starting point
     BAR_ANNO_COLOR: ("annotate_color", type(None)),  # color for the bar annotations
-    LABEL_SERIES: ("label_series", True),  # if True, the series name is used as the label
+    LABEL_SERIES: (
+        "label_series",
+        True,
+    ),  # if True, the series name is used as the label
+    REPORT_KWARGS: (REPORT_KWARGS, None),
 }
 
 GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
@@ -95,7 +101,7 @@ GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     ANNOTATE_LINE: (type(None), bool),  # None, True
     LINE_ROUNDING: (bool, int),  # None, True or rounding
     LINE_FONTSIZE: (str, int, float),  # fontsize for the line annotations
-
+    LINE_ANNO_COLOR: (str, bool, type(None)),  # color for the line annotations
     # --- options passed to the bar plot
     ANNOTATE_BARS: (type(None), bool),
     BAR_FONTSIZE: (str, int, float),
@@ -105,7 +111,6 @@ GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     BAR_ANNO_COLOR: (str, type(None)),
     BAR_ROTATION: (int, float),
     ABOVE: bool,
-
     # --- other options for the plot
     AXES: (type(None), Axes),
     PLOT_FROM: (type(None), Period, int),
@@ -169,22 +174,24 @@ def calc_growth(series: Series) -> DataFrame:
     )
 
 
-def package_kwargs(
-    mapping: dict[str, str],
-    **kwargs: Any
-) -> dict[str, Any]:
-    """ 
+def package_kwargs(mapping: TransitionKwargs, **kwargs: Any) -> dict[str, Any]:
+    """
     Package the keyword arguments for plotting functions.
-    Substitute defaults where arguments are not provided.
+    Substitute defaults where arguments are not provided
+    (unless the default is None).
 
     Args:
+    -   mapping: A mapping of original keys to  a tuple of (new-key, default value).
     -   kwargs: The original keyword arguments.
-    -   mapping: A mapping of original keys to new keys.
 
     Returns:
     -   A dictionary with the packaged keyword arguments.
     """
-    return {v[0]: kwargs.get(k, v[1]) for k, v in mapping.items() if v[1] is not None}
+    return {
+        v[0]: kwargs.get(k, v[1])
+        for k, v in mapping.items()
+        if k in kwargs or v[1] is not None
+    }
 
 
 def growth_plot(
@@ -238,25 +245,19 @@ def growth_plot(
     data = check_clean_timeseries(data, me)
     if len(data.columns) != 2:
         raise TypeError("The data argument must be a pandas DataFrame with two columns")
+    data, kwargs = constrain_data(data, **kwargs)
 
     # --- get the series of interest ...
     annual = data[data.columns[0]]
     periodic = data[data.columns[1]]
-
-    # --- data time frame
-    plot_from: None | Period | int = kwargs.get("plot_from", None)
-    if plot_from is not None:
-        if isinstance(plot_from, int) and isinstance(annual.index, PeriodIndex):
-            # convert the integer to a Period
-            plot_from = annual.index[plot_from]
-        annual = annual.loc[annual.index >= plot_from]
-        periodic = periodic.loc[periodic.index >= plot_from]
 
     # --- series names
     annual.name = "Annual Growth"
     periodic.name = {"M": "Monthly", "Q": "Quarterly", "D": "Daily"}[
         PeriodIndex(periodic.index).freqstr[:1]
     ] + " Growth"
+
+    # --- convert PeriodIndex periodic growth data to integer indexed data.
     saved_pi = map_periodindex(periodic)
     if saved_pi is not None:
         periodic = saved_pi[0]  # extract the reindexed DataFrame
@@ -265,18 +266,11 @@ def growth_plot(
     if BAR_ANNO_COLOR not in kwargs or kwargs[BAR_ANNO_COLOR] is None:
         kwargs[BAR_ANNO_COLOR] = "black" if kwargs.get(ABOVE, False) else "white"
     selected = package_kwargs(to_bar_plot, **kwargs)
-    axes = bar_plot(
-        periodic,
-        **selected
-    )
+    axes = bar_plot(periodic, **selected)
 
     # --- and now the annual growth as a line
     selected = package_kwargs(to_line_plot, **kwargs)
-    line_plot(
-        annual,
-        ax=axes,
-        **selected
-    )
+    line_plot(annual, ax=axes, **selected)
 
     # --- expose the legend by default
     legend = kwargs.get("legend", True)
@@ -295,7 +289,7 @@ def series_growth_plot(
     **kwargs,
 ) -> Axes:
     """
-    Plot annual and periodic growth in percentage terms from 
+    Plot annual and periodic growth in percentage terms from
     a pandas Series, and finalise the plot.
 
     Args:

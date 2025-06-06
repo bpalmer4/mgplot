@@ -40,6 +40,7 @@ DROPNA = "dropna"
 DRAWSTYLE, MARKER, MARKERSIZE = "drawstyle", "marker", "markersize"
 PLOT_FROM = "plot_from"  # used to constrain the data to a starting point
 LEGEND = "legend"
+LABEL_SERIES = "label_series"  # used to label the series in the legend
 
 LINE_KW_TYPES: ExpectedTypeDict = {
     AX: (Axes, type(None)),
@@ -54,9 +55,10 @@ LINE_KW_TYPES: ExpectedTypeDict = {
     ANNOTATE: (bool, Sequence, (bool,)),
     ROUNDING: (Sequence, (bool, int), int, bool, type(None)),
     FONTSIZE: (Sequence, (str, int), str, int, type(None)),
-    ANNOTATE_COLOR: (str, Sequence, (str,), type(None)),
+    ANNOTATE_COLOR: (str, Sequence, (str,), bool, Sequence, (bool,), type(None)),
     PLOT_FROM: (int, Period, type(None)),
     LEGEND: (dict, (str, object), bool, type(None)),
+    LABEL_SERIES: (bool, Sequence, (bool,), type(None)),
 }
 validate_expected(LINE_KW_TYPES, "line_plot")
 
@@ -65,7 +67,7 @@ validate_expected(LINE_KW_TYPES, "line_plot")
 def annotate_series(
     series: Series,
     axes: Axes,
-    **kwargs,  # "fontsize", "rounding", "annotate_color"
+    **kwargs,  # "fontsize", "rounding",
 ) -> None:
     """Annotate the right-hand end-point of a line-plotted series."""
 
@@ -78,29 +80,14 @@ def annotate_series(
         return
 
     # --- extract fontsize - could be None, bool, int or str.
-    fontsize = kwargs.get("fontsize", "small")
+    fontsize = kwargs.get(FONTSIZE, "small")
     if fontsize is None or isinstance(fontsize, bool):
         fontsize = "small"
 
-    # --- extract rounding - could be None, bool or int
-    rounding = default_rounding(y)  # the case for None or bool
-    if "rounding" in kwargs:
-        possible = kwargs["rounding"]
-        if not isinstance(possible, bool):
-            if isinstance(possible, int):
-                rounding = possible
-
-    # --- do the rounding
-    r_string = f"  {int(y)}"  # default to no rounding
-    if rounding > 0:
-        r_string = f"  {y:.{rounding}f}"
-
     # --- add the annotation
-    if "test" in kwargs and kwargs["test"]:
-        print(f"annotate_series: {x=}, {y=}, {rounding=} {r_string=}")
-        return
-
-    color = kwargs.get("annotate_color", "black")
+    color = kwargs["color"]
+    rounding = default_rounding(value=y, provided=kwargs.get(ROUNDING, None))
+    r_string = f"  {y:.{rounding}f}" if rounding > 0 else f"  {int(y)}"
     axes.text(
         x=x,
         y=y,
@@ -122,9 +109,9 @@ def _get_style_width_color_etc(
     a modified kwargs dictionary.
     """
 
-    data_point_thresh = 151
-    defaults: dict[str, Any] = {
-        STYLE: "-",
+    data_point_thresh = 151  # switch from wide to narrow lines
+    line_defaults: dict[str, Any] = {
+        STYLE: "solid" if item_count < 4 else ["solid", "dashed", "dashdot", "dotted"],
         WIDTH: (
             get_setting("line_normal")
             if num_data_points > data_point_thresh
@@ -139,10 +126,11 @@ def _get_style_width_color_etc(
         ANNOTATE: False,
         ROUNDING: True,
         FONTSIZE: "small",
-        ANNOTATE_COLOR: "black",
+        ANNOTATE_COLOR: True,  # use the same color as the line
+        LABEL_SERIES: True,  # label the series in the legend
     }
 
-    return apply_defaults(item_count, defaults, kwargs)
+    return apply_defaults(item_count, line_defaults, kwargs)
 
 
 def line_plot(data: DataT, **kwargs) -> Axes:
@@ -154,7 +142,9 @@ def line_plot(data: DataT, **kwargs) -> Axes:
     Agruments:
     - data: DataFrame | Series - data to plot
     - kwargs:
+        /* chart wide arguments */
         - ax: Axes | None - axes to plot on (optional)
+        /* individual line arguments */
         - dropna: bool | list[bool] - whether to delete NAs frm the
           data before plotting [optional]
         - color: str | list[str] - line colors.
@@ -163,6 +153,7 @@ def line_plot(data: DataT, **kwargs) -> Axes:
         - alpha: float | list[float] - line transparencies [optional].
         - marker: str | list[str] - line markers [optional].
         - marker_size: float | list[float] - line marker sizes [optional].
+        /* end of line annotation arguments */
         - annotate: bool | list[bool] - whether to annotate a series.
         - rounding: int | bool | list[int | bool] - number of decimal places
           to round an annotation. If True, a default between 0 and 2 is
@@ -170,6 +161,8 @@ def line_plot(data: DataT, **kwargs) -> Axes:
         - fontsize: int | str | list[int | str] - font size for the
           annotation.
         - drawstyle: str | list[str] - matplotlib line draw styles.
+        - annotate_color: str | list[str] | bool | list[bool] - color
+          for the annotation text.  If True, the same color as the line.
 
     Returns:
     - axes: Axes - the axes object for the plot
@@ -182,21 +175,18 @@ def line_plot(data: DataT, **kwargs) -> Axes:
 
     # --- check the data
     data = check_clean_timeseries(data, me)
-    df = DataFrame(data)  # really we are only plotting DataFrames
+    df = DataFrame(data)  # we are only plotting DataFrames
     df, kwargs = constrain_data(df, **kwargs)
 
     # --- some special defaults
     if len(df.columns) > 1:
         # default to displaying a legend
-        kwargs["legend"] = kwargs.get("legend", True)
-    if len(df.columns) > 4:
-        # default to using a style for the lines
-        kwargs["style"] = kwargs.get("style", ["solid", "dashed", "dashdot", "dotted"])
+        kwargs[LEGEND] = kwargs.get(LEGEND, True)
 
     # --- Let's plot
     axes, kwargs = get_axes(**kwargs)  # get the axes to plot on
     if df.empty or df.isna().all().all():
-        # Note: finalise plot will ignore an empty axes object
+        # Note: finalise plot should ignore an empty axes object
         print("Warning: No data to plot.")
         return axes
 
@@ -212,7 +202,8 @@ def line_plot(data: DataT, **kwargs) -> Axes:
             print(f"Warning: No data to plot for {column} in line_plot().")
             continue
 
-        axes = series.plot(
+        series.plot(
+            # Note: pandas will plot PeriodIndex against their ordinal values
             ls=swce[STYLE][i],
             lw=swce[WIDTH][i],
             color=swce[COLOR][i],
@@ -220,17 +211,27 @@ def line_plot(data: DataT, **kwargs) -> Axes:
             marker=swce[MARKER][i],
             ms=swce[MARKERSIZE][i],
             drawstyle=swce[DRAWSTYLE][i],
+            label=(
+                column
+                if LABEL_SERIES in swce and swce[LABEL_SERIES][i]
+                else f"_{column}_"
+            ),
             ax=axes,
         )
 
         if swce[ANNOTATE][i] is None or not swce[ANNOTATE][i]:
             continue
 
+        color = (
+            swce[COLOR][i]
+            if swce[ANNOTATE_COLOR][i] is True
+            else swce[ANNOTATE_COLOR][i]
+        )
         annotate_series(
             series,
             axes,
             rounding=swce[ROUNDING][i],
-            color=swce[ANNOTATE_COLOR][i],
+            color=color,
             fontsize=swce[FONTSIZE][i],
         )
 

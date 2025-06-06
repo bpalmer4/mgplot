@@ -273,13 +273,17 @@ def validate_expected(
     types dictionary is malformed.
     """
 
-    # --- confirm "ax" is in the expected keyword arguments.
+    # --- confirm minimum required keyword arguments are provided for.
+    look_for = ["ax", "plot_from"]
     frame = inspect.stack()[1]
     module = inspect.getmodule(frame[0])
-    if "ax" not in expected and module.__name__ != "mgplot.finalise_plot":
-        print(
-            f"Expected keyword arguments should contain 'ax' in {called_from} {module.__name__}."
-        )
+    if module is not None and module.__name__ != "mgplot.finalise_plot":
+        for item in look_for:
+            if item not in expected:
+                print(
+                    f"Expected keyword arguments should contain '{item}' "
+                    f"in {called_from}() in {module.__name__}."
+                )
 
     def check_members(t: type | NestedTypeTuple) -> str:
         """

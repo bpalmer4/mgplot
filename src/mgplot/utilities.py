@@ -16,6 +16,7 @@ Functions:
 import math
 from typing import Any
 from pandas import Series, DataFrame, Period, PeriodIndex, period_range
+from pandas.api.types import is_integer_dtype
 import numpy as np
 from matplotlib import cm
 from matplotlib.pyplot import Axes, subplots
@@ -89,8 +90,9 @@ def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
         kwargs: keyword arguments - uses "plot_from" in kwargs to constrain the data
 
     Assume:
-    - that mgplot.utilitiesd.check_clean_timeseries() has already been applied
-    - that the data is a Series or DataFrame with a PeriodIndex
+    - that the data is a Series or DataFrame with a PeriodIndex or an integer index
+      and that if it is an integer index, these are ordinal values from a PeriodIndex
+      [or possibly ordinatl values for a small number of strings].
     - that the index is unique and monotonic increasing
 
     Returns:
@@ -98,14 +100,29 @@ def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
     """
 
     plot_from = kwargs.pop("plot_from", 0)
-    if isinstance(plot_from, Period) and isinstance(data.index, PeriodIndex):
-        data = data.loc[data.index >= plot_from]
+
+    if isinstance(plot_from, Period):
+        if isinstance(data.index, PeriodIndex):
+            data = data.loc[data.index >= plot_from]
+        if is_integer_dtype(data.index):
+            data = data.loc[data.index >= plot_from.ordinal]
+
     elif isinstance(plot_from, int):
-        data = data.iloc[plot_from:]
-    elif plot_from is None:
-        pass
+        if isinstance(data.index, PeriodIndex):
+            data = data.iloc[plot_from:]
+        if is_integer_dtype(data.index):
+            # this is the messy case: to use loc or iloc?
+            if plot_from <= 0 or plot_from < data.index.min():
+                # assume negative and small positive integers are iloc
+                data = data.iloc[plot_from:]
+            else:
+                data = data.loc[data.index >= plot_from]
+
     else:
-        print(f"Warning: {plot_from=} either not a valid type or not applicable. ")
+        print(
+            "Warning: 'plot_from' must be a Period or an integer. "
+            + f"Found {type(plot_from)}. No data constrained."
+        )
     return data, kwargs
 
 
@@ -190,11 +207,38 @@ def get_axes(**kwargs) -> tuple[Axes, dict[str, Any]]:
     return axes, kwargs
 
 
-def default_rounding(t: int | float) -> int:
-    """Default rounding regime."""
+def default_rounding(
+    value: int | float | None = None,
+    series: Series | None = None,
+    provided: int | None = None,
+) -> int:
+    """Default rounding regime, based on the value of value.
+    (which typically would be value = series.abs().max())
 
-    return 0 if t >= 100 else 1 if t >= 10 else 2
+    Args:
+    - value: the value to inform how many decimal places to round to.
+      We are aiming for three significant digits when rounding
+    - series: a pandas Series, used to determine the maximum value
+      if value is None.
+    - provided: return this rounding-value if it is not None, and not
+      a boolean. This is used to override the default rounding.
+      (Typically called as: provided=kwargs.get(ROUNDING, None))
+    """
 
+    if (
+        provided is not None
+        and not isinstance(provided, bool)
+        and isinstance(provided, int)
+    ):
+        return provided  # use the provided rounding when it is good
+
+    if value is None:
+        value = 10  # default value just in case nothing else is provided
+
+    if series is not None and not series.dropna().empty:
+        value = series.abs().max()  # series over-writes value if both are provided
+
+    return 0 if value >= 100 else 1 if value >= 10 else 2 if value >= 1 else 3
 
 
 # --- test code

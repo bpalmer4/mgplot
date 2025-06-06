@@ -1,3 +1,11 @@
+Version 0.1.7 - released 06-Jun-2025 (Canberra, Australia)
+
+* major changes
+     - reworked growth_plot so that it used the line_plot()
+       and bar_plot() functions. 
+
+---
+
 Version 0.1.6 - released 03-Jun-2025 (Canberra, Australia)
 
 * minor changes

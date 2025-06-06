@@ -141,9 +141,7 @@ def summary_plot_finalise(
 
     # --- standard arguments
     kwargs["title"] = kwargs.get("title", f"Summary at {data.index[-1]}")
-    kwargs["preserve_lims"] = kwargs.get(
-        "preserve_lims", True
-    )
+    kwargs["preserve_lims"] = kwargs.get("preserve_lims", True)
 
     start: None | int | Period = kwargs.get("plot_from", None)
     if start is None:
@@ -178,7 +176,7 @@ if __name__ == "__main__":
     prepare_for_test("finalisers")
 
     # - fake data
-    index = period_range(start="2010Q1", periods=60, freq="Q")
+    index = period_range(start="2010Q1", periods=70, freq="Q")
     test_frame = DataFrame(
         {
             "Series 1": [0.1] * len(index),
@@ -192,6 +190,7 @@ if __name__ == "__main__":
     )
     test_frame["Series 2"] = test_frame["Series 2"].cumsum()
     test_frame["Series 3"] = test_frame["Series 3"].cumprod()
+    test_frame = test_frame.iloc[4:]
 
     SKIP = False
     if not SKIP:

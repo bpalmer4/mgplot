@@ -27,12 +27,14 @@ THRESHOLD = "threshold"
 ROUND = "round"
 HIGHLIGHT = "highlight"
 DIRECTION = "direction"
+ANNOTATE = "annotate"  # whether to annotate the runs with text
 
 RUN_KW_TYPES: ExpectedTypeDict = {
     THRESHOLD: float,
     ROUND: int,
     HIGHLIGHT: (str, Sequence, (str,)),  # colors for highlighting the runs
     DIRECTION: str,  # "up", "down" or "both"
+    ANNOTATE: bool,  # whether to the line with text
 }
 RUN_KW_TYPES |= LINE_KW_TYPES
 validate_expected(RUN_KW_TYPES, "run_highlight_plot")
@@ -159,6 +161,7 @@ def run_plot(data: DataT, **kwargs) -> Axes:
 
     # defauls for line_plot
     kwargs["width"] = kwargs.get("width", 2)
+    kwargs["annotate"] = kwargs.get("annotate", True)
 
     # plot the line
     kwargs["drawstyle"] = kwargs.get("drawstyle", "steps-post")

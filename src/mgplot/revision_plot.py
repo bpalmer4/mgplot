@@ -1,10 +1,14 @@
 """
 revision_plot.py
-Plot ABS revisions to estimates over time.
+
+Plot ABS revisions to estimates over time.  This is largely
+a wrapper around the line_plot function, with some
+default settings and minimal checks on the data.
 """
 
 # --- imports
 from matplotlib.pyplot import Axes
+from pandas import DataFrame
 
 from mgplot.utilities import check_clean_timeseries
 from mgplot.line_plot import LINE_KW_TYPES, line_plot
@@ -15,10 +19,7 @@ from mgplot.kw_type_checking import ExpectedTypeDict
 
 
 # --- constants
-ROUNDING = "rounding"
-REVISION_KW_TYPES: ExpectedTypeDict = {
-    ROUNDING: (int, bool),
-} | LINE_KW_TYPES
+REVISION_KW_TYPES: ExpectedTypeDict = LINE_KW_TYPES
 validate_expected(REVISION_KW_TYPES, "revision_plot")
 
 
@@ -30,12 +31,7 @@ def revision_plot(data: DataT, **kwargs) -> Axes:
     Arguments
     data: pd.DataFrame - the data to plot, the DataFrame has a
         column for each data revision
-    recent: int - the number of recent data points to plot
-    kwargs : dict :
-        -   units: str - the units for the data (Note: you may need to
-            recalibrate the units for the y-axis)
-        -   rounding: int | bool - if True apply default rounding, otherwise
-            apply int rounding.
+    kwargs - additional keyword arguments for the line_plot function.
     """
 
     # --- check the kwargs and data
@@ -45,9 +41,18 @@ def revision_plot(data: DataT, **kwargs) -> Axes:
 
     data = check_clean_timeseries(data, me)
 
+    # --- additional checks
+    if not isinstance(data, DataFrame):
+        print(
+            f"{me} requires a DataFrame with columns for each revision, "
+            "not a Series or other type."
+        )
+
     # --- critical defaults
     kwargs["plot_from"] = kwargs.get("plot_from", -15)
-    kwargs["annotate"] = True
+    kwargs["annotate"] = kwargs.get("annotate", True)
+    kwargs["annotate_color"] = kwargs.get("annotate_color", "black")
+    kwargs["rounding"] = kwargs.get("rounding", 3)
 
     # --- plot
     axes = line_plot(data, **kwargs)
