@@ -10,18 +10,17 @@ from mgplot.settings import DataT
 from mgplot.line_plot import line_plot, LINE_KW_TYPES
 from mgplot.utilities import get_color_list, get_setting, check_clean_timeseries
 from mgplot.kw_type_checking import report_kwargs, validate_kwargs
-
+from mgplot.keyword_names import (
+    COLOR,
+    WIDTH,
+    STYLE,
+    ANNOTATE,
+    ROUNDING,
+    DROPNA,
+)
 
 # --- constants
 SEASTREND_KW_TYPES = LINE_KW_TYPES
-
-COLOR = "color"
-WIDTH = "width"
-STYLE = "style"
-ANNOTATE = "annotate"
-ROUNDING = "rounding"
-LEGEND = "legend"
-DROPNA = "dropna"
 
 
 # --- public functions
@@ -62,18 +61,18 @@ def seastrend_plot(data: DataT, **kwargs) -> Axes:
     styles = kwargs.pop(STYLE, ["-", "-"])
     annotations = kwargs.pop(ANNOTATE, [True, False])
     rounding = kwargs.pop(ROUNDING, True)
-    legend = kwargs.pop(LEGEND, True)
 
     # series breaks are common in seas-trend data
     kwargs[DROPNA] = kwargs.pop(DROPNA, False)
 
-    return line_plot(
+    axes = line_plot(
         data,
         color=colors,
         width=widths,
         style=styles,
         annotate=annotations,
         rounding=rounding,
-        legend=legend,
         **kwargs,
     )
+
+    return axes

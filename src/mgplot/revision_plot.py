@@ -16,6 +16,12 @@ from mgplot.kw_type_checking import validate_kwargs, validate_expected
 from mgplot.kw_type_checking import report_kwargs
 from mgplot.settings import DataT
 from mgplot.kw_type_checking import ExpectedTypeDict
+from mgplot.keyword_names import (
+    PLOT_FROM,
+    ANNOTATE,
+    ANNOTATE_COLOR,
+    ROUNDING,
+)
 
 
 # --- constants
@@ -49,10 +55,10 @@ def revision_plot(data: DataT, **kwargs) -> Axes:
         )
 
     # --- critical defaults
-    kwargs["plot_from"] = kwargs.get("plot_from", -15)
-    kwargs["annotate"] = kwargs.get("annotate", True)
-    kwargs["annotate_color"] = kwargs.get("annotate_color", "black")
-    kwargs["rounding"] = kwargs.get("rounding", 3)
+    kwargs[PLOT_FROM] = kwargs.get(PLOT_FROM, -15)
+    kwargs[ANNOTATE] = kwargs.get(ANNOTATE, True)
+    kwargs[ANNOTATE_COLOR] = kwargs.get(ANNOTATE_COLOR, "black")
+    kwargs[ROUNDING] = kwargs.get(ROUNDING, 3)
 
     # --- plot
     axes = line_plot(data, **kwargs)

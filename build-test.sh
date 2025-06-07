@@ -22,7 +22,6 @@ uv build
 
 # --- install new mgplot locally
 uv sync  # install with the development dependencies
-uv pip install dist/mgplot*gz  # add in the new package
 
 # --- build documentation
 ~/mgplot/build-docs.sh

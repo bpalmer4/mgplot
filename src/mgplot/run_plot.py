@@ -20,18 +20,21 @@ from mgplot.kw_type_checking import (
     report_kwargs,
 )
 from mgplot.utilities import constrain_data, check_clean_timeseries
-
+from mgplot.keyword_names import (
+    WIDTH,
+    COLOR,
+    THRESHOLD,
+    ROUNDING,
+    HIGHLIGHT,
+    DIRECTION,
+    ANNOTATE,
+)
 
 # --- constants
-THRESHOLD = "threshold"
-ROUND = "round"
-HIGHLIGHT = "highlight"
-DIRECTION = "direction"
-ANNOTATE = "annotate"  # whether to annotate the runs with text
 
 RUN_KW_TYPES: ExpectedTypeDict = {
     THRESHOLD: float,
-    ROUND: int,
+    ROUNDING: int,
     HIGHLIGHT: (str, Sequence, (str,)),  # colors for highlighting the runs
     DIRECTION: str,  # "up", "down" or "both"
     ANNOTATE: bool,  # whether to the line with text
@@ -144,24 +147,15 @@ def run_plot(data: DataT, **kwargs) -> Axes:
 
     # --- default arguments - in **kwargs
     kwargs[THRESHOLD] = kwargs.get(THRESHOLD, 0.1)
-    kwargs[ROUND] = kwargs.get(ROUND, 2)
-    direct = kwargs[DIRECTION] = kwargs.get(DIRECTION, "up")
-    kwargs[HIGHLIGHT], kwargs["color"] = (
-        (kwargs.get(HIGHLIGHT, "gold"), kwargs.get("color", "#dd0000"))
-        if direct == "up"
-        else (
-            (kwargs.get(HIGHLIGHT, "skyblue"), kwargs.get("color", "navy"))
-            if direct == "down"
-            else (
-                kwargs.get(HIGHLIGHT, ("gold", "skyblue")),
-                kwargs.get("color", "navy"),
-            )
-        )
+    kwargs[ROUNDING] = kwargs.get(ROUNDING, 2)
+    kwargs[HIGHLIGHT], kwargs[COLOR] = (
+        kwargs.get(HIGHLIGHT, "gold"),
+        kwargs.get(COLOR, "navy"),
     )
 
-    # defauls for line_plot
-    kwargs["width"] = kwargs.get("width", 2)
-    kwargs["annotate"] = kwargs.get("annotate", True)
+    # defaults for line_plot
+    kwargs[WIDTH] = kwargs.get(WIDTH, 2)
+    kwargs[ANNOTATE] = kwargs.get(ANNOTATE, True)
 
     # plot the line
     kwargs["drawstyle"] = kwargs.get("drawstyle", "steps-post")

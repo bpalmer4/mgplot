@@ -4,6 +4,7 @@ Plot the pre-COVID trajectory against the current trend.
 """
 
 # --- imports
+from collections.abc import Sequence
 from pandas import DataFrame, Series, Period, PeriodIndex
 from matplotlib.pyplot import Axes
 from numpy import arange, polyfit
@@ -17,17 +18,21 @@ from mgplot.kw_type_checking import (
     validate_expected,
     report_kwargs,
 )
+from mgplot.keyword_names import (
+    START_R,
+    END_R,
+    WIDTH,
+    STYLE,
+    PLOT_FROM,
+)
 
 
 # --- constants
-START_R = "start_r"
-END_R = "end_r"
-WIDTH = "width"
-STYLE = "style"
-
 POSTCOVID_KW_TYPES: ExpectedTypeDict = {
-    START_R: Period,
-    END_R: Period,
+    START_R: Period,  # type: ignore[assignment]
+    END_R: Period,  # type: ignore[assignment]
+    WIDTH: (int, float),
+    STYLE: (str, Sequence, (str,)),
 } | LINE_KW_TYPES
 validate_expected(POSTCOVID_KW_TYPES, "postcovid_plot")
 
@@ -80,9 +85,9 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
     if series_index.freqstr[:1] not in ("Q", "M", "D"):
         raise ValueError("The series index must have a D, M or Q freq")
     # rely on line_plot() to validate kwargs
-    if "plot_from" in kwargs:
+    if PLOT_FROM in kwargs:
         print("Warning: the 'plot_from' argument is ignored in postcovid_plot().")
-        del kwargs["plot_from"]
+        del kwargs[PLOT_FROM]
 
     # --- plot COVID counterfactural
     freq = PeriodIndex(series.index).freqstr  # syntactic sugar for type hinting
@@ -97,8 +102,8 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
             start_regression = Period("2015-01-01", freq=freq)
             end_regression = Period("2020-01-01", freq=freq)
 
-    start_regression = Period(kwargs.pop("start_r", start_regression), freq=freq)
-    end_regression = Period(kwargs.pop("end_r", end_regression), freq=freq)
+    start_regression = Period(kwargs.pop(START_R, start_regression), freq=freq)
+    end_regression = Period(kwargs.pop(END_R, end_regression), freq=freq)
     if start_regression >= end_regression:
         raise ValueError("Start period must be before end period")
 

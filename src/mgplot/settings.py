@@ -31,7 +31,7 @@ class _DefaultValues(TypedDict):
 
     file_type: str
     figsize: tuple[float, float]
-    file_dpi: int
+    dpi: int
 
     line_narrow: float
     line_normal: float
@@ -50,7 +50,7 @@ class _DefaultValues(TypedDict):
 _mgplot_defaults = _DefaultValues(
     file_type="png",
     figsize=(9.0, 4.5),
-    file_dpi=300,
+    dpi=300,
     line_narrow=0.75,
     line_normal=1.0,
     line_wide=2.0,

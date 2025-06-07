@@ -11,7 +11,6 @@ from matplotlib.pyplot import Axes
 from pandas import DataFrame, Series, Period
 
 from mgplot.settings import DataT, get_setting
-from mgplot.finalise_plot import make_legend
 from mgplot.kw_type_checking import (
     report_kwargs,
     validate_kwargs,
@@ -26,22 +25,27 @@ from mgplot.utilities import (
     check_clean_timeseries,
     default_rounding,
 )
-
+from mgplot.keyword_names import (
+    AX,
+    DROPNA,
+    PLOT_FROM,
+    LABEL_SERIES,
+    STYLE,
+    DRAWSTYLE,
+    MARKER,
+    MARKERSIZE,
+    WIDTH,
+    COLOR,
+    ALPHA,
+    ANNOTATE,
+    ROUNDING,
+    FONTSIZE,
+    FONTNAME,
+    ROTATION,
+    ANNOTATE_COLOR,
+)
 
 # --- constants
-DATA = "data"
-AX = "ax"
-STYLE, WIDTH, COLOR, ALPHA = "style", "width", "color", "alpha"
-ANNOTATE = "annotate"
-ROUNDING = "rounding"
-FONTSIZE = "fontsize"
-ANNOTATE_COLOR = "annotate_color"  # color for the annotation text
-DROPNA = "dropna"
-DRAWSTYLE, MARKER, MARKERSIZE = "drawstyle", "marker", "markersize"
-PLOT_FROM = "plot_from"  # used to constrain the data to a starting point
-LEGEND = "legend"
-LABEL_SERIES = "label_series"  # used to label the series in the legend
-
 LINE_KW_TYPES: ExpectedTypeDict = {
     AX: (Axes, type(None)),
     STYLE: (str, Sequence, (str,)),
@@ -55,9 +59,10 @@ LINE_KW_TYPES: ExpectedTypeDict = {
     ANNOTATE: (bool, Sequence, (bool,)),
     ROUNDING: (Sequence, (bool, int), int, bool, type(None)),
     FONTSIZE: (Sequence, (str, int), str, int, type(None)),
+    FONTNAME: (str, Sequence, (str,)),
+    ROTATION: (int, float, Sequence, (int, float)),
     ANNOTATE_COLOR: (str, Sequence, (str,), bool, Sequence, (bool,), type(None)),
     PLOT_FROM: (int, Period, type(None)),
-    LEGEND: (dict, (str, object), bool, type(None)),
     LABEL_SERIES: (bool, Sequence, (bool,), type(None)),
 }
 validate_expected(LINE_KW_TYPES, "line_plot")
@@ -126,8 +131,10 @@ def _get_style_width_color_etc(
         ANNOTATE: False,
         ROUNDING: True,
         FONTSIZE: "small",
-        ANNOTATE_COLOR: True,  # use the same color as the line
-        LABEL_SERIES: True,  # label the series in the legend
+        FONTNAME: "Helvetica",
+        ROTATION: 0,
+        ANNOTATE_COLOR: True,
+        LABEL_SERIES: True,
     }
 
     return apply_defaults(item_count, line_defaults, kwargs)
@@ -160,6 +167,9 @@ def line_plot(data: DataT, **kwargs) -> Axes:
           used.
         - fontsize: int | str | list[int | str] - font size for the
           annotation.
+        - fontname: str - font name for the annotation.
+        - rotation: int | float | list[int | float] - rotation of the
+          annotation text.
         - drawstyle: str | list[str] - matplotlib line draw styles.
         - annotate_color: str | list[str] | bool | list[bool] - color
           for the annotation text.  If True, the same color as the line.
@@ -179,15 +189,17 @@ def line_plot(data: DataT, **kwargs) -> Axes:
     df, kwargs = constrain_data(df, **kwargs)
 
     # --- some special defaults
-    if len(df.columns) > 1:
-        # default to displaying a legend
-        kwargs[LEGEND] = kwargs.get(LEGEND, True)
+    kwargs[LABEL_SERIES] = (
+        kwargs.get(LABEL_SERIES, True)
+        if len(df.columns) > 1
+        else kwargs.get(LABEL_SERIES, False)
+    )
 
     # --- Let's plot
     axes, kwargs = get_axes(**kwargs)  # get the axes to plot on
     if df.empty or df.isna().all().all():
         # Note: finalise plot should ignore an empty axes object
-        print("Warning: No data to plot.")
+        print(f"Warning: No data to plot in {me}().")
         return axes
 
     # --- get the arguments for each line we will plot ...
@@ -234,12 +246,5 @@ def line_plot(data: DataT, **kwargs) -> Axes:
             color=color,
             fontsize=swce[FONTSIZE][i],
         )
-
-    # add a legend if requested
-    if len(df.columns) > 1:
-        kwargs[LEGEND] = kwargs.get(LEGEND, get_setting("legend"))
-
-    if LEGEND in kwargs:
-        make_legend(axes, kwargs[LEGEND])
 
     return axes

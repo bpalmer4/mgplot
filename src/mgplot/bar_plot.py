@@ -34,33 +34,31 @@ from mgplot.kw_type_checking import (
     validate_kwargs,
 )
 from mgplot.axis_utils import set_labels, map_periodindex, is_categorical
+from mgplot.keyword_names import (
+    AX,
+    STACKED,
+    ROTATION,
+    MAX_TICKS,
+    PLOT_FROM,
+    LEGEND,
+    COLOR,
+    LABEL_SERIES,
+    WIDTH,
+    ANNOTATE,
+    FONTSIZE,
+    FONTNAME,
+    XLABEL_ROTATION,
+    ROUNDING,
+    ANNOTATE_COLOR,
+    ABOVE,
+)
 
 
 # --- constants
-# - plot and data constants
-AXES = "ax"  # used to control the axes to plot on
-DROPNA = "dropna"  # used to control dropping NaN values
-STACKED = "stacked"  # used to control if the bars are stacked or grouped
-ROTATION = "rotation"  # used to control the rotation of x-axis labels
-MAX_TICKS = "max_ticks"  # used to control the maximum number of ticks on the x-axis
-PLOT_FROM = "plot_from"  # used to control the starting point of the plot
-# - bar plot constants
-LEGEND = "legend"  # used to control the legend display
-COLOR = "color"  # used to control the color of the bars
-WIDTH = "width"  # used to control the width of the bars
-LABEL_SERIES = "label_series"  # used to control the labeling of series in the legend
-# - annoptation constants
-ANNOTATE = "annotate"  # used to control the annotation of bars
-FONTSIZE = "fontsize"  # used to control the font size of annotations
-FONTNAME = "fontname"  # used to control the font name of annotations
-BAR_ROTATION = "bar_rotation"  # used to control the rotation of bar labels
-ANNO_COLOR = "annotate_color"  # used to control the color of annotations
-ROUNDING = "rounding"  # used to control the rounding of annotations
-ABOVE = "above"  # used to control the position of annotations
 
 BAR_KW_TYPES: Final[ExpectedTypeDict] = {
     # --- options for the entire bar plot
-    AXES: (Axes, type(None)),  # axes to plot on, or None for new axes
+    AX: (Axes, type(None)),  # axes to plot on, or None for new axes
     STACKED: bool,  # if True, the bars will be stacked. If False, they will be grouped.
     ROTATION: (int, float),  # rotation of x-axis labels in degrees
     MAX_TICKS: int,
@@ -74,9 +72,9 @@ BAR_KW_TYPES: Final[ExpectedTypeDict] = {
     ANNOTATE: (type(None), bool),  # None, True
     FONTSIZE: (int, float, str),
     FONTNAME: (str),
-    BAR_ROTATION: (int, float),  # rotation of bar labels
+    XLABEL_ROTATION: (int, float),  # rotation of bar labels
     ROUNDING: int,
-    ANNO_COLOR: (str, type(None)),  # color of annotations
+    ANNOTATE_COLOR: (str, type(None)),  # color of annotations
     ABOVE: bool,  # if True, annotations are above the bar
     # - other bar attributes
 }
@@ -112,8 +110,8 @@ def annotate_bars(
     annotate_style = {
         "fontsize": kwargs.get(FONTSIZE),
         "fontname": kwargs.get(FONTNAME),
-        "color": kwargs.get(ANNO_COLOR),
-        "rotation": kwargs.get(BAR_ROTATION),
+        "color": kwargs.get(ANNOTATE_COLOR),
+        "rotation": kwargs.get(ROTATION),
     }
     rounding = default_rounding(series=series, provided=kwargs.get(ROUNDING, None))
     adjustment = (series.max() - series.min()) * 0.01
@@ -279,9 +277,9 @@ def bar_plot(
         ANNOTATE: kwargs.get(ANNOTATE, False),
         FONTSIZE: kwargs.get(FONTSIZE, "small"),
         FONTNAME: kwargs.get(FONTNAME, "Helvetica"),
-        BAR_ROTATION: kwargs.get(BAR_ROTATION, 0),
+        ROTATION: kwargs.get(ROTATION, 0),
         ROUNDING: kwargs.get(ROUNDING, True),
-        ANNO_COLOR: kwargs.get(ANNO_COLOR, "white"),
+        ANNOTATE_COLOR: kwargs.get(ANNOTATE_COLOR, "white"),
         ABOVE: kwargs.get(ABOVE, False),
     }
     bar_args, remaining_kwargs = apply_defaults(item_count, bar_defaults, kwargs)

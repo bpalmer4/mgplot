@@ -16,7 +16,6 @@ from tabulate import tabulate
 from mgplot.bar_plot import bar_plot
 from mgplot.line_plot import line_plot
 from mgplot.axis_utils import map_periodindex
-from mgplot.finalise_plot import make_legend
 from mgplot.test import prepare_for_test
 from mgplot.settings import DataT
 from mgplot.axis_utils import set_labels
@@ -27,7 +26,42 @@ from mgplot.kw_type_checking import (
     validate_expected,
     ExpectedTypeDict,
 )
-
+from mgplot.keyword_names import (
+    # - common
+    AX,
+    REPORT_KWARGS,
+    LABEL_SERIES,
+    MAX_TICKS,
+    WIDTH,
+    COLOR,
+    STYLE,
+    ANNOTATE,
+    ANNOTATE_COLOR,
+    ROUNDING,
+    FONTSIZE,
+    FONTNAME,
+    ROTATION,
+    # - line related
+    LINE_WIDTH,
+    LINE_COLOR,
+    LINE_STYLE,
+    ANNOTATE_LINE,
+    LINE_ROUNDING,
+    LINE_FONTSIZE,
+    LINE_FONTNAME,
+    LINE_ANNO_COLOR,
+    # - bar related
+    ANNOTATE_BARS,
+    BAR_ROUNDING,
+    BAR_ROTATION,
+    BAR_WIDTH,
+    BAR_COLOR,
+    BAR_ANNO_COLOR,
+    BAR_FONTSIZE,
+    BAR_FONTNAME,
+    PLOT_FROM,
+    ABOVE,
+)
 
 # --- constants
 type TransitionKwargs = dict[str, tuple[str, Any]]
@@ -35,62 +69,42 @@ type TransitionKwargs = dict[str, tuple[str, Any]]
 # - overarching constants
 ANNUAL = "annual"
 PERIODIC = "periodic"
-AXES = "ax"
-PLOT_FROM = "plot_from"  # used to constrain the data to a starting point
-MAX_TICKS = "max_ticks"  # maximum number of ticks to show on the x-axis
-LEGEND = "legend"  # legend to show on the plot, None, True, or a dict
-REPORT_KWARGS = "report_kwargs"
 
 # - constants for the line plot
-LINE_WIDTH = "line_width"
-LINE_COLOR = "line_color"
-LINE_STYLE = "line_style"
-ANNOTATE_LINE = "annotate_line"
-LINE_ROUNDING = "line_rounding"
-LINE_FONTSIZE = "line_fontsize"
-LINE_ANNO_COLOR = "line_annotate_color"  # color for the line annotations
 # - transition of kwargs from growth_plot to line_plot
-to_line_plot: TransitionKwargs = {
+common_transitions: TransitionKwargs = {
     # arg-to-growth_plot : (arg-to-line_plot, default_value)
-    AXES: ("ax", None),  # axes to plot on
-    LINE_WIDTH: ("width", None),
-    LINE_COLOR: ("color", "darkblue"),
-    LINE_STYLE: ("style", "-"),
-    ANNOTATE_LINE: ("annotate", True),
-    LINE_ROUNDING: ("rounding", True),
-    LINE_FONTSIZE: ("fontsize", "small"),  # fontsize for the line annotations
-    LINE_ANNO_COLOR: ("annotate_color", True),  # color for the line annotations
-    PLOT_FROM: ("plot_from", 0),  # used to constrain the data to a starting point
+    LABEL_SERIES: (LABEL_SERIES, True),
+    AX: (AX, None),
+    MAX_TICKS: (MAX_TICKS, None),
+    PLOT_FROM: (PLOT_FROM, None),
     REPORT_KWARGS: (REPORT_KWARGS, None),
 }
 
+to_line_plot: TransitionKwargs = common_transitions | {
+    # arg-to-growth_plot : (arg-to-line_plot, default_value)
+    LINE_WIDTH: (WIDTH, None),
+    LINE_COLOR: (COLOR, "darkblue"),
+    LINE_STYLE: (STYLE, None),
+    ANNOTATE_LINE: (ANNOTATE, True),
+    LINE_ROUNDING: (ROUNDING, None),
+    LINE_FONTSIZE: (FONTSIZE, None),
+    LINE_FONTNAME: (FONTNAME, None),
+    LINE_ANNO_COLOR: (ANNOTATE_COLOR, None),
+}
+
 # - constants for the bar plot
-ANNOTATE_BARS = "annotate_bars"
-BAR_ROUNDING = "bar_rounding"
-BAR_WIDTH = "bar_width"
-BAR_COLOR = "bar_color"
-BAR_ANNO_COLOR = "bar_annotate_color"  # color for the bar annotations
-BAR_FONTSIZE = "bar_fontsize"  # fontsize for the bar annotations
-ABOVE = "above"  # if True, annotations are above the bar
-BAR_ROTATION = "bar_rotation"  # rotation of bar labels
-LABEL_SERIES = "label_series"  # if True, the series name is used as the label
-to_bar_plot: TransitionKwargs = {
+to_bar_plot: TransitionKwargs = common_transitions | {
     # arg-to-growth_plot : (arg-to-bar_plot, default_value)
-    AXES: ("ax", None),  # axes to plot on
-    ANNOTATE_BARS: ("annotate", True),
-    BAR_ROUNDING: ("rounding", True),
-    BAR_WIDTH: ("width", 0.8),
-    BAR_COLOR: ("color", "#dd0000"),
-    ABOVE: ("above", False),
-    BAR_ROTATION: ("bar_rotation", 0),
-    BAR_FONTSIZE: ("fontsize", "small"),  # fontsize for the bar annotations
-    PLOT_FROM: ("plot_from", 0),  # used to constrain the data to a starting point
-    BAR_ANNO_COLOR: ("annotate_color", type(None)),  # color for the bar annotations
-    LABEL_SERIES: (
-        "label_series",
-        True,
-    ),  # if True, the series name is used as the label
-    REPORT_KWARGS: (REPORT_KWARGS, None),
+    BAR_WIDTH: (WIDTH, 0.8),
+    BAR_COLOR: (COLOR, "#dd0000"),
+    ANNOTATE_BARS: (ANNOTATE, True),
+    BAR_ROUNDING: (ROUNDING, None),
+    ABOVE: (ABOVE, False),
+    BAR_ROTATION: (ROTATION, None),
+    BAR_FONTSIZE: (FONTSIZE, None),
+    BAR_FONTNAME: (FONTNAME, None),
+    BAR_ANNO_COLOR: (ANNOTATE_COLOR, None),
 }
 
 GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
@@ -101,21 +115,23 @@ GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     ANNOTATE_LINE: (type(None), bool),  # None, True
     LINE_ROUNDING: (bool, int),  # None, True or rounding
     LINE_FONTSIZE: (str, int, float),  # fontsize for the line annotations
+    LINE_FONTNAME: str,  # font name for the line annotations
     LINE_ANNO_COLOR: (str, bool, type(None)),  # color for the line annotations
     # --- options passed to the bar plot
     ANNOTATE_BARS: (type(None), bool),
     BAR_FONTSIZE: (str, int, float),
+    BAR_FONTNAME: str,
     BAR_ROUNDING: (bool, int),
     BAR_WIDTH: float,
     BAR_COLOR: str,
     BAR_ANNO_COLOR: (str, type(None)),
     BAR_ROTATION: (int, float),
     ABOVE: bool,
-    # --- other options for the plot
-    AXES: (type(None), Axes),
+    # --- common options
+    AX: (Axes, type(None)),
     PLOT_FROM: (type(None), Period, int),
+    LABEL_SERIES: (bool),
     MAX_TICKS: int,
-    LEGEND: (type(None), bool, dict, (str, object)),
 }
 validate_expected(GROWTH_KW_TYPES, "growth_plot")
 
@@ -271,10 +287,6 @@ def growth_plot(
     # --- and now the annual growth as a line
     selected = package_kwargs(to_line_plot, **kwargs)
     line_plot(annual, ax=axes, **selected)
-
-    # --- expose the legend by default
-    legend = kwargs.get("legend", True)
-    make_legend(axes, legend)
 
     # --- fix the x-axis labels
     if saved_pi is not None:

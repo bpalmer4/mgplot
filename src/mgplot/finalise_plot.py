@@ -19,30 +19,65 @@ from mgplot.kw_type_checking import (
     ExpectedTypeDict,
     validate_kwargs,
 )
+from mgplot.keyword_names import (
+    TITLE,
+    XLABEL,
+    YLABEL,
+    Y_LIM,
+    X_LIM,
+    Y_SCALE,
+    X_SCALE,
+    LFOOTER,
+    RFOOTER,
+    LHEADER,
+    RHEADER,
+    AXHSPAN,
+    AXVSPAN,
+    AXHLINE,
+    AXVLINE,
+    LEGEND,
+    ZERO_Y,
+    Y0,
+    X0,
+    CONCISE_DATES,
+    FIGSIZE,
+    SHOW,
+    PRESERVE_LIMS,
+    REMOVE_LEGEND,
+    PRE_TAG,
+    TAG,
+    CHART_DIR,
+    FILE_TYPE,
+    DPI,
+    DONT_SAVE,
+    DONT_CLOSE,
+)
 
 
 # --- constants
+ME = "finalise_plot"
+
 # filename limitations - regex used to map the plot title to a filename
 _remove = re.compile(r"[^0-9A-Za-z]")  # sensible file names from alphamum title
 _reduce = re.compile(r"[-]+")  # eliminate multiple hyphens
 
 # map of the acceptable kwargs for finalise_plot()
-# make sure "legend" is last in the _splat_kwargs tuple ...
-_splat_kwargs = ("axhspan", "axvspan", "axhline", "axvline", "legend")
-_value_must_kwargs = ("title", "xlabel", "ylabel")
-_value_may_kwargs = ("ylim", "xlim", "yscale", "xscale")
+# make sure LEGEND is last in the _splat_kwargs tuple ...
+_splat_kwargs = (AXHSPAN, AXVSPAN, AXHLINE, AXVLINE, LEGEND)
+_value_must_kwargs = (TITLE, XLABEL, YLABEL)
+_value_may_kwargs = (Y_LIM, X_LIM, Y_SCALE, X_SCALE)
 _value_kwargs = _value_must_kwargs + _value_may_kwargs
-_annotation_kwargs = ("lfooter", "rfooter", "lheader", "rheader")
+_annotation_kwargs = (LFOOTER, RFOOTER, LHEADER, RHEADER)
 
-_file_kwargs = ("pre_tag", "tag", "chart_dir", "file_type", "dpi")
-_fig_kwargs = ("figsize", "show", "preserve_lims", "remove_legend")
+_file_kwargs = (PRE_TAG, TAG, CHART_DIR, FILE_TYPE, DPI)
+_fig_kwargs = (FIGSIZE, SHOW, PRESERVE_LIMS, REMOVE_LEGEND)
 _oth_kwargs = (
-    "zero_y",
-    "y0",
-    "x0",
-    "dont_save",
-    "dont_close",
-    "concise_dates",
+    ZERO_Y,
+    Y0,
+    X0,
+    DONT_SAVE,
+    DONT_CLOSE,
+    CONCISE_DATES,
 )
 _ACCEPTABLE_KWARGS = frozenset(
     _value_kwargs
@@ -55,44 +90,44 @@ _ACCEPTABLE_KWARGS = frozenset(
 
 FINALISE_KW_TYPES: Final[ExpectedTypeDict] = {
     # - value kwargs
-    "title": (str, type(None)),
-    "xlabel": (str, type(None)),
-    "ylabel": (str, type(None)),
-    "ylim": (tuple, (float, int), type(None)),
-    "xlim": (tuple, (float, int), type(None)),
-    "yscale": (str, type(None)),
-    "xscale": (str, type(None)),
+    TITLE: (str, type(None)),
+    XLABEL: (str, type(None)),
+    YLABEL: (str, type(None)),
+    Y_LIM: (tuple, (float, int), type(None)),
+    X_LIM: (tuple, (float, int), type(None)),
+    Y_SCALE: (str, type(None)),
+    X_SCALE: (str, type(None)),
     # - splat kwargs
-    "legend": (dict, (str, (int, float, str)), bool, type(None)),
-    "axhspan": (dict, (str, (int, float, str)), type(None)),
-    "axvspan": (dict, (str, (int, float, str)), type(None)),
-    "axhline": (dict, (str, (int, float, str)), type(None)),
-    "axvline": (dict, (str, (int, float, str)), type(None)),
+    LEGEND: (dict, (str, (int, float, str)), bool, type(None)),
+    AXHSPAN: (dict, (str, (int, float, str)), type(None)),
+    AXVSPAN: (dict, (str, (int, float, str)), type(None)),
+    AXHLINE: (dict, (str, (int, float, str)), type(None)),
+    AXVLINE: (dict, (str, (int, float, str)), type(None)),
     # - file kwargs
-    "pre_tag": str,
-    "tag": str,
-    "chart_dir": str,
-    "file_type": str,
-    "dpi": int,
+    PRE_TAG: str,
+    TAG: str,
+    CHART_DIR: str,
+    FILE_TYPE: str,
+    DPI: int,
     # - fig kwargs
-    "remove_legend": (type(None), bool),
-    "preserve_lims": (type(None), bool),
-    "figsize": (tuple, (float, int)),
-    "show": bool,
+    REMOVE_LEGEND: (type(None), bool),
+    PRESERVE_LIMS: (type(None), bool),
+    FIGSIZE: (tuple, (float, int)),
+    SHOW: bool,
     # - annotation kwargs
-    "lfooter": str,
-    "rfooter": str,
-    "lheader": str,
-    "rheader": str,
+    LFOOTER: str,
+    RFOOTER: str,
+    LHEADER: str,
+    RHEADER: str,
     # - Other kwargs
-    "zero_y": bool,
-    "y0": bool,
-    "x0": bool,
-    "dont_save": bool,
-    "dont_close": bool,
-    "concise_dates": bool,
+    ZERO_Y: bool,
+    Y0: bool,
+    X0: bool,
+    DONT_SAVE: bool,
+    DONT_CLOSE: bool,
+    CONCISE_DATES: bool,
 }
-validate_expected(FINALISE_KW_TYPES, "finalise_plot")
+validate_expected(FINALISE_KW_TYPES, ME)
 
 
 def _internal_consistency_kwargs():
@@ -128,7 +163,7 @@ def make_legend(axes: Axes, legend: None | bool | dict[str, Any]) -> None:
         return
 
     if legend is True:  # use the global default settings
-        legend = get_setting("legend")
+        legend = get_setting(LEGEND)
 
     if isinstance(legend, dict):
         axes.legend(**legend)
@@ -144,7 +179,7 @@ def _apply_value_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
         value = kwargs.get(setting, None)
         if value is None and setting not in _value_must_kwargs:
             continue
-        if setting == "ylabel" and value is None and axes.get_ylabel():
+        if setting == YLABEL and value is None and axes.get_ylabel():
             # already set - probably in series_growth_plot() - so skip
             continue
         axes.set(**{setting: value})
@@ -160,7 +195,7 @@ def _apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
     for method_name in settings:
         if method_name in kwargs:
 
-            if method_name == "legend":
+            if method_name == LEGEND:
                 # special case for legend
                 make_legend(axes, kwargs[method_name])
                 continue
@@ -186,15 +221,15 @@ def _apply_annotations(axes: Axes, **kwargs) -> None:
     """Set figure size and apply chart annotations."""
 
     fig = axes.figure
-    fig_size = get_setting("figsize") if "figsize" not in kwargs else kwargs["figsize"]
+    fig_size = get_setting(FIGSIZE) if FIGSIZE not in kwargs else kwargs[FIGSIZE]
     if not isinstance(fig, mpl.figure.SubFigure):
         fig.set_size_inches(*fig_size)
 
     annotations = {
-        "rfooter": (0.99, 0.001, "right", "bottom"),
-        "lfooter": (0.01, 0.001, "left", "bottom"),
-        "rheader": (0.99, 0.999, "right", "top"),
-        "lheader": (0.01, 0.999, "left", "top"),
+        RFOOTER: (0.99, 0.001, "right", "bottom"),
+        LFOOTER: (0.01, 0.001, "left", "bottom"),
+        RHEADER: (0.99, 0.999, "right", "top"),
+        LHEADER: (0.01, 0.999, "left", "top"),
     }
 
     for annotation in _annotation_kwargs:
@@ -226,7 +261,7 @@ def _apply_kwargs(axes: Axes, **kwargs) -> None:
     _apply_value_kwargs(axes, _value_kwargs, **kwargs)
     _apply_annotations(axes, **kwargs)
 
-    if check_kwargs("zero_y"):
+    if check_kwargs(ZERO_Y):
         bottom, top = axes.get_ylim()
         adj = (top - bottom) * 0.02
         if bottom > -adj:
@@ -234,17 +269,17 @@ def _apply_kwargs(axes: Axes, **kwargs) -> None:
         if top < adj:
             axes.set_ylim(top=adj)
 
-    if check_kwargs("y0"):
+    if check_kwargs(Y0):
         low, high = axes.get_ylim()
         if low < 0 < high:
             axes.axhline(y=0, lw=0.66, c="#555555")
 
-    if check_kwargs("x0"):
+    if check_kwargs(X0):
         low, high = axes.get_xlim()
         if low < 0 < high:
             axes.axvline(x=0, lw=0.66, c="#555555")
 
-    if check_kwargs("concise_dates"):
+    if check_kwargs(CONCISE_DATES):
         locator = mdates.AutoDateLocator()
         formatter = mdates.ConciseDateFormatter(locator)
         axes.xaxis.set_major_locator(locator)
@@ -254,21 +289,21 @@ def _apply_kwargs(axes: Axes, **kwargs) -> None:
 def _save_to_file(fig: Figure, **kwargs) -> None:
     """Save the figure to file."""
 
-    saving = not kwargs.get("dont_save", False)  # save by default
+    saving = not kwargs.get(DONT_SAVE, False)  # save by default
     if saving:
-        chart_dir = kwargs.get("chart_dir", get_setting("chart_dir"))
+        chart_dir = kwargs.get(CHART_DIR, get_setting(CHART_DIR))
         if not chart_dir.endswith("/"):
             chart_dir += "/"
 
-        title = "" if "title" not in kwargs else kwargs["title"]
+        title = "" if TITLE not in kwargs else kwargs[TITLE]
         max_title_len = 150  # avoid overly long file names
         shorter = title if len(title) < max_title_len else title[:max_title_len]
-        pre_tag = kwargs.get("pre_tag", "")
-        tag = kwargs.get("tag", "")
+        pre_tag = kwargs.get(PRE_TAG, "")
+        tag = kwargs.get(TAG, "")
         file_title = re.sub(_remove, "-", shorter).lower()
         file_title = re.sub(_reduce, "-", file_title)
-        file_type = kwargs.get("file_type", get_setting("file_type")).lower()
-        dpi = kwargs.get("dpi", get_setting("file_dpi"))
+        file_type = kwargs.get(FILE_TYPE, get_setting(FILE_TYPE)).lower()
+        dpi = kwargs.get(DPI, get_setting(DPI))
         fig.savefig(f"{chart_dir}{pre_tag}{file_title}-{tag}.{file_type}", dpi=dpi)
 
 
@@ -331,11 +366,10 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
         print("Warning: finalise_plot() called with empty axes, which was ignored.")
         return
 
-    # --- remember should we need to restore the axes limits
+    # --- remember axis-limits should we need to restore thems
     xlim, ylim = axes.get_xlim(), axes.get_ylim()
 
     # margins
-    # axes.use_sticky_margins = False   ### CHECK THIS
     axes.margins(0.02)
     axes.autoscale(tight=False)  # This is problematic ...
 
@@ -345,21 +379,21 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
     fig = axes.figure
     if not isinstance(fig, mpl.figure.SubFigure):  # should never be a SubFigure
         fig.tight_layout(pad=1.1)
-        if "preserve_lims" in kwargs and kwargs["preserve_lims"]:
+        if PRESERVE_LIMS in kwargs and kwargs[PRESERVE_LIMS]:
             # restore the original limits of the axes
             axes.set_xlim(xlim)
             axes.set_ylim(ylim)
         _apply_late_kwargs(axes, **kwargs)
         legend = axes.get_legend()
-        if legend and kwargs.get("remove_legend", False):
+        if legend and kwargs.get(REMOVE_LEGEND, False):
             legend.remove()
         _save_to_file(fig, **kwargs)
 
     # show the plot in Jupyter Lab
-    if "show" in kwargs and kwargs["show"]:
+    if SHOW in kwargs and kwargs[SHOW]:
         plt.show()
 
     # And close
-    closing = True if "dont_close" not in kwargs else not kwargs["dont_close"]
+    closing = True if DONT_CLOSE not in kwargs else not kwargs[DONT_CLOSE]
     if closing:
         plt.close()

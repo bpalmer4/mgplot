@@ -85,13 +85,14 @@ import inspect
 import textwrap
 from enum import Enum
 
+from mgplot.keyword_names import REPORT_KWARGS
+
 
 # --- constants
 type NestedTypeTuple = tuple[type | NestedTypeTuple, ...]  # recursive type
 type ExpectedTypeDict = dict[str, type | NestedTypeTuple]
 
 NOT_SEQUENCE: Final[tuple[type, ...]] = (str, bytearray, bytes, memoryview)
-REPORT_KWARGS: Final[str] = "report_kwargs"  # special case keyword argument.
 
 
 # --- module-scoped global variable
