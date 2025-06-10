@@ -25,13 +25,7 @@ from mgplot.kw_type_checking import (
     validate_expected,
     validate_kwargs,
 )
-from mgplot.keyword_names import (
-    AX,
-    VERBOSE,
-    MIDDLE,
-    PLOT_TYPE,
-    PLOT_FROM
-)
+from mgplot.keyword_names import AX, VERBOSE, MIDDLE, PLOT_TYPE, PLOT_FROM
 
 
 # --- constants

@@ -1,6 +1,6 @@
 [project]
 name = "mgplot"
-version = "0.1.8"
+version = "0.1.9"
 description = "mgplot is a time-series/PeriodIndex frontend for matplotlib"
 readme = "README.md"
 requires-python = ">=3.12"

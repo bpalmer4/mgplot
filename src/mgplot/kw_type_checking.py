@@ -427,7 +427,7 @@ def map_abbrs(input_dict: dict[str, Any]) -> dict[str, Any]:
     """To do: doc string"""
 
     output_dict = {}
-    for k,v in input_dict.items():
+    for k, v in input_dict.items():
         if k in ABBR_DICT:
             output_dict[ABBR_DICT[k]] = v
         else:

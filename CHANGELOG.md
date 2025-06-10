@@ -1,3 +1,10 @@
+Version 0.1.9 - released 10-Jun-2025 (Canberra, Australia)
+
+* minor changes
+     - code linting
+
+---
+
 Version 0.1.8 - released 10-Jun-2025 (Canberra, Australia)
 
 * major changes

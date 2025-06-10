@@ -84,7 +84,7 @@ def annotate_bars(
     **anno_kwargs,
 ) -> None:
     """Bar plot annotations.
-    
+
     Note: "annotate", "fontsize", "fontname", "color", and "rotation" are expected in anno_kwargs.
     """
 
@@ -116,7 +116,9 @@ def annotate_bars(
 
     # --- annotate each bar
     for index, value in zip(series.index.astype(int), series):  # mypy syntactic sugar
-        position = base[index - zero_correction] + (adjustment if value >= 0 else -adjustment)
+        position = base[index - zero_correction] + (
+            adjustment if value >= 0 else -adjustment
+        )
         if above:
             position += value
         text = axes.text(
@@ -201,7 +203,7 @@ def stacked(axes, df: DataFrame, anno_args, **kwargs) -> None:
             base=base,
             axes=axes,
             foreground=foreground,
-            **anno_args
+            **anno_args,
         )
         base_plus += np.where(series >= 0, series, 0)
         base_minus += np.where(series < 0, series, 0)
@@ -298,12 +300,9 @@ def bar_plot(
         grouped(axes, df, anno_args, **bar_args)
 
     # --- handle complete periodIndex data and label rotation
-    rotate_labels = True
     if saved_pi is not None:
         set_labels(axes, saved_pi[1], chart_args["max_ticks"])
-        rotate_labels = False
-
-    if rotate_labels:
+    else:
         plt.xticks(rotation=90)
 
     return axes

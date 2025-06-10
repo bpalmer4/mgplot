@@ -146,8 +146,8 @@ def run_plot(data: DataT, **kwargs) -> Axes:
     kwargs[THRESHOLD] = kwargs.get(THRESHOLD, 0.1)
     kwargs[DIRECTION] = kwargs.get(DIRECTION, "both")
     kwargs[ROUNDING] = kwargs.get(ROUNDING, 2)
-    kwargs[HIGHLIGHT] = (
-        kwargs.get(HIGHLIGHT, ("gold", "skyblue") if kwargs[DIRECTION] == "both" else "gold")
+    kwargs[HIGHLIGHT] = kwargs.get(
+        HIGHLIGHT, ("gold", "skyblue") if kwargs[DIRECTION] == "both" else "gold"
     )
     kwargs[COLOR] = kwargs.get(COLOR, "darkblue")
 

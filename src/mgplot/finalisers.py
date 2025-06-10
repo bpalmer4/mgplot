@@ -54,17 +54,14 @@ from mgplot.keyword_names import (
 
 def impose_legend(
     kwargs: dict[str, Any],
-    data: DataT|None = None,
+    data: DataT | None = None,
     force: bool = False,
 ) -> None:
     """
     A convenience function to call legend() if warranted.
     """
-    if force or (
-        isinstance(data, DataFrame) and len(data.columns) > 1
-    ):
+    if force or (isinstance(data, DataFrame) and len(data.columns) > 1):
         kwargs[LEGEND] = kwargs.get(LEGEND, True)
-
 
 
 # --- public functions
@@ -77,7 +74,6 @@ def line_plot_finalise(
     """
     impose_legend(data=data, kwargs=kwargs)
     plot_then_finalise(data, function=line_plot, **kwargs)
-
 
 
 def bar_plot_finalise(
