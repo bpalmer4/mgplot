@@ -19,7 +19,6 @@ import matplotlib.patheffects as pe
 
 
 from mgplot.settings import DataT, get_setting
-from mgplot.finalise_plot import make_legend
 from mgplot.utilities import (
     apply_defaults,
     get_color_list,
@@ -40,14 +39,12 @@ from mgplot.keyword_names import (
     ROTATION,
     MAX_TICKS,
     PLOT_FROM,
-    LEGEND,
     COLOR,
     LABEL_SERIES,
     WIDTH,
     ANNOTATE,
     FONTSIZE,
     FONTNAME,
-    XLABEL_ROTATION,
     ROUNDING,
     ANNOTATE_COLOR,
     ABOVE,
@@ -60,23 +57,20 @@ BAR_KW_TYPES: Final[ExpectedTypeDict] = {
     # --- options for the entire bar plot
     AX: (Axes, type(None)),  # axes to plot on, or None for new axes
     STACKED: bool,  # if True, the bars will be stacked. If False, they will be grouped.
-    ROTATION: (int, float),  # rotation of x-axis labels in degrees
     MAX_TICKS: int,
     PLOT_FROM: (int, PeriodIndex, type(None)),
-    LEGEND: (bool, dict, (str, object), type(None)),
     # --- options for each bar ...
     COLOR: (str, Sequence, (str,)),
     LABEL_SERIES: (bool, Sequence, (bool,)),
-    WIDTH: (float, Sequence, (float,)),
+    WIDTH: (float, int),
     # - options for bar annotations
     ANNOTATE: (type(None), bool),  # None, True
     FONTSIZE: (int, float, str),
     FONTNAME: (str),
-    XLABEL_ROTATION: (int, float),  # rotation of bar labels
     ROUNDING: int,
+    ROTATION: (int, float),  # rotation of annotations in degrees
     ANNOTATE_COLOR: (str, type(None)),  # color of annotations
     ABOVE: bool,  # if True, annotations are above the bar
-    # - other bar attributes
 }
 validate_expected(BAR_KW_TYPES, "bar_plot")
 
@@ -87,12 +81,15 @@ def annotate_bars(
     offset: float,
     base: np.ndarray[tuple[int, ...], np.dtype[Any]],
     axes: Axes,
-    **kwargs,
+    **anno_kwargs,
 ) -> None:
-    """Bar plot annotations."""
+    """Bar plot annotations.
+    
+    Note: "annotate", "fontsize", "fontname", "color", and "rotation" are expected in anno_kwargs.
+    """
 
     # --- only annotate in limited circumstances
-    if ANNOTATE not in kwargs or kwargs[ANNOTATE] is None or kwargs[ANNOTATE] is False:
+    if ANNOTATE not in anno_kwargs or not anno_kwargs[ANNOTATE]:
         return
     max_annotations = 30
     if len(series) > max_annotations:
@@ -106,20 +103,20 @@ def annotate_bars(
         return
 
     # --- assemble the annotation parameters
-    above: Final[bool | None] = kwargs.get(ABOVE, False)  # None is also False-ish
+    above: Final[bool | None] = anno_kwargs.get(ABOVE, False)  # None is also False-ish
     annotate_style = {
-        "fontsize": kwargs.get(FONTSIZE),
-        "fontname": kwargs.get(FONTNAME),
-        "color": kwargs.get(ANNOTATE_COLOR),
-        "rotation": kwargs.get(ROTATION),
+        FONTSIZE: anno_kwargs.get(FONTSIZE),
+        FONTNAME: anno_kwargs.get(FONTNAME),
+        COLOR: anno_kwargs.get(COLOR),
+        ROTATION: anno_kwargs.get(ROTATION),
     }
-    rounding = default_rounding(series=series, provided=kwargs.get(ROUNDING, None))
-    adjustment = (series.max() - series.min()) * 0.01
-    rebase = series.index.min()
+    rounding = default_rounding(series=series, provided=anno_kwargs.get(ROUNDING, None))
+    adjustment = (series.max() - series.min()) * 0.02
+    zero_correction = series.index.min()
 
     # --- annotate each bar
     for index, value in zip(series.index.astype(int), series):  # mypy syntactic sugar
-        position = base[index - rebase] + (adjustment if value >= 0 else -adjustment)
+        position = base[index - zero_correction] + (adjustment if value >= 0 else -adjustment)
         if above:
             position += value
         text = axes.text(
@@ -130,11 +127,11 @@ def annotate_bars(
             va="bottom" if value >= 0 else "top",
             **annotate_style,
         )
-        if not above and "foreground" in kwargs:
+        if not above and "foreground" in anno_kwargs:
             # apply a stroke-effect to within bar annotations
             # to make them more readable with very small bars.
             text.set_path_effects(
-                [pe.withStroke(linewidth=2, foreground=kwargs.get("foreground"))]
+                [pe.withStroke(linewidth=2, foreground=anno_kwargs.get("foreground"))]
             )
 
 
@@ -162,13 +159,13 @@ def grouped(axes, df: DataFrame, anno_args, **kwargs) -> None:
             height=series,
             color=foreground,
             width=adjusted_width,
-            label=col if kwargs["label_series"][i] else "_not_in_legend_",
+            label=col if kwargs[LABEL_SERIES][i] else f"_{col}_",
         )
         annotate_bars(
-            series,
-            offset,
-            np.zeros(len(series)),
-            axes,
+            series=series,
+            offset=offset,
+            base=np.zeros(len(series)),
+            axes=axes,
             foreground=foreground,
             **anno_args,
         )
@@ -195,10 +192,17 @@ def stacked(axes, df: DataFrame, anno_args, **kwargs) -> None:
             height=series,
             bottom=base,
             color=foreground,
-            width=kwargs["width"][i],
-            label=col if kwargs["label_series"][i] else "_not_in_legend_",
+            width=kwargs[WIDTH][i],
+            label=col if kwargs[LABEL_SERIES][i] else f"_{col}_",
         )
-        annotate_bars(series, 0, base, axes, foreground=foreground, **anno_args)
+        annotate_bars(
+            series=series,
+            offset=0,
+            base=base,
+            axes=axes,
+            foreground=foreground,
+            **anno_args
+        )
         base_plus += np.where(series >= 0, series, 0)
         base_minus += np.where(series < 0, series, 0)
 
@@ -215,29 +219,23 @@ def bar_plot(
     Parameters
     - data: Series - The data to plot. Can be a DataFrame or a Series.
     - **kwargs: dict Additional keyword arguments for customization.
-        /* affects the entire bar plot */
-        - ax: Axes | None - The axes to plot on. If None, a new figure and axes will be created.
-        - stacked: bool - If True, the bars will be stacked. If False, they will be grouped.
-        - rotation: int | float - The rotation of the x-axis labels in degrees.
-        - max_ticks: int - The maximum number of ticks on the x-axis (for PeriodIndex only)
-        - plot_from: int | PeriodIndex | None - The starting point of the plot.
-          If None, the entire data will be plotted.
-        - legend: bool | dict | (str, object) | None - If True, a legend will be created.
-        /* affects the bars in the bar plot */
-        - color: str | Sequence[str] - The color of the bars. If a sequence is provided,
-          it should match the number of columns in the DataFrame.
-        - label_series: bool | Sequence[bool] - If True, the series will be labeled in
-          the legend. If a sequence is provided, it should match the number of columns
-          in the DataFrame.
-        /* options for bar annotations */
-        - annotate: None | bool - If True, the bars will be annotated with their values.
-        - fontsize: int | float | str - The font size of the annotations.
-        - fontname: str - The font name of the annotations.
-        - bar_rotation: int | float - The rotation of the bar labels in degrees.
-        - rounding: int | bool - The number of decimal places to round the annotations.
-          If True, a default between 0 and 2 is used.
-        - annotate_color: str - The color of the annotations.
-        - above: bool - If True, the annotations will be placed above the bars.
+    # --- options for the entire bar plot
+    ax: Axes - axes to plot on, or None for new axes
+    stacked: bool - if True, the bars will be stacked. If False, they will be grouped.
+    max_ticks: int - maximum number of ticks on the x-axis (for PeriodIndex only)
+    plot_from: int | PeriodIndex - if provided, the plot will start from this index.
+    # --- options for each bar ...
+    color: str | list[str] - the color of the bars (or separate colors for each series
+    label_series: bool | list[bool] - if True, the series will be labeled in the legend
+    width: float | list[float] - the width of the bars
+    # - options for bar annotations
+    annotate: bool - If True them annotate the bars with their values.
+    fontsize: int | float | str - font size of the annotations
+    fontname: str - font name of the annotations
+    rounding: int - number of decimal places to round to
+    annotate_color: str  - color of annotations
+    rotation: int | float - rotation of annotations in degrees
+    above: bool - if True, annotations are above the bar, else within the bar
 
     Note: This function does not assume all data is timeseries with a PeriodIndex,
 
@@ -248,7 +246,7 @@ def bar_plot(
     # --- check the kwargs
     me = "bar_plot"
     report_kwargs(called_from=me, **kwargs)
-    validate_kwargs(BAR_KW_TYPES, me, **kwargs)
+    kwargs = validate_kwargs(BAR_KW_TYPES, me, **kwargs)
 
     # --- get the data
     # no call to check_clean_timeseries here, as bar plots are not
@@ -268,32 +266,33 @@ def bar_plot(
         df = saved_pi[0]  # extract the reindexed DataFrame from the PeriodIndex
 
     # --- set up the default arguments
-    bar_defaults: dict[str, Any] = {
-        "color": get_color_list(item_count),
-        "width": get_setting("bar_width"),
-        "label_series": (item_count > 1),
+    chart_defaults: dict[str, Any] = {
+        STACKED: False,
+        MAX_TICKS: 10,
+        LABEL_SERIES: item_count > 1,
     }
+    chart_args = {k: kwargs.get(k, v) for k, v in chart_defaults.items()}
+
+    bar_defaults: dict[str, Any] = {
+        COLOR: get_color_list(item_count),
+        WIDTH: get_setting("bar_width"),
+        LABEL_SERIES: (item_count > 1),
+    }
+    above = kwargs.get(ABOVE, False)
     anno_args = {
         ANNOTATE: kwargs.get(ANNOTATE, False),
         FONTSIZE: kwargs.get(FONTSIZE, "small"),
         FONTNAME: kwargs.get(FONTNAME, "Helvetica"),
         ROTATION: kwargs.get(ROTATION, 0),
         ROUNDING: kwargs.get(ROUNDING, True),
-        ANNOTATE_COLOR: kwargs.get(ANNOTATE_COLOR, "white"),
-        ABOVE: kwargs.get(ABOVE, False),
+        COLOR: kwargs.get(ANNOTATE_COLOR, "black" if above else "white"),
+        ABOVE: above,
     }
     bar_args, remaining_kwargs = apply_defaults(item_count, bar_defaults, kwargs)
-    chart_defaults: dict[str, Any] = {
-        STACKED: False,
-        ROTATION: 90,
-        MAX_TICKS: 10,
-        LEGEND: item_count > 1,
-    }
-    chart_args = {k: kwargs.get(k, v) for k, v in chart_defaults.items()}
 
     # --- plot the data
     axes, _rkwargs = get_axes(**remaining_kwargs)
-    if chart_args["stacked"]:
+    if chart_args[STACKED]:
         stacked(axes, df, anno_args, **bar_args)
     else:
         grouped(axes, df, anno_args, **bar_args)
@@ -305,10 +304,6 @@ def bar_plot(
         rotate_labels = False
 
     if rotate_labels:
-        plt.xticks(rotation=chart_args["rotation"])
-
-    # --- add a legend if requested
-    if "LEGEND" in chart_args:
-        make_legend(axes, chart_args["LEGEND"])
+        plt.xticks(rotation=90)
 
     return axes

@@ -255,7 +255,7 @@ def growth_plot(
     # --- check the kwargs
     me = "growth_plot"
     report_kwargs(called_from=me, **kwargs)
-    validate_kwargs(GROWTH_KW_TYPES, me, **kwargs)
+    kwargs = validate_kwargs(GROWTH_KW_TYPES, me, **kwargs)
 
     # --- data checks
     data = check_clean_timeseries(data, me)
@@ -313,7 +313,7 @@ def series_growth_plot(
     # --- check the kwargs
     me = "series_growth_plot"
     report_kwargs(called_from=me, **kwargs)
-    validate_kwargs(SERIES_GROWTH_KW_TYPES, me, **kwargs)
+    kwargs = validate_kwargs(SERIES_GROWTH_KW_TYPES, me, **kwargs)
 
     # --- sanity checks
     if not isinstance(data, Series):

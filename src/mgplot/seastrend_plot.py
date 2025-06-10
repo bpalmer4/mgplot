@@ -46,7 +46,7 @@ def seastrend_plot(data: DataT, **kwargs) -> Axes:
     # --- check the kwargs
     me = "seastrend_plot"
     report_kwargs(called_from=me, **kwargs)
-    validate_kwargs(SEASTREND_KW_TYPES, me, **kwargs)
+    kwargs = validate_kwargs(SEASTREND_KW_TYPES, me, **kwargs)
 
     # --- check the data
     data = check_clean_timeseries(data, me)

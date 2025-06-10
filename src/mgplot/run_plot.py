@@ -5,8 +5,9 @@ the 'runs' in a series.
 """
 
 # --- imports
+from typing import Final
 from collections.abc import Sequence
-from pandas import Series, concat, period_range
+from pandas import Series, concat
 from matplotlib.pyplot import Axes
 from matplotlib import patheffects as pe
 
@@ -21,26 +22,22 @@ from mgplot.kw_type_checking import (
 )
 from mgplot.utilities import constrain_data, check_clean_timeseries
 from mgplot.keyword_names import (
-    WIDTH,
     COLOR,
     THRESHOLD,
     ROUNDING,
     HIGHLIGHT,
     DIRECTION,
-    ANNOTATE,
+    DRAWSTYLE,
 )
 
 # --- constants
 
-RUN_KW_TYPES: ExpectedTypeDict = {
+RUN_KW_TYPES: Final[ExpectedTypeDict] = LINE_KW_TYPES | {
     THRESHOLD: float,
-    ROUNDING: int,
     HIGHLIGHT: (str, Sequence, (str,)),  # colors for highlighting the runs
     DIRECTION: str,  # "up", "down" or "both"
-    ANNOTATE: bool,  # whether to the line with text
 }
-RUN_KW_TYPES |= LINE_KW_TYPES
-validate_expected(RUN_KW_TYPES, "run_highlight_plot")
+validate_expected(RUN_KW_TYPES, __name__)
 
 # --- functions
 
@@ -105,7 +102,7 @@ def _plot_runs(
             x=stretch.index.min(),
             y=y_pos,
             s=(
-                change_points[stretch.index].sum().round(kwargs["round"]).astype(str)
+                change_points[stretch.index].sum().round(kwargs[ROUNDING]).astype(str)
                 + " pp"
             ),
             va=vert_align,
@@ -137,7 +134,7 @@ def run_plot(data: DataT, **kwargs) -> Axes:
     # --- check the kwargs
     me = "run_plot"
     report_kwargs(called_from=me, **kwargs)
-    validate_kwargs(RUN_KW_TYPES, me, **kwargs)
+    kwargs = validate_kwargs(RUN_KW_TYPES, me, **kwargs)
 
     # --- check the data
     series = check_clean_timeseries(data, me)
@@ -147,18 +144,15 @@ def run_plot(data: DataT, **kwargs) -> Axes:
 
     # --- default arguments - in **kwargs
     kwargs[THRESHOLD] = kwargs.get(THRESHOLD, 0.1)
+    kwargs[DIRECTION] = kwargs.get(DIRECTION, "both")
     kwargs[ROUNDING] = kwargs.get(ROUNDING, 2)
-    kwargs[HIGHLIGHT], kwargs[COLOR] = (
-        kwargs.get(HIGHLIGHT, "gold"),
-        kwargs.get(COLOR, "navy"),
+    kwargs[HIGHLIGHT] = (
+        kwargs.get(HIGHLIGHT, ("gold", "skyblue") if kwargs[DIRECTION] == "both" else "gold")
     )
+    kwargs[COLOR] = kwargs.get(COLOR, "darkblue")
 
-    # defaults for line_plot
-    kwargs[WIDTH] = kwargs.get(WIDTH, 2)
-    kwargs[ANNOTATE] = kwargs.get(ANNOTATE, True)
-
-    # plot the line
-    kwargs["drawstyle"] = kwargs.get("drawstyle", "steps-post")
+    # --- plot the line
+    kwargs[DRAWSTYLE] = kwargs.get(DRAWSTYLE, "steps-post")
     lp_kwargs = limit_kwargs(LINE_KW_TYPES, **kwargs)
     axes = line_plot(series, **lp_kwargs)
 
@@ -177,12 +171,3 @@ def run_plot(data: DataT, **kwargs) -> Axes:
                 "Expected 'up', 'down', or 'both'."
             )
     return axes
-
-
-# test ---
-if __name__ == "__main__":
-    N_PERIODS = 25
-    periods = period_range(start="2020Q1", periods=N_PERIODS, freq="Q")
-    dataset = Series([1] * N_PERIODS, index=periods).cumsum()
-
-    ax = run_plot(data=dataset, junk="should generate a warning")

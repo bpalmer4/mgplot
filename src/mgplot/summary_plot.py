@@ -25,20 +25,25 @@ from mgplot.kw_type_checking import (
     validate_expected,
     validate_kwargs,
 )
+from mgplot.keyword_names import (
+    AX,
+    VERBOSE,
+    MIDDLE,
+    PLOT_TYPE,
+    PLOT_FROM
+)
 
 
 # --- constants
 ZSCORES = "zscores"
 ZSCALED = "zscaled"
-AXES = "ax"  # Axes object to plot on
 
 SUMMARY_KW_TYPES: ExpectedTypeDict = {
-    AXES: (Axes, type(None)),
-    "verbose": bool,
-    "middle": float,
-    "plot_type": str,
-    "plot_from": (int, Period, type(None)),
-    "legend": (type(None), bool, dict, (str, object)),
+    AX: (Axes, type(None)),
+    VERBOSE: bool,
+    MIDDLE: float,
+    PLOT_TYPE: str,
+    PLOT_FROM: (int, Period, type(None)),
 }
 validate_expected(SUMMARY_KW_TYPES, "summary_plot")
 
@@ -220,7 +225,7 @@ def summary_plot(
     # --- check the kwargs
     me = "summary_plot"
     report_kwargs(called_from=me, **kwargs)
-    validate_kwargs(SUMMARY_KW_TYPES, me, **kwargs)
+    kwargs = validate_kwargs(SUMMARY_KW_TYPES, me, **kwargs)
 
     # --- check the data
     data = check_clean_timeseries(data, me)

@@ -359,7 +359,7 @@ def finalise_plot(axes: Axes, **kwargs) -> None:
     # --- check the kwargs
     me = "finalise_plot"
     report_kwargs(called_from=me, **kwargs)
-    validate_kwargs(FINALISE_KW_TYPES, me, **kwargs)
+    kwargs = validate_kwargs(FINALISE_KW_TYPES, me, **kwargs)
 
     # --- sanity checks
     if len(axes.get_children()) < 1:

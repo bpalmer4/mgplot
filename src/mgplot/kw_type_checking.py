@@ -85,7 +85,7 @@ import inspect
 import textwrap
 from enum import Enum
 
-from mgplot.keyword_names import REPORT_KWARGS
+from mgplot.keyword_names import REPORT_KWARGS, ABBR_DICT
 
 
 # --- constants
@@ -423,23 +423,43 @@ def _type_check_kwargs(
     return False
 
 
+def map_abbrs(input_dict: dict[str, Any]) -> dict[str, Any]:
+    """To do: doc string"""
+
+    output_dict = {}
+    for k,v in input_dict.items():
+        if k in ABBR_DICT:
+            output_dict[ABBR_DICT[k]] = v
+        else:
+            output_dict[k] = v
+    return output_dict
+
+
 def validate_kwargs(
     expected: ExpectedTypeDict,
     called_from: str,
     **kwargs,
-) -> None:
+) -> dict[str, Any]:
     """
     This function is used to validate the keyword arguments.
     To check we don't have unexpected keyword arguments, and
     to check that the values are of the expected type.
+    It also maps any abbreviations to their full names.
 
     Arguments
     - expected: ExpectedTypeDict - the expected keyword arguments and their types.
     - called_from: str - the name of the function that called this function,
     - **kwargs - the keyword arguments to be validated.
 
-    It is not intended to be used by the user.
+    It returns a dictionary of the keyword arguments, with any
+    abbreviations mapped to their full names.
+    If there are any problems with the keyword arguments, it
+    prints a warning message to the console instead of raising an exception.
     """
+
+    # remove any abbreviations from the kwargs
+    # and map them to the full names
+    kwargs = map_abbrs(kwargs)
 
     problems = ""
     twrap = textwrap.TextWrapper(width=75)
@@ -475,6 +495,8 @@ def validate_kwargs(
         # don't raise an exception - just warn instead
         statement = f"{called_from}: Keyword argument validation issues:\n{problems}"
         print(statement)
+
+    return kwargs
 
 
 # --- test code

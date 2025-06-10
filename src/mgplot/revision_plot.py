@@ -43,7 +43,7 @@ def revision_plot(data: DataT, **kwargs) -> Axes:
     # --- check the kwargs and data
     me = "revision_plot"
     report_kwargs(called_from=me, **kwargs)
-    validate_kwargs(REVISION_KW_TYPES, me, **kwargs)
+    kwargs = validate_kwargs(REVISION_KW_TYPES, me, **kwargs)
 
     data = check_clean_timeseries(data, me)
 

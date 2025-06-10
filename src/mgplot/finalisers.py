@@ -24,6 +24,8 @@ the best place to test the plotting functions.
 """
 
 # --- imports
+from typing import Any
+
 from pandas import DataFrame, period_range, Period, PeriodIndex, read_csv, Index
 from numpy import random
 
@@ -38,6 +40,31 @@ from mgplot.revision_plot import revision_plot
 from mgplot.run_plot import run_plot
 from mgplot.growth_plot import series_growth_plot, growth_plot
 from mgplot.summary_plot import summary_plot, ZSCORES, ZSCALED
+from mgplot.keyword_names import (
+    LEGEND,
+    TITLE,
+    PRESERVE_LIMS,
+    PLOT_FROM,
+    PLOT_TYPE,
+    PRE_TAG,
+    XLABEL,
+    X0,
+)
+
+
+def impose_legend(
+    kwargs: dict[str, Any],
+    data: DataT|None = None,
+    force: bool = False,
+) -> None:
+    """
+    A convenience function to call legend() if warranted.
+    """
+    if force or (
+        isinstance(data, DataFrame) and len(data.columns) > 1
+    ):
+        kwargs[LEGEND] = kwargs.get(LEGEND, True)
+
 
 
 # --- public functions
@@ -48,7 +75,9 @@ def line_plot_finalise(
     """
     A convenience function to call line_plot() then finalise_plot().
     """
+    impose_legend(data=data, kwargs=kwargs)
     plot_then_finalise(data, function=line_plot, **kwargs)
+
 
 
 def bar_plot_finalise(
@@ -58,6 +87,7 @@ def bar_plot_finalise(
     """
     A convenience function to call bar_plot() and finalise_plot().
     """
+    impose_legend(data=data, kwargs=kwargs)
     plot_then_finalise(
         data,
         function=bar_plot,
@@ -72,6 +102,7 @@ def seastrend_plot_finalise(
     """
     A convenience function to call seas_trend_plot() and finalise_plot().
     """
+    impose_legend(force=True, kwargs=kwargs)
     plot_then_finalise(data, function=seastrend_plot, **kwargs)
 
 
@@ -82,6 +113,7 @@ def postcovid_plot_finalise(
     """
     A convenience function to call postcovid_plot() and finalise_plot().
     """
+    impose_legend(force=True, kwargs=kwargs)
     plot_then_finalise(data, function=postcovid_plot, **kwargs)
 
 
@@ -92,6 +124,7 @@ def revision_plot_finalise(
     """
     A convenience function to call revision_plot() and finalise_plot().
     """
+    impose_legend(force=True, kwargs=kwargs)
     plot_then_finalise(data=data, function=revision_plot, **kwargs)
 
 
@@ -109,6 +142,7 @@ def series_growth_plot_finalise(data: DataT, **kwargs) -> None:
     """
     A convenience function to call series_growth_plot() and finalise_plot().
     """
+    impose_legend(force=True, kwargs=kwargs)
     plot_then_finalise(data=data, function=series_growth_plot, **kwargs)
 
 
@@ -118,6 +152,7 @@ def growth_plot_finalise(data: DataT, **kwargs) -> None:
     Use this when you are providing the raw growth data. Don't forget to
     set the ylabel in kwargs.
     """
+    impose_legend(force=True, kwargs=kwargs)
     plot_then_finalise(data=data, function=growth_plot, **kwargs)
 
 
@@ -140,27 +175,27 @@ def summary_plot_finalise(
     """
 
     # --- standard arguments
-    kwargs["title"] = kwargs.get("title", f"Summary at {data.index[-1]}")
-    kwargs["preserve_lims"] = kwargs.get("preserve_lims", True)
+    kwargs[TITLE] = kwargs.get(TITLE, f"Summary at {data.index[-1]}")
+    kwargs[PRESERVE_LIMS] = kwargs.get(PRESERVE_LIMS, True)
 
-    start: None | int | Period = kwargs.get("plot_from", None)
+    start: None | int | Period = kwargs.get(PLOT_FROM, None)
     if start is None:
         start = data.index[0]
     if isinstance(start, int):
         start = data.index[start]
-    kwargs["plot_from"] = start
+    kwargs[PLOT_FROM] = start
 
     for plot_type in (ZSCORES, ZSCALED):
         # some sorting of kwargs for plot production
-        kwargs["plot_type"] = plot_type
-        kwargs["pre_tag"] = plot_type  # necessary because the title is the same
+        kwargs[PLOT_TYPE] = plot_type
+        kwargs[PRE_TAG] = plot_type  # necessary because the title is the same
 
         if plot_type == "zscores":
-            kwargs["xlabel"] = f"Z-scores for prints since {start}"
-            kwargs["x0"] = True
+            kwargs[XLABEL] = f"Z-scores for prints since {start}"
+            kwargs[X0] = True
         else:
-            kwargs["xlabel"] = f"-1 to 1 scaled z-scores since {start}"
-            kwargs.pop("x0", None)
+            kwargs[XLABEL] = f"-1 to 1 scaled z-scores since {start}"
+            kwargs.pop(X0, None)
 
         plot_then_finalise(
             data,
@@ -194,6 +229,15 @@ if __name__ == "__main__":
 
     SKIP = False
     if not SKIP:
+        bar_plot_finalise(
+            data=test_frame,
+            title="Test Bar Plot",
+            ylabel="Value",
+            stacked=True,
+            annotate=True,
+            plot_from=-19,
+            rotation=90,
+        )
 
         multi_start(
             data=test_frame["Series 1"],
@@ -222,7 +266,7 @@ if __name__ == "__main__":
                 xlabel=None,
                 width=0.8,
                 stacked=stacked,
-                rotation=0,
+                rotation=45,
                 y0=True,
             )
 
@@ -283,6 +327,17 @@ if __name__ == "__main__":
             xlabel=None,
         )
 
+        # - revisions
+        data_ = read_csv("./zz-test-data/revisions.csv", index_col=0, parse_dates=True)
+        data_.index = PeriodIndex(data_.index, freq="M")
+        revision_plot_finalise(
+            data=data_,
+            title="Test Revision Plot",
+            ylabel="Units",
+            xlabel=None,
+            rounding=2,
+        )
+
         # -- run plot test
         ocr_data = read_csv(
             f"{TEST_DATA_DIR}ocr_rba.csv",
@@ -298,14 +353,5 @@ if __name__ == "__main__":
             title=f"Test Multi Start Run Plot at {ocr_series.index[-1]}",
             ylabel="Annual Per cent Growth",
             xlabel=None,
+            direction="both",
         )
-
-    data_ = read_csv("./zz-test-data/revisions.csv", index_col=0, parse_dates=True)
-    data_.index = PeriodIndex(data_.index, freq="M")
-    revision_plot_finalise(
-        data=data_,
-        title="Test Revision Plot",
-        ylabel="Units",
-        xlabel=None,
-        rounding=2,
-    )

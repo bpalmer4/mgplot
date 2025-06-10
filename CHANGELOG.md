@@ -1,3 +1,13 @@
+Version 0.1.8 - released 10-Jun-2025 (Canberra, Australia)
+
+* major changes
+     - standardised keyword argument names (in a separate module).
+     - provided abbreviations for some keyword argument names.
+     - removed legend keyword argument from data plotting functions 
+       (ie. it is only implemented by finalise_plot())
+
+---
+
 Version 0.1.7 - released 06-Jun-2025 (Canberra, Australia)
 
 * major changes

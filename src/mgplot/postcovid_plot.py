@@ -24,6 +24,9 @@ from mgplot.keyword_names import (
     WIDTH,
     STYLE,
     PLOT_FROM,
+    LABEL_SERIES,
+    ANNOTATE,
+    COLOR,
 )
 
 
@@ -33,6 +36,9 @@ POSTCOVID_KW_TYPES: ExpectedTypeDict = {
     END_R: Period,  # type: ignore[assignment]
     WIDTH: (int, float),
     STYLE: (str, Sequence, (str,)),
+    LABEL_SERIES: (bool, dict, (str, object), type(None)),
+    ANNOTATE: (bool, tuple),
+    COLOR: (str, tuple),
 } | LINE_KW_TYPES
 validate_expected(POSTCOVID_KW_TYPES, "postcovid_plot")
 
@@ -74,7 +80,7 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
     # --- check the kwargs
     me = "postcovid_plot"
     report_kwargs(called_from=me, **kwargs)
-    validate_kwargs(POSTCOVID_KW_TYPES, me, **kwargs)
+    kwargs = validate_kwargs(POSTCOVID_KW_TYPES, me, **kwargs)
 
     # --- check the data
     data = check_clean_timeseries(data, me)
@@ -119,9 +125,9 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
         WIDTH, (get_setting("line_normal"), get_setting("line_wide"))
     )  # series line is thicker than projection
     kwargs[STYLE] = kwargs.pop(STYLE, ("--", "-"))  # dashed regression line
-    kwargs["legend"] = kwargs.pop("legend", True)  # show legend by default
-    kwargs["annotate"] = kwargs.pop("annotate", (False, True))  # annotate series only
-    kwargs["color"] = kwargs.pop("color", ("darkblue", "#dd0000"))
+    kwargs[LABEL_SERIES] = kwargs.pop(LABEL_SERIES, True)
+    kwargs[ANNOTATE] = kwargs.pop(ANNOTATE, (False, True))  # annotate series only
+    kwargs[COLOR] = kwargs.pop(COLOR, ("darkblue", "#dd0000"))
 
     return line_plot(
         data_set,

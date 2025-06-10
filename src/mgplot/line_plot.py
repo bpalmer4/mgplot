@@ -88,6 +88,8 @@ def annotate_series(
     fontsize = kwargs.get(FONTSIZE, "small")
     if fontsize is None or isinstance(fontsize, bool):
         fontsize = "small"
+    fontname = kwargs.get(FONTNAME, "Helvetica")
+    rotation = kwargs.get(ROTATION, 0)
 
     # --- add the annotation
     color = kwargs["color"]
@@ -100,8 +102,9 @@ def annotate_series(
         ha="left",
         va="center",
         fontsize=fontsize,
+        font=fontname,
+        rotation=rotation,
         color=color,
-        font="Helvetica",
     )
 
 
@@ -181,7 +184,7 @@ def line_plot(data: DataT, **kwargs) -> Axes:
     # --- check the kwargs
     me = "line_plot"
     report_kwargs(called_from=me, **kwargs)
-    validate_kwargs(LINE_KW_TYPES, me, **kwargs)
+    kwargs = validate_kwargs(LINE_KW_TYPES, me, **kwargs)
 
     # --- check the data
     data = check_clean_timeseries(data, me)
@@ -242,9 +245,11 @@ def line_plot(data: DataT, **kwargs) -> Axes:
         annotate_series(
             series,
             axes,
-            rounding=swce[ROUNDING][i],
             color=color,
+            rounding=swce[ROUNDING][i],
             fontsize=swce[FONTSIZE][i],
+            fontname=swce[FONTNAME][i],
+            rotation=swce[ROTATION][i],
         )
 
     return axes

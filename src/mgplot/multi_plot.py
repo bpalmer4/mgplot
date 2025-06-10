@@ -167,7 +167,7 @@ def plot_then_finalise(
         plot_kwargs = kwargs.copy()
 
     # --- validate the original kwargs (could not do before now)
-    validate_kwargs(FINALISE_KW_TYPES | expected, me, **kwargs)
+    kwargs = validate_kwargs(expected | FINALISE_KW_TYPES, me, **kwargs)
 
     # --- call the first function with the data and selected plot kwargs
     axes = first(data, **plot_kwargs)
