@@ -117,8 +117,8 @@ common_transitions: TransitionKwargs = {
     PLOT_FROM: (PLOT_FROM, None),
     REPORT_KWARGS: (REPORT_KWARGS, None),
 }
-trans_check(common_transitions, GROWTH_KW_TYPES, LINE_KW_TYPES)
-trans_check(common_transitions, GROWTH_KW_TYPES, BAR_KW_TYPES)
+trans_check(common_transitions, GROWTH_KW_TYPES, LINE_KW_TYPES, __name__)
+trans_check(common_transitions, GROWTH_KW_TYPES, BAR_KW_TYPES, __name__)
 
 to_line_plot: TransitionKwargs = common_transitions | {
     # arg-to-growth_plot : (arg-to-line_plot, default_value)
@@ -131,7 +131,7 @@ to_line_plot: TransitionKwargs = common_transitions | {
     LINE_FONTNAME: (FONTNAME, None),
     LINE_ANNO_COLOR: (ANNOTATE_COLOR, None),
 }
-trans_check(to_line_plot, GROWTH_KW_TYPES, LINE_KW_TYPES)
+trans_check(to_line_plot, GROWTH_KW_TYPES, LINE_KW_TYPES, __name__)
 
 # - constants for the bar plot
 to_bar_plot: TransitionKwargs = common_transitions | {
@@ -146,7 +146,7 @@ to_bar_plot: TransitionKwargs = common_transitions | {
     BAR_FONTNAME: (FONTNAME, None),
     BAR_ANNO_COLOR: (ANNOTATE_COLOR, None),
 }
-trans_check(to_bar_plot, GROWTH_KW_TYPES, BAR_KW_TYPES)
+trans_check(to_bar_plot, GROWTH_KW_TYPES, BAR_KW_TYPES, __name__)
 
 
 # === functions

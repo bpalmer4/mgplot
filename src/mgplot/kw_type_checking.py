@@ -95,6 +95,7 @@ type NestedTypeTuple = tuple[type | NestedTypeTuple, ...]  # recursive type
 type ExpectedTypeDict = dict[str, type | NestedTypeTuple]
 
 NOT_SEQUENCE: Final[tuple[type, ...]] = (str, bytearray, bytes, memoryview)
+IS_CONTAINER: Final[tuple[type, ...]] = (Sequence, Set, Mapping)
 
 
 # --- module-scoped global variable
@@ -284,7 +285,7 @@ def validate_expected(
         for item in look_for:
             if item not in expected:
                 print(
-                    f"Expected keyword arguments should contain '{item}' "
+                    f"The ExpectedTypeDict keyword arguments should contain '{item}' "
                     f"in {called_from}() in {module.__name__}."
                 )
 
@@ -514,27 +515,37 @@ def check_subset(
     """
 
     assessment = False
-    if isinstance(source, type) and isinstance(target, type):
+    # --- type vs type and tuple vs type
+    if isinstance(source, (type, tuple)) and isinstance(target, type):
         assessment = source == target
 
-    elif isinstance(source, tuple) and isinstance(target, type):
-        pass
-
+    # --- type vs tuple
     elif isinstance(source, type) and isinstance(target, tuple):
+        prev_token_seq = False
         for t in target:
-            if check_subset(source, t):
-                assessment = True
+            if prev_token_seq:
+                prev_token_seq = False
+                continue
+            if assessment := check_subset(source, t):
                 break
+            if (
+                isinstance(t, type)
+                and issubclass(t, IS_CONTAINER)
+                and t not in NOT_SEQUENCE
+            ):
+                prev_token_seq = True
+                continue
+            prev_token_seq = False
 
-    # tuple vs tuple
+    # --- tuple vs tuple
     elif isinstance(source, tuple) and isinstance(target, tuple):
         for s in source:
             if (
                 isinstance(s, type)
-                and issubclass(s, Sequence)
+                and issubclass(s, IS_CONTAINER)
                 and s not in NOT_SEQUENCE
             ):
-                print(f"Unexpected: {s} is a sequence type.")
+                print(f"Unexpected: {s} is a container type in the source.")
                 break
             if not any(check_subset(s, t) for t in target):
                 break
@@ -549,10 +560,16 @@ def check_subset(
 
 
 def trans_check(
-    trans: TransitionKwargs, source: ExpectedTypeDict, target: ExpectedTypeDict
+    trans: TransitionKwargs,
+    source: ExpectedTypeDict,
+    target: ExpectedTypeDict,
+    called_from: str = "",
 ) -> None:
     """
-    Check the transition mappings for errors.
+    Check the transition mappings for errors. This is a quick and incomplete check
+    pf whether the source is the same as or a subset of the target.
+
+    Don't allow sequence/mapping types in the source for subset checking.
     """
 
     error_count = 0
@@ -574,10 +591,14 @@ def trans_check(
                 continue
 
     if error_count > 0:
-        raise ValueError(
+        error_message = (
             f"Transition mapping has {error_count} errors. "
-            "Please check the transition mapping."
+            f"Please check the transition mapping in {called_from}."
         )
+        if called_from == "test":
+            print(error_message)
+        else:
+            raise ValueError(error_message)
 
 
 def package_kwargs(mapping: TransitionKwargs, **kwargs: Any) -> dict[str, Any]:
@@ -606,7 +627,9 @@ if __name__ == "__main__":
     MODULE_TESTING = True
 
     # --- test the validate_expected() function
+    print("Testing validate_expected()...")
     expected_gb: ExpectedTypeDict = {
+        # - the missing "ax" and "plot_from" keywords should be reported
         # - these ones should pass
         "good1": str,
         "good2": (int, float),
@@ -642,6 +665,7 @@ if __name__ == "__main__":
     # --- test the validate_kwargs() function
     # bad means the KWARGS are not of the expected type
 
+    print("\nTesting validate_kwargs()...")
     expected_kw: ExpectedTypeDict = {
         "good_1": str,
         "good_2": (Sequence, (int, float), int, float),
@@ -665,3 +689,41 @@ if __name__ == "__main__":
         "bad_2": (3, 4),
     }
     validate_kwargs(expected_kw, "test", **kwargs_test)
+
+    # --- test the transition-map checker
+    print("\nTesting transition map checking...")
+    source_: ExpectedTypeDict = {
+        # - these ones should pass
+        "source_P1": str,
+        "source_P2": (int, float),
+        "source_P3": (list, (int, float)),
+        # = these should fail
+        "source_F1": int,
+        "source_F2": (float, int),
+        "source_F3": int,
+        "source_F4": (list, (int, float)),
+    }
+    target_: ExpectedTypeDict = {
+        # - these ones should pass
+        "target_P1": str,
+        "target_P2": (float, int),
+        "target_P3": (list, (int, float)),
+        # - these ones should fail
+        "target_F1": float,
+        "target_F2": (bool, float),
+        "target_F3": (Sequence, (int, float)),
+        "target_F4": (Sequence, (int, float)),
+    }
+    transition_: TransitionKwargs = {
+        "source_P1": ("target_P1", None),
+        "source_P2": ("target_P2", None),
+        "source_P3": ("target_P3", None),
+        # - these ones should fail
+        "source_F1": ("target_F1", None),
+        "source_F2": ("target_F2", None),
+        "source_F3": ("target_F3", None),
+        "source_F4": ("target_F4", None),
+    }
+    trans_check(transition_, source_, target_, "test")
+
+    print("All tests completed.")

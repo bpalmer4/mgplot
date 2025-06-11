@@ -24,6 +24,7 @@ uv build
 uv sync  # install with the development dependencies
 
 # --- build documentation
+source .venv/bin/activate  # we need an environment to get pdoc 
 ~/mgplot/build-docs.sh
 
 # --- if everything is good publish and git

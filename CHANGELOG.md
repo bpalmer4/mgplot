@@ -1,3 +1,10 @@
+Version 0.1.10 - released 11-Jun-2025 (Canberra, Australia)
+
+* minor changes
+     - refined transition argument checking.
+
+---
+
 Version 0.1.9 - released 11-Jun-2025 (Canberra, Australia)
 
 * minor changes
