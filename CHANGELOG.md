@@ -1,3 +1,10 @@
+Version 0.1.11 - released 11-Jun-2025 (Canberra Australia)
+
+* minor changes
+     - refinements to the build code.
+
+---
+
 Version 0.1.10 - released 11-Jun-2025 (Canberra, Australia)
 
 * minor changes
