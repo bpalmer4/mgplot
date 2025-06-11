@@ -58,7 +58,7 @@ LINE_KW_TYPES: ExpectedTypeDict = {
     DROPNA: (bool, Sequence, (bool,)),
     ANNOTATE: (bool, Sequence, (bool,)),
     ROUNDING: (Sequence, (bool, int), int, bool, type(None)),
-    FONTSIZE: (Sequence, (str, int), str, int, type(None)),
+    FONTSIZE: (Sequence, (str, int, float), str, int, float),
     FONTNAME: (str, Sequence, (str,)),
     ROTATION: (int, float, Sequence, (int, float)),
     ANNOTATE_COLOR: (str, Sequence, (str,), bool, Sequence, (bool,), type(None)),

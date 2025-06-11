@@ -89,6 +89,8 @@ from mgplot.keyword_names import REPORT_KWARGS, ABBR_DICT
 
 
 # --- constants
+type TransitionKwargs = dict[str, tuple[str, Any]]
+
 type NestedTypeTuple = tuple[type | NestedTypeTuple, ...]  # recursive type
 type ExpectedTypeDict = dict[str, type | NestedTypeTuple]
 
@@ -499,6 +501,105 @@ def validate_kwargs(
     return kwargs
 
 
+# === type transition management.
+
+
+def check_subset(
+    source: type | NestedTypeTuple, target: type | NestedTypeTuple
+) -> bool:
+    """
+    Check whether the source is a subset of the target type.
+
+    Note: indicative checking only. Not thorough.
+    """
+
+    assessment = False
+    if isinstance(source, type) and isinstance(target, type):
+        assessment = source == target
+
+    elif isinstance(source, tuple) and isinstance(target, type):
+        pass
+
+    elif isinstance(source, type) and isinstance(target, tuple):
+        for t in target:
+            if check_subset(source, t):
+                assessment = True
+                break
+
+    # tuple vs tuple
+    elif isinstance(source, tuple) and isinstance(target, tuple):
+        for s in source:
+            if (
+                isinstance(s, type)
+                and issubclass(s, Sequence)
+                and s not in NOT_SEQUENCE
+            ):
+                print(f"Unexpected: {s} is a sequence type.")
+                break
+            if not any(check_subset(s, t) for t in target):
+                break
+        else:
+            # got through the for loop without breaking
+            assessment = True
+
+    # if we get here, we have a problem
+    else:
+        print(f"Error: {source=} and {target=} are not comparable.")
+    return assessment
+
+
+def trans_check(
+    trans: TransitionKwargs, source: ExpectedTypeDict, target: ExpectedTypeDict
+) -> None:
+    """
+    Check the transition mappings for errors.
+    """
+
+    error_count = 0
+    for s, (t, _) in trans.items():
+        if t == REPORT_KWARGS:
+            continue  # special case, we don't check it,
+        if s not in source:
+            print(f"Warning: {s} is not a valid keyword in source ({s}->{t})")
+            error_count += 1
+            continue
+        if t not in target:
+            print(f"Warning: {t} is not a valid keyword in target ({t}->{s})")
+            error_count += 1
+            continue
+        if source[s] != target[t]:
+            if not check_subset(source[s], target[t]):
+                print(f"Warning: {s} does not match {t} ({source[s]} != {target[t]})")
+                error_count += 1
+                continue
+
+    if error_count > 0:
+        raise ValueError(
+            f"Transition mapping has {error_count} errors. "
+            "Please check the transition mapping."
+        )
+
+
+def package_kwargs(mapping: TransitionKwargs, **kwargs: Any) -> dict[str, Any]:
+    """
+    Package the keyword arguments for plotting functions.
+    Substitute defaults where arguments are not provided
+    (unless the default is None).
+
+    Args:
+    -   mapping: A mapping of original keys to  a tuple of (new-key, default value).
+    -   kwargs: The original keyword arguments.
+
+    Returns:
+    -   A dictionary with the packaged keyword arguments.
+    """
+    return {
+        v[0]: kwargs.get(k, v[1])
+        for k, v in mapping.items()
+        if k in kwargs or v[1] is not None
+    }
+
+
 # --- test code
 if __name__ == "__main__":
     # Test the type_check_kwargs function
@@ -530,7 +631,7 @@ if __name__ == "__main__":
         "bad6": ((list, tuple), (int, float)),
         "bad7": (dict, (str, int), (int, float)),
         "bad8": (TypingSequence, (int, float)),
-        "bad9": (list, [int, float]),  # type: ignore[dict-item]  # for testing
+        "bad9": (list, [int, float]),  # type: ignore[dict-item]  # --> for testing
         "bad10": (dict, (str,)),
         "bad11": (Iterable, (int, float)),
         "bad12": Any,

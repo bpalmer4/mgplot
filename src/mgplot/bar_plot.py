@@ -12,7 +12,7 @@ from typing import Any, Final
 from collections.abc import Sequence
 
 import numpy as np
-from pandas import Series, DataFrame, PeriodIndex
+from pandas import Series, DataFrame, Period
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import Axes
 import matplotlib.patheffects as pe
@@ -58,7 +58,7 @@ BAR_KW_TYPES: Final[ExpectedTypeDict] = {
     AX: (Axes, type(None)),  # axes to plot on, or None for new axes
     STACKED: bool,  # if True, the bars will be stacked. If False, they will be grouped.
     MAX_TICKS: int,
-    PLOT_FROM: (int, PeriodIndex, type(None)),
+    PLOT_FROM: (int, Period, type(None)),
     # --- options for each bar ...
     COLOR: (str, Sequence, (str,)),
     LABEL_SERIES: (bool, Sequence, (bool,)),

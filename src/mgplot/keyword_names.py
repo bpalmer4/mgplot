@@ -1,15 +1,16 @@
 """
 keyword_names.py
 
-This module contains the names of all the keyword argument names
-used in the mgplot package. These names are used to ensure consistency
-across the package and to avoid hardcoding strings in the code.
+This module contains all the keyword argument names used in the mgplot
+package. These names are used to ensure consistency across the package
+and to avoid hardcoding strings in the code.
 """
 
-# --- imports
+# === imports
 from typing import Final
 
 # === debug names
+#   special case, used to print out kwargs at the start of a function
 REPORT_KWARGS: Final[str] = "report_kwargs"
 
 # === plot names
@@ -31,7 +32,6 @@ MARKERSIZE: Final[str] = "markersize"  # used for marker size, e.g. 5, 10, etc.
 
 # - bar-only geoms
 STACKED: Final[str] = "stacked"
-XLABEL_ROTATION: Final[str] = "xlabel_rotation"
 
 # common line and bar geoms
 WIDTH: Final[str] = "width"

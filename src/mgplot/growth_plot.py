@@ -7,14 +7,15 @@ plot period and annual/through-the-year growth rates on the same axes.
 """
 
 # --- imports
-from typing import Final, Any
+from typing import Final
+
 from pandas import Series, DataFrame, Period, PeriodIndex, period_range
 from numpy import nan
 from matplotlib.pyplot import Axes
 from tabulate import tabulate
 
-from mgplot.bar_plot import bar_plot
-from mgplot.line_plot import line_plot
+from mgplot.bar_plot import bar_plot, BAR_KW_TYPES
+from mgplot.line_plot import line_plot, LINE_KW_TYPES
 from mgplot.axis_utils import map_periodindex
 from mgplot.test import prepare_for_test
 from mgplot.settings import DataT
@@ -25,6 +26,9 @@ from mgplot.kw_type_checking import (
     report_kwargs,
     validate_expected,
     ExpectedTypeDict,
+    TransitionKwargs,
+    trans_check,
+    package_kwargs,
 )
 from mgplot.keyword_names import (
     # - common
@@ -63,23 +67,58 @@ from mgplot.keyword_names import (
     ABOVE,
 )
 
-# --- constants
-type TransitionKwargs = dict[str, tuple[str, Any]]
+# === constants
 
 # - overarching constants
+
 ANNUAL = "annual"
 PERIODIC = "periodic"
 
-# - constants for the line plot
+GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
+    # --- common options
+    AX: (Axes, type(None)),
+    PLOT_FROM: (int, Period, type(None)),
+    LABEL_SERIES: (bool),
+    MAX_TICKS: int,
+    # --- options passed to the line plot
+    LINE_WIDTH: (float, int),
+    LINE_COLOR: str,
+    LINE_STYLE: str,
+    ANNOTATE_LINE: bool,  # None, True
+    LINE_ROUNDING: (bool, int),  # None, True or rounding
+    LINE_FONTSIZE: (str, int, float),  # fontsize for the line annotations
+    LINE_FONTNAME: str,  # font name for the line annotations
+    LINE_ANNO_COLOR: str,  # color for the line annotations
+    # --- options passed to the bar plot
+    ANNOTATE_BARS: (type(None), bool),
+    BAR_FONTSIZE: (str, int, float),
+    BAR_FONTNAME: str,
+    BAR_ROUNDING: int,
+    BAR_WIDTH: float,
+    BAR_COLOR: str,
+    BAR_ANNO_COLOR: (str, type(None)),
+    BAR_ROTATION: (int, float),
+    ABOVE: bool,
+}
+validate_expected(GROWTH_KW_TYPES, "growth_plot")
+
+SERIES_GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
+    "ylabel": (str, type(None)),
+} | GROWTH_KW_TYPES
+validate_expected(SERIES_GROWTH_KW_TYPES, "growth_plot")
+
+
 # - transition of kwargs from growth_plot to line_plot
 common_transitions: TransitionKwargs = {
     # arg-to-growth_plot : (arg-to-line_plot, default_value)
     LABEL_SERIES: (LABEL_SERIES, True),
     AX: (AX, None),
-    MAX_TICKS: (MAX_TICKS, None),
+    # MAX_TICKS: (MAX_TICKS, None),
     PLOT_FROM: (PLOT_FROM, None),
     REPORT_KWARGS: (REPORT_KWARGS, None),
 }
+trans_check(common_transitions, GROWTH_KW_TYPES, LINE_KW_TYPES)
+trans_check(common_transitions, GROWTH_KW_TYPES, BAR_KW_TYPES)
 
 to_line_plot: TransitionKwargs = common_transitions | {
     # arg-to-growth_plot : (arg-to-line_plot, default_value)
@@ -92,6 +131,7 @@ to_line_plot: TransitionKwargs = common_transitions | {
     LINE_FONTNAME: (FONTNAME, None),
     LINE_ANNO_COLOR: (ANNOTATE_COLOR, None),
 }
+trans_check(to_line_plot, GROWTH_KW_TYPES, LINE_KW_TYPES)
 
 # - constants for the bar plot
 to_bar_plot: TransitionKwargs = common_transitions | {
@@ -106,42 +146,11 @@ to_bar_plot: TransitionKwargs = common_transitions | {
     BAR_FONTNAME: (FONTNAME, None),
     BAR_ANNO_COLOR: (ANNOTATE_COLOR, None),
 }
-
-GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
-    # --- options passed to the line plot
-    LINE_WIDTH: (float, int),
-    LINE_COLOR: str,
-    LINE_STYLE: str,
-    ANNOTATE_LINE: (type(None), bool),  # None, True
-    LINE_ROUNDING: (bool, int),  # None, True or rounding
-    LINE_FONTSIZE: (str, int, float),  # fontsize for the line annotations
-    LINE_FONTNAME: str,  # font name for the line annotations
-    LINE_ANNO_COLOR: (str, bool, type(None)),  # color for the line annotations
-    # --- options passed to the bar plot
-    ANNOTATE_BARS: (type(None), bool),
-    BAR_FONTSIZE: (str, int, float),
-    BAR_FONTNAME: str,
-    BAR_ROUNDING: (bool, int),
-    BAR_WIDTH: float,
-    BAR_COLOR: str,
-    BAR_ANNO_COLOR: (str, type(None)),
-    BAR_ROTATION: (int, float),
-    ABOVE: bool,
-    # --- common options
-    AX: (Axes, type(None)),
-    PLOT_FROM: (type(None), Period, int),
-    LABEL_SERIES: (bool),
-    MAX_TICKS: int,
-}
-validate_expected(GROWTH_KW_TYPES, "growth_plot")
-
-SERIES_GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
-    "ylabel": (str, type(None)),
-} | GROWTH_KW_TYPES
-validate_expected(SERIES_GROWTH_KW_TYPES, "growth_plot")
+trans_check(to_bar_plot, GROWTH_KW_TYPES, BAR_KW_TYPES)
 
 
-# --- functions
+# === functions
+# --- public functions
 def calc_growth(series: Series) -> DataFrame:
     """
     Calculate annual and periodic growth for a pandas Series,
@@ -190,66 +199,49 @@ def calc_growth(series: Series) -> DataFrame:
     )
 
 
-def package_kwargs(mapping: TransitionKwargs, **kwargs: Any) -> dict[str, Any]:
-    """
-    Package the keyword arguments for plotting functions.
-    Substitute defaults where arguments are not provided
-    (unless the default is None).
-
-    Args:
-    -   mapping: A mapping of original keys to  a tuple of (new-key, default value).
-    -   kwargs: The original keyword arguments.
-
-    Returns:
-    -   A dictionary with the packaged keyword arguments.
-    """
-    return {
-        v[0]: kwargs.get(k, v[1])
-        for k, v in mapping.items()
-        if k in kwargs or v[1] is not None
-    }
-
-
 def growth_plot(
     data: DataT,
     **kwargs,
 ) -> Axes:
     """
-    Plot annual growth (as a line) and periodic growth (as bars)
-    on the same axes.
+        Plot annual growth (as a line) and periodic growth (as bars)
+        on the same axes.
 
-    Args:
-    -   data: A pandas DataFrame with two columns:
-    -   kwargs:
-        -   line_width: The width of the line (default is 2).
-        -   line_color: The color of the line (default is "darkblue").
-        -   line_style: The style of the line (default is "-").
-        -   annotate_line: None | bool | int | str - fontsize to annotate
-            the line (default is "small", which means the line is annotated with
-            small text).
-        -   rounding: None | bool | int - the number of decimal places to round
-            the line (default is 0).
-        -   bar_width: The width of the bars (default is 0.8).
-        -   bar_color: The color of the bars (default is "indianred").
-        -   annotate_bar: None | int | str - fontsize to annotate the bars
-            (default is "small", which means the bars are annotated with
-            small text).
-        -   bar_rounding: The number of decimal places to round the
-            annotations to (default is 1).
-        -   plot_from: None | Period | int -- if:
-            -   None: the entire series is plotted
-            -   Period: the plot starts from this period
-            -   int: the plot starts from this +/- index position
-        -   max_ticks: The maximum number of ticks to show on the x-axis
-            (default is 10).
+        Args:
+        -   data: A pandas DataFrame with two columns:
+        -   kwargs:
+            # --- common options
+            ax: Axes | None -- the matplotlib Axes to plot on, or None to create a new one.
+            plot_from: Period | int | None -- the period to start plotting from
+            label_series: bool -- whether to label the series in the legend.
+            max_ticks: int -- maximum number of ticks on the x-axis
+            # --- options passed to the line plot
+            line_width: float | int  -- the width of the line
+            line_color: str  -- the color of the line
+            line_style: str  -- the style of the line
+            annotate_line: None | bool -- whether to annotate the end of the line
+            line_rounding: bool | int  -- rounding for line annotation
+            line_fontsize: str | int | float  -- fontsize for the line annotation
+            line_fontname: str  -- font name for the line annotation
+            line_anno_color: str | bool | None  -- color for the line annotation
+            # --- options passed to the bar plot
+            bar_width: float,
+            bar_color: str,
+            annotate_bars: None | bool -- whether to annotate the bars
+            above: bool -- whether to place the bar annotations above the bars
+            bar_fontsize: str | int | float -- fontsize for the bar annotations
+            bar_fontname: str -- font name for the bar annotations
+            bar_rounding: bool | int -- rounding for bar annotation
+            bar_anno_color: str | None -- color for the bar annotation
+            bar_rotation: int | float -- rotation for the bar annotation
+    }
+        Returns:
+        -   axes: The matplotlib Axes object.
 
-    Returns:
-    -   axes: The matplotlib Axes object.
-
-    Raises:
-    -   TypeError if the annual and periodic arguments are not pandas Series.
-    -   TypeError if the annual index is not a PeriodIndex.
-    -   ValueError if the annual and periodic series do not have the same index.
+        Raises:
+        -   TypeError if the annual and periodic arguments are not pandas Series.
+        -   TypeError if the annual index is not a PeriodIndex.
+        -   ValueError if the annual and periodic series do not have the same index.
     """
 
     # --- check the kwargs

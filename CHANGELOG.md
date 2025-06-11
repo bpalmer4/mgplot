@@ -1,3 +1,12 @@
+Version 0.1.9 - released 11-Jun-2025 (Canberra, Australia)
+
+* minor changes
+     - added some limited type checking through the argument
+       transitions in growth_plot(), although most of the
+       code is in the kw_type_checking module.
+
+---
+
 Version 0.1.9 - released 10-Jun-2025 (Canberra, Australia)
 
 * minor changes
