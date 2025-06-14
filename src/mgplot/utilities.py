@@ -232,11 +232,12 @@ def default_rounding(
     ):
         return provided  # use the provided rounding when it is good
 
-    if value is None:
-        value = 10  # default value just in case nothing else is provided
-
     if series is not None and not series.dropna().empty:
         value = series.abs().max()  # series over-writes value if both are provided
+    elif value is not None:
+        value = abs(value)  # ensure value is positive
+    else:
+        value = 10
 
     return 0 if value >= 100 else 1 if value >= 10 else 2 if value >= 1 else 3
 

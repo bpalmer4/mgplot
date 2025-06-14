@@ -1,3 +1,10 @@
+Version 0.1.12 - released 14-Jun-2025 (Canberra Australia)
+
+* minor changes
+    - chnaged default_rounding() to apply for negative numbers
+
+---
+
 Version 0.1.11 - released 11-Jun-2025 (Canberra Australia)
 
 * minor changes
