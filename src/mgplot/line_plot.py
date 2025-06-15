@@ -11,6 +11,7 @@ from matplotlib.pyplot import Axes
 from pandas import DataFrame, Series, Period
 
 from mgplot.settings import DataT, get_setting
+from mgplot.axis_utils import set_labels, map_periodindex
 from mgplot.kw_type_checking import (
     report_kwargs,
     validate_kwargs,
@@ -43,6 +44,7 @@ from mgplot.keyword_names import (
     FONTNAME,
     ROTATION,
     ANNOTATE_COLOR,
+    MAX_TICKS,
 )
 
 # --- constants
@@ -64,6 +66,7 @@ LINE_KW_TYPES: ExpectedTypeDict = {
     ANNOTATE_COLOR: (str, Sequence, (str,), bool, Sequence, (bool,), type(None)),
     PLOT_FROM: (int, Period, type(None)),
     LABEL_SERIES: (bool, Sequence, (bool,), type(None)),
+    MAX_TICKS: int,
 }
 validate_expected(LINE_KW_TYPES, "line_plot")
 
@@ -154,6 +157,9 @@ def line_plot(data: DataT, **kwargs) -> Axes:
     - kwargs:
         /* chart wide arguments */
         - ax: Axes | None - axes to plot on (optional)
+        - max_ticks: int - maximum number of ticks on the x-axis.
+        - plot_from: int | Period | None - if not None, the x-axis will
+          start at this value.
         /* individual line arguments */
         - dropna: bool | list[bool] - whether to delete NAs frm the
           data before plotting [optional]
@@ -190,6 +196,11 @@ def line_plot(data: DataT, **kwargs) -> Axes:
     data = check_clean_timeseries(data, me)
     df = DataFrame(data)  # we are only plotting DataFrames
     df, kwargs = constrain_data(df, **kwargs)
+
+    # --- convert PeriodIndex to Integer Index
+    saved_pi = map_periodindex(df)
+    if saved_pi is not None:
+        df = saved_pi[0]
 
     # --- some special defaults
     kwargs[LABEL_SERIES] = (
@@ -251,5 +262,9 @@ def line_plot(data: DataT, **kwargs) -> Axes:
             fontname=swce[FONTNAME][i],
             rotation=swce[ROTATION][i],
         )
+
+    # --- set the labels
+    if saved_pi is not None:
+        set_labels(axes, saved_pi[1], kwargs.get("max_ticks", get_setting("max_ticks")))
 
     return axes

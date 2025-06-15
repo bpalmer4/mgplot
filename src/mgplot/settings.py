@@ -45,6 +45,7 @@ class _DefaultValues(TypedDict):
     colors: dict[int, list[str]]  # used by get_color_list()
 
     chart_dir: str
+    max_ticks: int  # default for x-axis ticks
 
 
 _mgplot_defaults = _DefaultValues(
@@ -76,6 +77,7 @@ _mgplot_defaults = _DefaultValues(
         ],
     },
     chart_dir=".",
+    max_ticks=13,
 )
 
 

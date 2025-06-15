@@ -15,7 +15,7 @@ Functions:
 # --- imports
 import math
 from typing import Any
-from pandas import Series, DataFrame, Period, PeriodIndex, period_range
+from pandas import Series, DataFrame, Period, PeriodIndex, RangeIndex, period_range
 from pandas.api.types import is_integer_dtype
 import numpy as np
 from matplotlib import cm
@@ -49,8 +49,8 @@ def check_clean_timeseries(data: DataT, called_by: str) -> DataT:
     # --- initial checks
     if not isinstance(data, (Series, DataFrame)):
         raise TypeError("Data must be a pandas Series or DataFrame.")
-    if not isinstance(data.index, PeriodIndex):
-        raise TypeError("Data index must be a PeriodIndex.")
+    if not isinstance(data.index, (PeriodIndex, RangeIndex)):
+        raise TypeError("Data index must be a PeriodIndex/RangeIndex.")
     if not data.index.is_unique:
         raise ValueError("Data index must be unique.")
     if not data.index.is_monotonic_increasing:
@@ -60,21 +60,24 @@ def check_clean_timeseries(data: DataT, called_by: str) -> DataT:
     start = data.first_valid_index()
     if start is None:
         return data  # no valid index, return original data
-    if not isinstance(start, Period):  # syntactic sugar for type hinting
-        raise TypeError("First valid index must be a Period.")
-    data = data.loc[data.index >= start]
+    if not isinstance(start, (Period, int)):  # syntactic sugar for type hinting
+        raise TypeError("First valid index must be a Period or an int.")
+    if isinstance(data.index, PeriodIndex) and isinstance(start, Period):
+        data = data.loc[data.index >= start]
+    if isinstance(data.index, RangeIndex) and isinstance(start, int):
+        data = data.loc[data.index >= start]
 
     # --- report and missing periods (ie. potentially incomplete data)
-    data_index = PeriodIndex(data.index)  # syntactic sugar for type hinting
-    complete = period_range(
-        start=data_index.min(), end=data_index.max(), freq=data_index.freq
-    )
-    missing = complete.difference(data_index)
-    if not missing.empty:
-        plural = "s" if len(missing) > 1 else ""
+    length = len(data.index)
+    missing = 0
+    if isinstance(data.index, PeriodIndex):
+        missing = (data.index.max().ordinal - data.index.min().ordinal + 1) - length
+    if isinstance(data.index, RangeIndex):
+        missing = (data.index.max() - data.index.min() + 1) - length
+    if missing:
         print(
-            f"Warning: {len(missing)} period{plural} missing from data index. "
-            + f"Found by {called_by}."
+            f"Warning: Data index appears to be missing {missing} values, "
+            f"in {called_by}. Check the data for completeness."
         )
 
     # --- return the final data

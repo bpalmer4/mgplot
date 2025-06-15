@@ -11,7 +11,8 @@ from pandas import Series, concat
 from matplotlib.pyplot import Axes
 from matplotlib import patheffects as pe
 
-from mgplot.settings import DataT
+from mgplot.settings import DataT, get_setting
+from mgplot.axis_utils import map_periodindex, set_labels
 from mgplot.line_plot import line_plot, LINE_KW_TYPES
 from mgplot.kw_type_checking import (
     limit_kwargs,
@@ -142,12 +143,22 @@ def run_plot(data: DataT, **kwargs) -> Axes:
         raise TypeError("series must be a pandas Series for run_plot()")
     series, kwargs = constrain_data(series, **kwargs)
 
+    # --- convert PeriodIndex if needed
+    saved_pi = map_periodindex(series)
+    if saved_pi is not None:
+        series = saved_pi[0]
+
     # --- default arguments - in **kwargs
     kwargs[THRESHOLD] = kwargs.get(THRESHOLD, 0.1)
     kwargs[DIRECTION] = kwargs.get(DIRECTION, "both")
     kwargs[ROUNDING] = kwargs.get(ROUNDING, 2)
     kwargs[HIGHLIGHT] = kwargs.get(
-        HIGHLIGHT, ("gold", "skyblue") if kwargs[DIRECTION] == "both" else "gold"
+        HIGHLIGHT,
+        (
+            ("gold", "skyblue")
+            if kwargs[DIRECTION] == "both"
+            else "gold" if kwargs[DIRECTION] == "up" else "skyblue"
+        ),
     )
     kwargs[COLOR] = kwargs.get(COLOR, "darkblue")
 
@@ -170,4 +181,9 @@ def run_plot(data: DataT, **kwargs) -> Axes:
                 f"Invalid value for direction: {kwargs[DIRECTION]}. "
                 "Expected 'up', 'down', or 'both'."
             )
+
+    # --- set the labels
+    if saved_pi is not None:
+        set_labels(axes, saved_pi[1], kwargs.get("max_ticks", get_setting("max_ticks")))
+
     return axes

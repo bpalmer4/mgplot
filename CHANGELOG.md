@@ -1,3 +1,12 @@
+Version 0.1.13 - released 15-Jun-2025 (Canberra Australia)
+
+* major changes
+    - changed xticks for PeriodIndex in line_plot, to do the 
+      same as bar_plot().
+    - Now all PeriodIndex charts should use this approach to
+      the x-axis.
+
+---
 Version 0.1.12 - released 14-Jun-2025 (Canberra Australia)
 
 * minor changes

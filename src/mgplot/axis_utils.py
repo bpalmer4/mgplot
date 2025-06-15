@@ -10,7 +10,7 @@ axis in Matplotlib, specifically:
 
 import calendar
 from enum import Enum
-from pandas import Series, Index, Period, PeriodIndex, period_range
+from pandas import Series, Period, PeriodIndex, period_range, RangeIndex
 from pandas.api.types import is_integer_dtype, is_string_dtype
 from matplotlib.pyplot import Axes
 
@@ -50,16 +50,21 @@ def is_categorical(data: DataT) -> bool:
 
 def map_periodindex(data: DataT) -> None | tuple[DataT, PeriodIndex]:
     """
-    map a PeriodIndex to an integer index.
+    Map a PeriodIndex to an integer index.
     """
     if not is_categorical(data):
         return None
     if not isinstance(data.index, PeriodIndex):
         return None
-    original_index = data.index
-    ordinals = tuple(p.ordinal for p in PeriodIndex(data.index))
-    data.index = Index(ordinals)
-    return data, original_index
+    og_index = data.index
+    data.index = RangeIndex(
+        start=og_index[0].ordinal,
+        stop=og_index[-1].ordinal + (1 if og_index[0] < og_index[-1] else -1),
+    )
+    assert len(data.index) == len(
+        og_index
+    ), "Mapped PeriodIndex to RangeIndex, but the lengths do not match."
+    return data, og_index
 
 
 class DateLike(Enum):
@@ -143,9 +148,11 @@ def day_labeller(labels: dict[Period, str]) -> dict[Period, str]:
         return labels
 
     start = min(labels.keys())
-    month_previous: str = calendar.month_abbr[start.month]
-    year_previous: str = str(start.year)
-    final_year = True
+    month_previous: str = calendar.month_abbr[
+        start.month - 1 if start.month > 1 else 12
+    ]
+    year_previous: str = str(start.year if start.month > 1 else start.year - 1)
+    final_year = str(start.year) == year_previous
 
     for period in sorted(labels.keys()):
         label = str(period.day)
@@ -154,10 +161,12 @@ def day_labeller(labels: dict[Period, str]) -> dict[Period, str]:
 
         if month_previous != month:
             label = add_month(label, month)
+            month_previous = month
 
         if year_previous != year:
             final_year = False
             label = add_year(label, year)
+            year_previous = year
 
         labels[period] = label
 
@@ -195,7 +204,7 @@ def month_labeller(labels: dict[Period, str]) -> dict[Period, str]:
         year = str(period.year)
 
         if year_previous != year or period.month == 1:
-            label = f"{label}\n{year}"
+            label = year
             year_previous = year
             final_year = False
 
@@ -233,7 +242,7 @@ def qtr_labeller(labels: dict[Period, str]) -> dict[Period, str]:
         label = f"Q{quarter}"
         if quarter == 1:
             final_year = False
-            label = f"{label}\n{period.year}"
+            label = f"{period.year}"
         labels[period] = label
 
     if final_year:
