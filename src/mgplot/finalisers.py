@@ -252,6 +252,7 @@ if __name__ == "__main__":
             above=True,
             bar_annotate_color="black",
             bar_rotation=0,
+            bar_rounding=1,
         )
 
         for stacked in (False, True):
