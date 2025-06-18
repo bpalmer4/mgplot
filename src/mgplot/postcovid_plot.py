@@ -4,43 +4,29 @@ Plot the pre-COVID trajectory against the current trend.
 """
 
 # --- imports
-from collections.abc import Sequence
+from typing import NotRequired, Unpack, cast
 from pandas import DataFrame, Series, Period, PeriodIndex
 from matplotlib.pyplot import Axes
 from numpy import arange, polyfit
 
 from mgplot.settings import DataT, get_setting
-from mgplot.line_plot import line_plot, LINE_KW_TYPES
+from mgplot.line_plot import line_plot, LineKwargs
 from mgplot.utilities import check_clean_timeseries
-from mgplot.kw_type_checking import (
-    ExpectedTypeDict,
+from mgplot.keyword_checking import (
     validate_kwargs,
-    validate_expected,
     report_kwargs,
-)
-from mgplot.keyword_names import (
-    START_R,
-    END_R,
-    WIDTH,
-    STYLE,
-    PLOT_FROM,
-    LABEL_SERIES,
-    ANNOTATE,
-    COLOR,
 )
 
 
 # --- constants
-POSTCOVID_KW_TYPES: ExpectedTypeDict = {
-    START_R: Period,  # type: ignore[assignment]
-    END_R: Period,  # type: ignore[assignment]
-    WIDTH: (int, float),
-    STYLE: (str, Sequence, (str,)),
-    LABEL_SERIES: (bool, dict, (str, object), type(None)),
-    ANNOTATE: (bool, tuple),
-    COLOR: (str, tuple),
-} | LINE_KW_TYPES
-validate_expected(POSTCOVID_KW_TYPES, "postcovid_plot")
+ME = "postcovid_plot"
+
+
+class PostcovidKwargs(LineKwargs):
+    "Keyword arguments for the post-COVID plot."
+
+    start_r: NotRequired[Period]  # start of regression period
+    end_r: NotRequired[Period]  # end of regression period
 
 
 # --- functions
@@ -61,7 +47,7 @@ def get_projection(original: Series, to_period: Period) -> Series:
     return projection
 
 
-def postcovid_plot(data: DataT, **kwargs) -> Axes:
+def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
     """
     Plots a series with a PeriodIndex.
 
@@ -78,22 +64,22 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
     """
 
     # --- check the kwargs
-    me = "postcovid_plot"
-    report_kwargs(called_from=me, **kwargs)
-    kwargs = validate_kwargs(POSTCOVID_KW_TYPES, me, **kwargs)
+    report_kwargs(caller=ME, **kwargs)
+    validate_kwargs(schema=PostcovidKwargs, caller=ME, **kwargs)
 
     # --- check the data
-    data = check_clean_timeseries(data, me)
+    data = check_clean_timeseries(data, ME)
     if not isinstance(data, Series):
         raise TypeError("The series argument must be a pandas Series")
     series: Series = data
     series_index = PeriodIndex(series.index)  # syntactic sugar for type hinting
     if series_index.freqstr[:1] not in ("Q", "M", "D"):
         raise ValueError("The series index must have a D, M or Q freq")
+
     # rely on line_plot() to validate kwargs
-    if PLOT_FROM in kwargs:
+    if "plot_from" in kwargs:
         print("Warning: the 'plot_from' argument is ignored in postcovid_plot().")
-        del kwargs[PLOT_FROM]
+        del kwargs["plot_from"]
 
     # --- plot COVID counterfactural
     freq = PeriodIndex(series.index).freqstr  # syntactic sugar for type hinting
@@ -108,8 +94,8 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
             start_regression = Period("2015-01-01", freq=freq)
             end_regression = Period("2020-01-01", freq=freq)
 
-    start_regression = Period(kwargs.pop(START_R, start_regression), freq=freq)
-    end_regression = Period(kwargs.pop(END_R, end_regression), freq=freq)
+    start_regression = Period(kwargs.pop("start_r", start_regression), freq=freq)
+    end_regression = Period(kwargs.pop("end_r", end_regression), freq=freq)
     if start_regression >= end_regression:
         raise ValueError("Start period must be before end period")
 
@@ -121,15 +107,15 @@ def postcovid_plot(data: DataT, **kwargs) -> Axes:
     data_set = DataFrame([projection, recent]).T
 
     # --- activate plot settings
-    kwargs[WIDTH] = kwargs.pop(
-        WIDTH, (get_setting("line_normal"), get_setting("line_wide"))
+    kwargs["width"] = kwargs.pop(
+        "width", (get_setting("line_normal"), get_setting("line_wide"))
     )  # series line is thicker than projection
-    kwargs[STYLE] = kwargs.pop(STYLE, ("--", "-"))  # dashed regression line
-    kwargs[LABEL_SERIES] = kwargs.pop(LABEL_SERIES, True)
-    kwargs[ANNOTATE] = kwargs.pop(ANNOTATE, (False, True))  # annotate series only
-    kwargs[COLOR] = kwargs.pop(COLOR, ("darkblue", "#dd0000"))
+    kwargs["style"] = kwargs.pop("style", ("--", "-"))  # dashed regression line
+    kwargs["label_series"] = kwargs.pop("label_series", True)
+    kwargs["annotate"] = kwargs.pop("annotate", (False, True))  # annotate series only
+    kwargs["color"] = kwargs.pop("color", ("darkblue", "#dd0000"))
 
     return line_plot(
         data_set,
-        **kwargs,
+        **cast(LineKwargs, kwargs),
     )

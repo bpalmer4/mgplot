@@ -1,14 +1,13 @@
 """
 summary_plot.py:
+
 Produce a summary plot for the data in a given DataFrame.
 The data is normalised to z-scores and scaled.
 """
 
 # --- imports
 # system imports
-from typing import Any
-
-# from collections.abc import Sequence
+from typing import Any, NotRequired, Unpack
 
 # analytic third-party imports
 from numpy import ndarray, array
@@ -19,27 +18,29 @@ from pandas import DataFrame, Period
 from mgplot.settings import DataT
 from mgplot.finalise_plot import make_legend
 from mgplot.utilities import constrain_data, check_clean_timeseries
-from mgplot.kw_type_checking import (
+from mgplot.keyword_checking import (
     report_kwargs,
-    ExpectedTypeDict,
-    validate_expected,
     validate_kwargs,
+    BaseKwargs,
 )
-from mgplot.keyword_names import AX, VERBOSE, MIDDLE, PLOT_TYPE, PLOT_FROM
 
 
 # --- constants
+ME = "summary_plot"
+
 ZSCORES = "zscores"
 ZSCALED = "zscaled"
 
-SUMMARY_KW_TYPES: ExpectedTypeDict = {
-    AX: (Axes, type(None)),
-    VERBOSE: bool,
-    MIDDLE: float,
-    PLOT_TYPE: str,
-    PLOT_FROM: (int, Period, type(None)),
-}
-validate_expected(SUMMARY_KW_TYPES, "summary_plot")
+
+class SummaryKwargs(BaseKwargs):
+    """Keyword arguments for the summary_plot function."""
+
+    ax: NotRequired[Axes | None]
+    verbose: NotRequired[bool]
+    middle: NotRequired[float]
+    plot_type: NotRequired[str]
+    plot_from: NotRequired[int | Period | None]
+    legend: NotRequired[dict[str, Any]]
 
 
 # --- functions
@@ -197,10 +198,7 @@ def _horizontal_bar_plot(
 
 
 # public
-def summary_plot(
-    data: DataT,  # summary data
-    **kwargs,
-) -> Axes:
+def summary_plot(data: DataT, **kwargs: Unpack[SummaryKwargs]) -> Axes:
     """Plot a summary of historical data for a given DataFrame.
 
     Args:
@@ -218,8 +216,8 @@ def summary_plot(
 
     # --- check the kwargs
     me = "summary_plot"
-    report_kwargs(called_from=me, **kwargs)
-    kwargs = validate_kwargs(SUMMARY_KW_TYPES, me, **kwargs)
+    report_kwargs(caller=me, **kwargs)
+    validate_kwargs(schema=SummaryKwargs, caller=me, **kwargs)
 
     # --- check the data
     data = check_clean_timeseries(data, me)
@@ -243,14 +241,14 @@ def summary_plot(
     )
 
     # get the data, calculate z-scores and scaled scores based on the start period
-    subset, kwargs = constrain_data(df, **kwargs)
+    subset, kwargsd = constrain_data(df, **kwargs)
     z_scores, z_scaled = _calculate_z(subset, middle, verbose=verbose)
 
     # plot as required by the plot_types argument
     adjusted = z_scores if plot_type == ZSCORES else z_scaled
-    ax = _horizontal_bar_plot(subset, adjusted, middle, plot_type, kwargs)
+    ax = _horizontal_bar_plot(subset, adjusted, middle, plot_type, kwargsd)
     ax.tick_params(axis="y", labelsize="small")
-    make_legend(ax, kwargs["legend"])
-    ax.set_xlim(kwargs.get("xlim", None))  # provide space for the labels
+    make_legend(ax, kwargsd["legend"])
+    ax.set_xlim(kwargsd.get("xlim", None))  # provide space for the labels
 
     return ax

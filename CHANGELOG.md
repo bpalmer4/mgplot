@@ -1,3 +1,14 @@
+Version 0.2.0a2 - released 18-Jun-2025 (Canberra,m Australia)
+
+* major changes
+    - rewrote dynamic type-checking, to leverage static type 
+      definitions
+    - enhanced static type information for kwargs in most cases
+    - moved test code into a separate directory
+    - unresolved issue with scaled z-score charts
+
+---
+
 Version 0.1.13 - released 15-Jun-2025 (Canberra Australia)
 
 * major changes

@@ -7,146 +7,98 @@ plot period and annual/through-the-year growth rates on the same axes.
 """
 
 # --- imports
-from typing import Final
-
+from typing import Unpack, NotRequired, cast
 from pandas import Series, DataFrame, Period, PeriodIndex, period_range
 from numpy import nan
 from matplotlib.pyplot import Axes
-from tabulate import tabulate
 
-from mgplot.bar_plot import bar_plot, BAR_KW_TYPES
-from mgplot.line_plot import line_plot, LINE_KW_TYPES
+from mgplot.bar_plot import bar_plot
+from mgplot.line_plot import line_plot
 from mgplot.axis_utils import map_periodindex
-from mgplot.test import prepare_for_test
 from mgplot.settings import DataT
 from mgplot.axis_utils import set_labels
 from mgplot.utilities import check_clean_timeseries, constrain_data
-from mgplot.kw_type_checking import (
+from mgplot.keyword_checking import (
     validate_kwargs,
     report_kwargs,
-    validate_expected,
-    ExpectedTypeDict,
+    BaseKwargs,
     TransitionKwargs,
-    trans_check,
     package_kwargs,
-)
-from mgplot.keyword_names import (
-    # - common
-    AX,
-    REPORT_KWARGS,
-    LABEL_SERIES,
-    MAX_TICKS,
-    WIDTH,
-    COLOR,
-    STYLE,
-    ANNOTATE,
-    ANNOTATE_COLOR,
-    ROUNDING,
-    FONTSIZE,
-    FONTNAME,
-    ROTATION,
-    # - line related
-    LINE_WIDTH,
-    LINE_COLOR,
-    LINE_STYLE,
-    ANNOTATE_LINE,
-    LINE_ROUNDING,
-    LINE_FONTSIZE,
-    LINE_FONTNAME,
-    LINE_ANNO_COLOR,
-    # - bar related
-    ANNOTATE_BARS,
-    BAR_ROUNDING,
-    BAR_ROTATION,
-    BAR_WIDTH,
-    BAR_COLOR,
-    BAR_ANNO_COLOR,
-    BAR_FONTSIZE,
-    BAR_FONTNAME,
-    PLOT_FROM,
-    ABOVE,
 )
 
 # === constants
 
+
 # - overarching constants
+class GrowthKwargs(BaseKwargs):
+    """Keyword arguments for the growth_plot function."""
 
-ANNUAL = "annual"
-PERIODIC = "periodic"
-
-GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
     # --- common options
-    AX: (Axes, type(None)),
-    PLOT_FROM: (int, Period, type(None)),
-    LABEL_SERIES: (bool),
-    MAX_TICKS: int,
+    ax: NotRequired[Axes | None]
+    plot_from: NotRequired[int | Period]
+    label_series: NotRequired[bool]
+    max_ticks: NotRequired[int]
     # --- options passed to the line plot
-    LINE_WIDTH: (float, int),
-    LINE_COLOR: str,
-    LINE_STYLE: str,
-    ANNOTATE_LINE: bool,  # None, True
-    LINE_ROUNDING: (bool, int),  # None, True or rounding
-    LINE_FONTSIZE: (str, int, float),  # fontsize for the line annotations
-    LINE_FONTNAME: str,  # font name for the line annotations
-    LINE_ANNO_COLOR: str,  # color for the line annotations
+    line_width: NotRequired[float | int]
+    line_color: NotRequired[str]
+    line_style: NotRequired[str]
+    annotate_line: NotRequired[bool]
+    line_rounding: NotRequired[bool | int]
+    line_fontsize: NotRequired[str | int | float]
+    line_fontname: NotRequired[str]
+    line_anno_color: NotRequired[str]
     # --- options passed to the bar plot
-    ANNOTATE_BARS: (type(None), bool),
-    BAR_FONTSIZE: (str, int, float),
-    BAR_FONTNAME: str,
-    BAR_ROUNDING: int,
-    BAR_WIDTH: float,
-    BAR_COLOR: str,
-    BAR_ANNO_COLOR: (str, type(None)),
-    BAR_ROTATION: (int, float),
-    ABOVE: bool,
-}
-validate_expected(GROWTH_KW_TYPES, "growth_plot")
+    annotate_bars: NotRequired[bool]
+    bar_fontsize: NotRequired[str | int | float]
+    bar_fontname: NotRequired[str]
+    bar_rounding: NotRequired[int]
+    bar_width: NotRequired[float]
+    bar_color: NotRequired[str]
+    bar_anno_color: NotRequired[str]
+    bar_rotation: NotRequired[int | float]
 
-SERIES_GROWTH_KW_TYPES: Final[ExpectedTypeDict] = {
-    "ylabel": (str, type(None)),
-} | GROWTH_KW_TYPES
-validate_expected(SERIES_GROWTH_KW_TYPES, "growth_plot")
+
+class SeriesGrowthKwargs(GrowthKwargs):
+    """Keyword arguments for the series_growth_plot function."""
+
+    ylabel: NotRequired[str | None]
 
 
 # - transition of kwargs from growth_plot to line_plot
 common_transitions: TransitionKwargs = {
     # arg-to-growth_plot : (arg-to-line_plot, default_value)
-    LABEL_SERIES: (LABEL_SERIES, True),
-    AX: (AX, None),
-    # MAX_TICKS: (MAX_TICKS, None),
-    PLOT_FROM: (PLOT_FROM, None),
-    REPORT_KWARGS: (REPORT_KWARGS, None),
+    "label_series": ("label_series", True),
+    "ax": ("ax", None),
+    "max_ticks": ("max_ticks", None),
+    "plot_from": ("plot_from", None),
+    "report_kwargs": ("report_kwargs", None),
 }
-trans_check(common_transitions, GROWTH_KW_TYPES, LINE_KW_TYPES, __name__)
-trans_check(common_transitions, GROWTH_KW_TYPES, BAR_KW_TYPES, __name__)
 
 to_line_plot: TransitionKwargs = common_transitions | {
     # arg-to-growth_plot : (arg-to-line_plot, default_value)
-    LINE_WIDTH: (WIDTH, None),
-    LINE_COLOR: (COLOR, "darkblue"),
-    LINE_STYLE: (STYLE, None),
-    ANNOTATE_LINE: (ANNOTATE, True),
-    LINE_ROUNDING: (ROUNDING, None),
-    LINE_FONTSIZE: (FONTSIZE, None),
-    LINE_FONTNAME: (FONTNAME, None),
-    LINE_ANNO_COLOR: (ANNOTATE_COLOR, None),
+    "line_width": ("width", None),
+    "line_color": ("color", "darkblue"),
+    "line_style": ("style", None),
+    "annotate_line": ("annotate", True),
+    "line_rounding": ("rounding", None),
+    "line_fontsize": ("fontsize", None),
+    "line_fontname": ("fontname", None),
+    "line_anno_color": ("annotate_color", None),
 }
-trans_check(to_line_plot, GROWTH_KW_TYPES, LINE_KW_TYPES, __name__)
 
 # - constants for the bar plot
 to_bar_plot: TransitionKwargs = common_transitions | {
     # arg-to-growth_plot : (arg-to-bar_plot, default_value)
-    BAR_WIDTH: (WIDTH, 0.8),
-    BAR_COLOR: (COLOR, "#dd0000"),
-    ANNOTATE_BARS: (ANNOTATE, True),
-    BAR_ROUNDING: (ROUNDING, None),
-    ABOVE: (ABOVE, False),
-    BAR_ROTATION: (ROTATION, None),
-    BAR_FONTSIZE: (FONTSIZE, None),
-    BAR_FONTNAME: (FONTNAME, None),
-    BAR_ANNO_COLOR: (ANNOTATE_COLOR, None),
+    "bar_width": ("width", 0.8),
+    "bar_color": ("color", "#dd0000"),
+    "annotate_bars": ("annotate", True),
+    "bar_rounding": ("rounding", None),
+    "above": ("above", False),
+    "bar_rotation": ("rotation", None),
+    "bar_fontsize": ("fontsize", None),
+    "bar_fontname": ("fontname", None),
+    "bar_anno_color": ("annotate_color", None),
 }
-trans_check(to_bar_plot, GROWTH_KW_TYPES, BAR_KW_TYPES, __name__)
 
 
 # === functions
@@ -201,59 +153,35 @@ def calc_growth(series: Series) -> DataFrame:
 
 def growth_plot(
     data: DataT,
-    **kwargs,
+    **kwargs: Unpack[GrowthKwargs],
 ) -> Axes:
     """
-        Plot annual growth (as a line) and periodic growth (as bars)
-        on the same axes.
+    Plot annual growth (as a line) and periodic growth (as bars)
+    on the same axes.
 
-        Args:
-        -   data: A pandas DataFrame with two columns:
-        -   kwargs:
-            # --- common options
-            ax: Axes | None -- the matplotlib Axes to plot on, or None to create a new one.
-            plot_from: Period | int | None -- the period to start plotting from
-            label_series: bool -- whether to label the series in the legend.
-            max_ticks: int -- maximum number of ticks on the x-axis
-            # --- options passed to the line plot
-            line_width: float | int  -- the width of the line
-            line_color: str  -- the color of the line
-            line_style: str  -- the style of the line
-            annotate_line: None | bool -- whether to annotate the end of the line
-            line_rounding: bool | int  -- rounding for line annotation
-            line_fontsize: str | int | float  -- fontsize for the line annotation
-            line_fontname: str  -- font name for the line annotation
-            line_anno_color: str | bool | None  -- color for the line annotation
-            # --- options passed to the bar plot
-            bar_width: float,
-            bar_color: str,
-            annotate_bars: None | bool -- whether to annotate the bars
-            above: bool -- whether to place the bar annotations above the bars
-            bar_fontsize: str | int | float -- fontsize for the bar annotations
-            bar_fontname: str -- font name for the bar annotations
-            bar_rounding: bool | int -- rounding for bar annotation
-            bar_anno_color: str | None -- color for the bar annotation
-            bar_rotation: int | float -- rotation for the bar annotation
-    }
-        Returns:
-        -   axes: The matplotlib Axes object.
+    Args:
+    -   data: A pandas DataFrame with two columns:
+    -   kwargs: GrowthKwargs
 
-        Raises:
-        -   TypeError if the annual and periodic arguments are not pandas Series.
-        -   TypeError if the annual index is not a PeriodIndex.
-        -   ValueError if the annual and periodic series do not have the same index.
+            Returns:
+    -   axes: The matplotlib Axes object.
+
+    Raises:
+    -   TypeError if the annual and periodic arguments are not pandas Series.
+    -   TypeError if the annual index is not a PeriodIndex.
+    -   ValueError if the annual and periodic series do not have the same index.
     """
 
     # --- check the kwargs
     me = "growth_plot"
-    report_kwargs(called_from=me, **kwargs)
-    kwargs = validate_kwargs(GROWTH_KW_TYPES, me, **kwargs)
+    report_kwargs(caller=me, **kwargs)
+    validate_kwargs(GrowthKwargs, caller=me, **kwargs)
 
     # --- data checks
     data = check_clean_timeseries(data, me)
     if len(data.columns) != 2:
         raise TypeError("The data argument must be a pandas DataFrame with two columns")
-    data, kwargs = constrain_data(data, **kwargs)
+    data, kwargsd = constrain_data(data, **kwargs)
 
     # --- get the series of interest ...
     annual = data[data.columns[0]]
@@ -271,18 +199,18 @@ def growth_plot(
         periodic = saved_pi[0]  # extract the reindexed DataFrame
 
     # --- simple bar chart for the periodic growth
-    if BAR_ANNO_COLOR not in kwargs or kwargs[BAR_ANNO_COLOR] is None:
-        kwargs[BAR_ANNO_COLOR] = "black" if kwargs.get(ABOVE, False) else "white"
-    selected = package_kwargs(to_bar_plot, **kwargs)
+    if "bar_anno_color" not in kwargsd or kwargsd["bar_anno_color"] is None:
+        kwargsd["bar_anno_color"] = "black" if kwargsd.get("above", False) else "white"
+    selected = package_kwargs(to_bar_plot, **kwargsd)
     axes = bar_plot(periodic, **selected)
 
     # --- and now the annual growth as a line
-    selected = package_kwargs(to_line_plot, **kwargs)
+    selected = package_kwargs(to_line_plot, **kwargsd)
     line_plot(annual, ax=axes, **selected)
 
     # --- fix the x-axis labels
     if saved_pi is not None:
-        set_labels(axes, saved_pi[1], kwargs.get("max_ticks", 10))
+        set_labels(axes, saved_pi[1], kwargsd.get("max_ticks", 10))
 
     # --- and done ...
     return axes
@@ -290,7 +218,7 @@ def growth_plot(
 
 def series_growth_plot(
     data: DataT,
-    **kwargs,
+    **kwargs: Unpack[SeriesGrowthKwargs],
 ) -> Axes:
     """
     Plot annual and periodic growth in percentage terms from
@@ -298,14 +226,14 @@ def series_growth_plot(
 
     Args:
     -   data: A pandas Series with an appropriate PeriodIndex.
-    -   kwargs:
-        -   takes the same kwargs as for growth_plot()
+    -   kwargs: SeriesGrowthKwargs
+        -   takes much the same kwargs as for growth_plot()
     """
 
     # --- check the kwargs
     me = "series_growth_plot"
-    report_kwargs(called_from=me, **kwargs)
-    kwargs = validate_kwargs(SERIES_GROWTH_KW_TYPES, me, **kwargs)
+    report_kwargs(caller=me, **kwargs)
+    validate_kwargs(SeriesGrowthKwargs, caller=me, **kwargs)
 
     # --- sanity checks
     if not isinstance(data, Series):
@@ -319,17 +247,6 @@ def series_growth_plot(
         print(f"Did you intend to specify a value for the 'ylabel' in {me}()?")
     ylabel = "Growth (%)" if ylabel is None else ylabel
     growth = calc_growth(data)
-    ax = growth_plot(growth, **kwargs)
+    ax = growth_plot(growth, **cast(GrowthKwargs, kwargs))
     ax.set_ylabel(ylabel)
     return ax
-
-
-# --- test code
-if __name__ == "__main__":
-    print("Testing")
-    prepare_for_test("growth_plot")
-    series_ = Series([1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0])
-    series_.index = period_range("2020Q1", periods=len(series_), freq="Q")
-    growth_ = calc_growth(series_)
-    text_ = tabulate(growth_, headers="keys", tablefmt="pipe")  # type: ignore[arg-type]
-    print(text_)

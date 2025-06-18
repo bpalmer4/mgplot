@@ -20,8 +20,8 @@ wheels/
 *.egg-info
 
 # Test 
-src/mgplot/zz-test-charts/**
-src/mgplot/zz-unused-code-snippets/**
+test/zz-test-charts/**
+test/zz-test-charts/
 
 # Virtual environments
 .venv

@@ -5,40 +5,33 @@ the 'runs' in a series.
 """
 
 # --- imports
-from typing import Final
 from collections.abc import Sequence
+from typing import Unpack, NotRequired
 from pandas import Series, concat
 from matplotlib.pyplot import Axes
 from matplotlib import patheffects as pe
 
 from mgplot.settings import DataT, get_setting
 from mgplot.axis_utils import map_periodindex, set_labels
-from mgplot.line_plot import line_plot, LINE_KW_TYPES
-from mgplot.kw_type_checking import (
-    limit_kwargs,
-    ExpectedTypeDict,
+from mgplot.line_plot import line_plot, LineKwargs
+from mgplot.keyword_checking import (
     validate_kwargs,
-    validate_expected,
     report_kwargs,
+    limit_kwargs,
 )
 from mgplot.utilities import constrain_data, check_clean_timeseries
-from mgplot.keyword_names import (
-    COLOR,
-    THRESHOLD,
-    ROUNDING,
-    HIGHLIGHT,
-    DIRECTION,
-    DRAWSTYLE,
-)
 
 # --- constants
+ME = "run_plot"
 
-RUN_KW_TYPES: Final[ExpectedTypeDict] = LINE_KW_TYPES | {
-    THRESHOLD: float,
-    HIGHLIGHT: (str, Sequence, (str,)),  # colors for highlighting the runs
-    DIRECTION: str,  # "up", "down" or "both"
-}
-validate_expected(RUN_KW_TYPES, __name__)
+
+class RunKwargs(LineKwargs):
+    """Keyword arguments for the run_plot function."""
+
+    threshold: NotRequired[float]
+    highlight: NotRequired[str | Sequence[str]]
+    direction: NotRequired[str]
+
 
 # --- functions
 
@@ -70,15 +63,15 @@ def _plot_runs(
 ) -> None:
     """Highlight the runs of a series."""
 
-    threshold = kwargs[THRESHOLD]
-    match kwargs.get(HIGHLIGHT):  # make sure highlight is a color string
+    threshold = kwargs["threshold"]
+    match kwargs.get("highlight"):  # make sure highlight is a color string
         case str():
-            highlight = kwargs.get(HIGHLIGHT)
+            highlight = kwargs.get("highlight")
         case Sequence():
-            highlight = kwargs[HIGHLIGHT][0] if up else kwargs[HIGHLIGHT][1]
+            highlight = kwargs["highlight"][0] if up else kwargs["highlight"][1]
         case _:
             raise ValueError(
-                f"Invalid type for highlight: {type(kwargs.get(HIGHLIGHT))}. "
+                f"Invalid type for highlight: {type(kwargs.get('highlight'))}. "
                 "Expected str or Sequence."
             )
 
@@ -103,7 +96,7 @@ def _plot_runs(
             x=stretch.index.min(),
             y=y_pos,
             s=(
-                change_points[stretch.index].sum().round(kwargs[ROUNDING]).astype(str)
+                change_points[stretch.index].sum().round(kwargs["rounding"]).astype(str)
                 + " pp"
             ),
             va=vert_align,
@@ -114,71 +107,62 @@ def _plot_runs(
         text.set_path_effects([pe.withStroke(linewidth=5, foreground="w")])
 
 
-def run_plot(data: DataT, **kwargs) -> Axes:
+def run_plot(data: DataT, **kwargs: Unpack[RunKwargs]) -> Axes:
     """Plot a series of percentage rates, highlighting the increasing runs.
 
     Arguments
      - data - ordered pandas Series of percentages, with PeriodIndex
-     - **kwargs
-        - threshold - float - used to ignore micro noise near zero
-          (for example, threshhold=0.01)
-        - round - int - rounding for highlight text
-        - highlight - str or Sequence[str] - color(s) for highlighting the
-          runs, two colors can be specified in a list if direction is "both"
-        - direction - str - whether the highlight is for an upward
-          or downward or both runs. Options are "up", "down" or "both".
-        - in addition the **kwargs for line_plot are accepted.
+     - **kwargs: RunKwargs
 
     Return
      - matplotlib Axes object"""
 
     # --- check the kwargs
-    me = "run_plot"
-    report_kwargs(called_from=me, **kwargs)
-    kwargs = validate_kwargs(RUN_KW_TYPES, me, **kwargs)
+    report_kwargs(caller="run_plot", **kwargs)
+    validate_kwargs(schema=RunKwargs, caller=ME, **kwargs)
 
     # --- check the data
-    series = check_clean_timeseries(data, me)
+    series = check_clean_timeseries(data, ME)
     if not isinstance(series, Series):
         raise TypeError("series must be a pandas Series for run_plot()")
-    series, kwargs = constrain_data(series, **kwargs)
+    series, kwargs_d = constrain_data(series, **kwargs)
 
     # --- convert PeriodIndex if needed
     saved_pi = map_periodindex(series)
     if saved_pi is not None:
         series = saved_pi[0]
 
-    # --- default arguments - in **kwargs
-    kwargs[THRESHOLD] = kwargs.get(THRESHOLD, 0.1)
-    kwargs[DIRECTION] = kwargs.get(DIRECTION, "both")
-    kwargs[ROUNDING] = kwargs.get(ROUNDING, 2)
-    kwargs[HIGHLIGHT] = kwargs.get(
-        HIGHLIGHT,
+    # --- default arguments - in **kwargs_d
+    kwargs_d["threshold"] = kwargs_d.get("threshold", 0.1)
+    kwargs_d["direction"] = kwargs_d.get("direction", "both")
+    kwargs_d["rounding"] = kwargs_d.get("rounding", 2)
+    kwargs_d["highlight"] = kwargs_d.get(
+        "highlight",
         (
             ("gold", "skyblue")
-            if kwargs[DIRECTION] == "both"
-            else "gold" if kwargs[DIRECTION] == "up" else "skyblue"
+            if kwargs_d["direction"] == "both"
+            else "gold" if kwargs_d["direction"] == "up" else "skyblue"
         ),
     )
-    kwargs[COLOR] = kwargs.get(COLOR, "darkblue")
+    kwargs_d["color"] = kwargs_d.get("color", "darkblue")
 
     # --- plot the line
-    kwargs[DRAWSTYLE] = kwargs.get(DRAWSTYLE, "steps-post")
-    lp_kwargs = limit_kwargs(LINE_KW_TYPES, **kwargs)
+    kwargs_d["drawstyle"] = kwargs_d.get("drawstyle", "steps-post")
+    lp_kwargs = limit_kwargs(LineKwargs, **kwargs_d)
     axes = line_plot(series, **lp_kwargs)
 
     # plot the runs
-    match kwargs[DIRECTION]:
+    match kwargs["direction"]:
         case "up":
-            _plot_runs(axes, series, up=True, **kwargs)
+            _plot_runs(axes, series, up=True, **kwargs_d)
         case "down":
-            _plot_runs(axes, series, up=False, **kwargs)
+            _plot_runs(axes, series, up=False, **kwargs_d)
         case "both":
-            _plot_runs(axes, series, up=True, **kwargs)
-            _plot_runs(axes, series, up=False, **kwargs)
+            _plot_runs(axes, series, up=True, **kwargs_d)
+            _plot_runs(axes, series, up=False, **kwargs_d)
         case _:
             raise ValueError(
-                f"Invalid value for direction: {kwargs[DIRECTION]}. "
+                f"Invalid value for direction: {kwargs['direction']}. "
                 "Expected 'up', 'down', or 'both'."
             )
 

@@ -10,27 +10,35 @@ with timeseries data that is indexed with a PeriodIndex.
 import importlib.metadata
 
 # --- local imports
-#    Do not import the utilities, test nor type-checking modules here.
-from mgplot.finalise_plot import finalise_plot, FINALISE_KW_TYPES
-from mgplot.bar_plot import bar_plot, BAR_KW_TYPES
-from mgplot.line_plot import line_plot, LINE_KW_TYPES
-from mgplot.seastrend_plot import seastrend_plot, SEASTREND_KW_TYPES
-from mgplot.postcovid_plot import postcovid_plot, POSTCOVID_KW_TYPES
-from mgplot.revision_plot import revision_plot, REVISION_KW_TYPES
-from mgplot.run_plot import run_plot, RUN_KW_TYPES
-from mgplot.summary_plot import summary_plot, SUMMARY_KW_TYPES
+#    Do not import the utilities, axis_utils nor keyword_checking modules here.
+from mgplot.bar_plot import bar_plot, BarKwargs
+from mgplot.line_plot import line_plot, LineKwargs
+from mgplot.seastrend_plot import seastrend_plot
+from mgplot.postcovid_plot import postcovid_plot, PostcovidKwargs
+from mgplot.run_plot import run_plot, RunKwargs
+from mgplot.revision_plot import revision_plot
 from mgplot.growth_plot import (
-    calc_growth,
     growth_plot,
+    GrowthKwargs,
     series_growth_plot,
-    SERIES_GROWTH_KW_TYPES,
-    GROWTH_KW_TYPES,
+    SeriesGrowthKwargs,
 )
-from mgplot.multi_plot import (
-    multi_start,
-    multi_column,
-    plot_then_finalise,
+from mgplot.summary_plot import summary_plot, SummaryKwargs
+from mgplot.multi_plot import plot_then_finalise, multi_start, multi_column
+from mgplot.finalisers import (
+    bar_plot_finalise,
+    line_plot_finalise,
+    postcovid_plot_finalise,
+    growth_plot_finalise,
+    revision_plot_finalise,
+    run_plot_finalise,
+    seastrend_plot_finalise,
+    series_growth_plot_finalise,
+    summary_plot_finalise,
 )
+
+# ,import multi_start, multi_column
+from mgplot.finalise_plot import finalise_plot, FinaliseKwargs
 from mgplot.colors import (
     get_color,
     get_party_palette,
@@ -45,17 +53,6 @@ from mgplot.settings import (
     set_setting,
     set_chart_dir,
     clear_chart_dir,
-)
-from mgplot.finalisers import (
-    line_plot_finalise,
-    bar_plot_finalise,
-    seastrend_plot_finalise,
-    postcovid_plot_finalise,
-    revision_plot_finalise,
-    summary_plot_finalise,
-    growth_plot_finalise,
-    series_growth_plot_finalise,
-    run_plot_finalise,
 )
 
 
@@ -84,51 +81,47 @@ __all__ = (
     "abbreviate_state",
     "state_names",
     "state_abbrs",
-    # --- finalise_plot
-    "finalise_plot",
-    # --- line_plot
-    "line_plot",
     # --- bar plot
     "bar_plot",
-    # --- seastrend_plot
+    "BarKwargs",
+    # --- line plot
+    "line_plot",
+    "LineKwargs",
+    # --- seasonal + trend plot
     "seastrend_plot",
-    # --- postcovid_plot
+    # --- post-COVID plot
     "postcovid_plot",
-    # --- revision_plot
-    "revision_plot",
-    # --- run_plot
+    "PostcovidKwargs",
+    # --- run plot
     "run_plot",
-    # --- summary_plot
-    "summary_plot",
-    # --- growth_plot
-    "calc_growth",
+    "RunKwargs",
+    # --- revision plot
+    "revision_plot",
+    # --- growth plot
     "growth_plot",
+    "GrowthKwargs",
     "series_growth_plot",
-    # --- multi_plot
+    "SeriesGrowthKwargs",
+    # --- summary plot
+    "summary_plot",
+    "SummaryKwargs",
+    # --- multi plot
     "multi_start",
     "multi_column",
     "plot_then_finalise",
-    # --- finaliser functions
-    "line_plot_finalise",
+    # --- finalise plot
+    "finalise_plot",
+    "FinaliseKwargs",
+    # --- finalisers
     "bar_plot_finalise",
-    "seastrend_plot_finalise",
+    "line_plot_finalise",
     "postcovid_plot_finalise",
-    "revision_plot_finalise",
-    "summary_plot_finalise",
     "growth_plot_finalise",
-    "series_growth_plot_finalise",
+    "revision_plot_finalise",
     "run_plot_finalise",
-    # --- typing information
-    "FINALISE_KW_TYPES",
-    "BAR_KW_TYPES",
-    "LINE_KW_TYPES",
-    "SEASTREND_KW_TYPES",
-    "POSTCOVID_KW_TYPES",
-    "REVISION_KW_TYPES",
-    "RUN_KW_TYPES",
-    "SUMMARY_KW_TYPES",
-    "SERIES_GROWTH_KW_TYPES",
-    "GROWTH_KW_TYPES",
+    "seastrend_plot_finalise",
+    "series_growth_plot_finalise",
+    "summary_plot_finalise",
     # --- The rest are internal use only
 )
 # __pdoc__: dict[str, Any] = {"test": False}  # hide submodules from documentation

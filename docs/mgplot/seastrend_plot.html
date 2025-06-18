@@ -31,7 +31,7 @@
             <h2>API Documentation</h2>
                 <ul class="memberlist">
             <li>
-                    <a class="variable" href="#SEASTREND_KW_TYPES">SEASTREND_KW_TYPES</a>
+                    <a class="variable" href="#ME">ME</a>
             </li>
             <li>
                     <a class="function" href="#seastrend_plot">seastrend_plot</a>
@@ -53,7 +53,8 @@
 <a href="./../mgplot.html">mgplot</a><wbr>.seastrend_plot    </h1>
 
                         <div class="docstring"><p>seas_trend_plot.py
-This module contains a function to create seasonal+trend plots.</p>
+This module contains a function to create seasonal+trend plots.
+It is just a light-weight wrapper around line_plot().</p>
 </div>
 
                         <input id="mod-seastrend_plot-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
@@ -63,94 +64,83 @@ This module contains a function to create seasonal+trend plots.</p>
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="sd">seas_trend_plot.py</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="sd">This module contains a function to create seasonal+trend plots.</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="c1"># --- imports</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataT</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.line_plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">line_plot</span><span class="p">,</span> <span class="n">LINE_KW_TYPES</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_color_list</span><span class="p">,</span> <span class="n">get_setting</span><span class="p">,</span> <span class="n">check_clean_timeseries</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.kw_type_checking</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_kwargs</span><span class="p">,</span> <span class="n">validate_kwargs</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.keyword_names</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="n">COLOR</span><span class="p">,</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="n">WIDTH</span><span class="p">,</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="n">STYLE</span><span class="p">,</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>    <span class="n">ANNOTATE</span><span class="p">,</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>    <span class="n">ROUNDING</span><span class="p">,</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="n">DROPNA</span><span class="p">,</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="p">)</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="c1"># --- constants</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="n">SEASTREND_KW_TYPES</span> <span class="o">=</span> <span class="n">LINE_KW_TYPES</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="sd">It is just a light-weight wrapper around line_plot().</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="c1"># --- imports</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Final</span><span class="p">,</span> <span class="n">Unpack</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataT</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.line_plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">line_plot</span><span class="p">,</span> <span class="n">LineKwargs</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_color_list</span><span class="p">,</span> <span class="n">get_setting</span><span class="p">,</span> <span class="n">check_clean_timeseries</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mgplot.keyword_checking</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_kwargs</span><span class="p">,</span> <span class="n">validate_kwargs</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="c1"># --- constants</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="n">ME</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;seastrend_plot&quot;</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="c1"># --- public functions</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="k">def</span><span class="w"> </span><span class="nf">seastrend_plot</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">DataT</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Unpack</span><span class="p">[</span><span class="n">LineKwargs</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Axes</span><span class="p">:</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="sd">    Publish a DataFrame, where the first column is seasonally</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="sd">    adjusted data, and the second column is trend data.</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a><span class="c1"># --- public functions</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="k">def</span><span class="w"> </span><span class="nf">seastrend_plot</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">DataT</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Axes</span><span class="p">:</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">    Publish a DataFrame, where the first column is seasonally</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a><span class="sd">    adjusted data, and the second column is trend data.</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a><span class="sd">    Aguments:</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="sd">    - data: DataFrame - the data to plot with the first column</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a><span class="sd">      being the seasonally adjusted data, and the second column</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="sd">      being the trend data.</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="sd">    The remaining arguments are the same as those passed to</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a><span class="sd">    line_plot().</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a><span class="sd">    Returns:</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="sd">    - a matplotlib Axes object</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    <span class="c1"># Note: we will rely on the line_plot() function to do most of the work.</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>    <span class="c1"># including constraining the data to the plot_from keyword argument.</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="c1"># --- check the kwargs</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>    <span class="n">me</span> <span class="o">=</span> <span class="s2">&quot;seastrend_plot&quot;</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    <span class="n">report_kwargs</span><span class="p">(</span><span class="n">called_from</span><span class="o">=</span><span class="n">me</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">validate_kwargs</span><span class="p">(</span><span class="n">SEASTREND_KW_TYPES</span><span class="p">,</span> <span class="n">me</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a><span class="sd">    Aguments:</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="sd">    - data: DataFrame - the data to plot with the first column</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="sd">      being the seasonally adjusted data, and the second column</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">      being the trend data.</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a><span class="sd">    The remaining arguments are the same as those passed to</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="sd">    line_plot().</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="sd">    Returns:</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a><span class="sd">    - a matplotlib Axes object</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="c1"># Note: we will rely on the line_plot() function to do most of the work.</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>    <span class="c1"># including constraining the data to the plot_from keyword argument.</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>    <span class="c1"># --- check the kwargs</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>    <span class="n">report_kwargs</span><span class="p">(</span><span class="n">caller</span><span class="o">=</span><span class="n">ME</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>    <span class="n">validate_kwargs</span><span class="p">(</span><span class="n">schema</span><span class="o">=</span><span class="n">LineKwargs</span><span class="p">,</span> <span class="n">caller</span><span class="o">=</span><span class="n">ME</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>    <span class="c1"># --- check the data</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">check_clean_timeseries</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ME</span><span class="p">)</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>            <span class="s2">&quot;seas_trend_plot() expects a DataFrame data item with at least 2 columns.&quot;</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>        <span class="p">)</span>
 </span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>    <span class="c1"># --- check the data</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">check_clean_timeseries</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">me</span><span class="p">)</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>            <span class="s2">&quot;seas_trend_plot() expects a DataFrame data item with at least 2 columns.&quot;</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>        <span class="p">)</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>
-</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>    <span class="c1"># --- defaults if not in kwargs</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>    <span class="n">colors</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">COLOR</span><span class="p">,</span> <span class="n">get_color_list</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>    <span class="n">widths</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">WIDTH</span><span class="p">,</span> <span class="p">[</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_normal&quot;</span><span class="p">),</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_wide&quot;</span><span class="p">)])</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>    <span class="n">styles</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">STYLE</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">])</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>    <span class="n">annotations</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ANNOTATE</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>    <span class="n">rounding</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ROUNDING</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>
-</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>    <span class="c1"># series breaks are common in seas-trend data</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="n">DROPNA</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">DROPNA</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>    <span class="c1"># --- defaults if not in kwargs</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">,</span> <span class="n">get_color_list</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>        <span class="s2">&quot;width&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_normal&quot;</span><span class="p">),</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_wide&quot;</span><span class="p">)]</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>    <span class="p">)</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;style&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">])</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;annotate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;annotate&quot;</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;rounding&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rounding&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>    <span class="c1"># series breaks are common in seas-trend data</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;dropna&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dropna&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>
+</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>    <span class="n">axes</span> <span class="o">=</span> <span class="n">line_plot</span><span class="p">(</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>        <span class="n">data</span><span class="p">,</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>    <span class="p">)</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>
-</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>    <span class="n">axes</span> <span class="o">=</span> <span class="n">line_plot</span><span class="p">(</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>        <span class="n">data</span><span class="p">,</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>        <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">widths</span><span class="p">,</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>        <span class="n">style</span><span class="o">=</span><span class="n">styles</span><span class="p">,</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a>        <span class="n">annotate</span><span class="o">=</span><span class="n">annotations</span><span class="p">,</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a>        <span class="n">rounding</span><span class="o">=</span><span class="n">rounding</span><span class="p">,</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a>    <span class="p">)</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos">77</span></a>
-</span><span id="L-78"><a href="#L-78"><span class="linenos">78</span></a>    <span class="k">return</span> <span class="n">axes</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>    <span class="k">return</span> <span class="n">axes</span>
 </span></pre></div>
 
 
             </section>
-                <section id="SEASTREND_KW_TYPES">
+                <section id="ME">
                     <div class="attr variable">
-            <span class="name">SEASTREND_KW_TYPES</span>        =
-<input id="SEASTREND_KW_TYPES-view-value" class="view-value-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-            <label class="view-value-button pdoc-button" for="SEASTREND_KW_TYPES-view-value"></label><span class="default_value">{&#39;ax&#39;: (&lt;class &#39;matplotlib.axes._axes.Axes&#39;&gt;, &lt;class &#39;NoneType&#39;&gt;), &#39;style&#39;: (&lt;class &#39;str&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;str&#39;&gt;,)), &#39;width&#39;: (&lt;class &#39;float&#39;&gt;, &lt;class &#39;int&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;float&#39;&gt;, &lt;class &#39;int&#39;&gt;)), &#39;color&#39;: (&lt;class &#39;str&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;str&#39;&gt;,)), &#39;alpha&#39;: (&lt;class &#39;float&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;float&#39;&gt;,)), &#39;drawstyle&#39;: (&lt;class &#39;str&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;str&#39;&gt;,), &lt;class &#39;NoneType&#39;&gt;), &#39;marker&#39;: (&lt;class &#39;str&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;str&#39;&gt;,), &lt;class &#39;NoneType&#39;&gt;), &#39;markersize&#39;: (&lt;class &#39;float&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;float&#39;&gt;,), &lt;class &#39;int&#39;&gt;, &lt;class &#39;NoneType&#39;&gt;), &#39;dropna&#39;: (&lt;class &#39;bool&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;bool&#39;&gt;,)), &#39;annotate&#39;: (&lt;class &#39;bool&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;bool&#39;&gt;,)), &#39;rounding&#39;: (&lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;bool&#39;&gt;, &lt;class &#39;int&#39;&gt;), &lt;class &#39;int&#39;&gt;, &lt;class &#39;bool&#39;&gt;, &lt;class &#39;NoneType&#39;&gt;), &#39;fontsize&#39;: (&lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;str&#39;&gt;, &lt;class &#39;int&#39;&gt;, &lt;class &#39;float&#39;&gt;), &lt;class &#39;str&#39;&gt;, &lt;class &#39;int&#39;&gt;, &lt;class &#39;float&#39;&gt;), &#39;fontname&#39;: (&lt;class &#39;str&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;str&#39;&gt;,)), &#39;rotation&#39;: (&lt;class &#39;int&#39;&gt;, &lt;class &#39;float&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;int&#39;&gt;, &lt;class &#39;float&#39;&gt;)), &#39;annotate_color&#39;: (&lt;class &#39;str&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;str&#39;&gt;,), &lt;class &#39;bool&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;bool&#39;&gt;,), &lt;class &#39;NoneType&#39;&gt;), &#39;plot_from&#39;: (&lt;class &#39;int&#39;&gt;, &lt;class &#39;pandas._libs.tslibs.period.Period&#39;&gt;, &lt;class &#39;NoneType&#39;&gt;), &#39;label_series&#39;: (&lt;class &#39;bool&#39;&gt;, &lt;class &#39;collections.abc.Sequence&#39;&gt;, (&lt;class &#39;bool&#39;&gt;,), &lt;class &#39;NoneType&#39;&gt;), &#39;max_ticks&#39;: &lt;class &#39;int&#39;&gt;}</span>
+            <span class="name">ME</span><span class="annotation">: Final[str]</span>        =
+<span class="default_value">&#39;seastrend_plot&#39;</span>
 
         
     </div>
-    <a class="headerlink" href="#SEASTREND_KW_TYPES"></a>
+    <a class="headerlink" href="#ME"></a>
     
     
 
@@ -160,64 +150,60 @@ This module contains a function to create seasonal+trend plots.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">seastrend_plot</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">data</span><span class="p">:</span> <span class="o">~</span><span class="n">DataT</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">) -> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_axes</span><span class="o">.</span><span class="n">Axes</span>:</span></span>
+        <span class="name">seastrend_plot</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">data</span><span class="p">:</span> <span class="o">~</span><span class="n">DataT</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Unpack</span><span class="p">[</span><span class="n"><a href="../mgplot.html#LineKwargs">mgplot.LineKwargs</a></span><span class="p">]</span></span><span class="return-annotation">) -> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_axes</span><span class="o">.</span><span class="n">Axes</span>:</span></span>
 
                 <label class="view-source-button" for="seastrend_plot-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#seastrend_plot"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="seastrend_plot-28"><a href="#seastrend_plot-28"><span class="linenos">28</span></a><span class="k">def</span><span class="w"> </span><span class="nf">seastrend_plot</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">DataT</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Axes</span><span class="p">:</span>
-</span><span id="seastrend_plot-29"><a href="#seastrend_plot-29"><span class="linenos">29</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="seastrend_plot-30"><a href="#seastrend_plot-30"><span class="linenos">30</span></a><span class="sd">    Publish a DataFrame, where the first column is seasonally</span>
-</span><span id="seastrend_plot-31"><a href="#seastrend_plot-31"><span class="linenos">31</span></a><span class="sd">    adjusted data, and the second column is trend data.</span>
-</span><span id="seastrend_plot-32"><a href="#seastrend_plot-32"><span class="linenos">32</span></a>
-</span><span id="seastrend_plot-33"><a href="#seastrend_plot-33"><span class="linenos">33</span></a><span class="sd">    Aguments:</span>
-</span><span id="seastrend_plot-34"><a href="#seastrend_plot-34"><span class="linenos">34</span></a><span class="sd">    - data: DataFrame - the data to plot with the first column</span>
-</span><span id="seastrend_plot-35"><a href="#seastrend_plot-35"><span class="linenos">35</span></a><span class="sd">      being the seasonally adjusted data, and the second column</span>
-</span><span id="seastrend_plot-36"><a href="#seastrend_plot-36"><span class="linenos">36</span></a><span class="sd">      being the trend data.</span>
-</span><span id="seastrend_plot-37"><a href="#seastrend_plot-37"><span class="linenos">37</span></a><span class="sd">    The remaining arguments are the same as those passed to</span>
-</span><span id="seastrend_plot-38"><a href="#seastrend_plot-38"><span class="linenos">38</span></a><span class="sd">    line_plot().</span>
-</span><span id="seastrend_plot-39"><a href="#seastrend_plot-39"><span class="linenos">39</span></a>
-</span><span id="seastrend_plot-40"><a href="#seastrend_plot-40"><span class="linenos">40</span></a><span class="sd">    Returns:</span>
-</span><span id="seastrend_plot-41"><a href="#seastrend_plot-41"><span class="linenos">41</span></a><span class="sd">    - a matplotlib Axes object</span>
-</span><span id="seastrend_plot-42"><a href="#seastrend_plot-42"><span class="linenos">42</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="seastrend_plot-43"><a href="#seastrend_plot-43"><span class="linenos">43</span></a>
-</span><span id="seastrend_plot-44"><a href="#seastrend_plot-44"><span class="linenos">44</span></a>    <span class="c1"># Note: we will rely on the line_plot() function to do most of the work.</span>
-</span><span id="seastrend_plot-45"><a href="#seastrend_plot-45"><span class="linenos">45</span></a>    <span class="c1"># including constraining the data to the plot_from keyword argument.</span>
-</span><span id="seastrend_plot-46"><a href="#seastrend_plot-46"><span class="linenos">46</span></a>
-</span><span id="seastrend_plot-47"><a href="#seastrend_plot-47"><span class="linenos">47</span></a>    <span class="c1"># --- check the kwargs</span>
-</span><span id="seastrend_plot-48"><a href="#seastrend_plot-48"><span class="linenos">48</span></a>    <span class="n">me</span> <span class="o">=</span> <span class="s2">&quot;seastrend_plot&quot;</span>
-</span><span id="seastrend_plot-49"><a href="#seastrend_plot-49"><span class="linenos">49</span></a>    <span class="n">report_kwargs</span><span class="p">(</span><span class="n">called_from</span><span class="o">=</span><span class="n">me</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="seastrend_plot-50"><a href="#seastrend_plot-50"><span class="linenos">50</span></a>    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">validate_kwargs</span><span class="p">(</span><span class="n">SEASTREND_KW_TYPES</span><span class="p">,</span> <span class="n">me</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="seastrend_plot-22"><a href="#seastrend_plot-22"><span class="linenos">22</span></a><span class="k">def</span><span class="w"> </span><span class="nf">seastrend_plot</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">DataT</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Unpack</span><span class="p">[</span><span class="n">LineKwargs</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Axes</span><span class="p">:</span>
+</span><span id="seastrend_plot-23"><a href="#seastrend_plot-23"><span class="linenos">23</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="seastrend_plot-24"><a href="#seastrend_plot-24"><span class="linenos">24</span></a><span class="sd">    Publish a DataFrame, where the first column is seasonally</span>
+</span><span id="seastrend_plot-25"><a href="#seastrend_plot-25"><span class="linenos">25</span></a><span class="sd">    adjusted data, and the second column is trend data.</span>
+</span><span id="seastrend_plot-26"><a href="#seastrend_plot-26"><span class="linenos">26</span></a>
+</span><span id="seastrend_plot-27"><a href="#seastrend_plot-27"><span class="linenos">27</span></a><span class="sd">    Aguments:</span>
+</span><span id="seastrend_plot-28"><a href="#seastrend_plot-28"><span class="linenos">28</span></a><span class="sd">    - data: DataFrame - the data to plot with the first column</span>
+</span><span id="seastrend_plot-29"><a href="#seastrend_plot-29"><span class="linenos">29</span></a><span class="sd">      being the seasonally adjusted data, and the second column</span>
+</span><span id="seastrend_plot-30"><a href="#seastrend_plot-30"><span class="linenos">30</span></a><span class="sd">      being the trend data.</span>
+</span><span id="seastrend_plot-31"><a href="#seastrend_plot-31"><span class="linenos">31</span></a><span class="sd">    The remaining arguments are the same as those passed to</span>
+</span><span id="seastrend_plot-32"><a href="#seastrend_plot-32"><span class="linenos">32</span></a><span class="sd">    line_plot().</span>
+</span><span id="seastrend_plot-33"><a href="#seastrend_plot-33"><span class="linenos">33</span></a>
+</span><span id="seastrend_plot-34"><a href="#seastrend_plot-34"><span class="linenos">34</span></a><span class="sd">    Returns:</span>
+</span><span id="seastrend_plot-35"><a href="#seastrend_plot-35"><span class="linenos">35</span></a><span class="sd">    - a matplotlib Axes object</span>
+</span><span id="seastrend_plot-36"><a href="#seastrend_plot-36"><span class="linenos">36</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="seastrend_plot-37"><a href="#seastrend_plot-37"><span class="linenos">37</span></a>
+</span><span id="seastrend_plot-38"><a href="#seastrend_plot-38"><span class="linenos">38</span></a>    <span class="c1"># Note: we will rely on the line_plot() function to do most of the work.</span>
+</span><span id="seastrend_plot-39"><a href="#seastrend_plot-39"><span class="linenos">39</span></a>    <span class="c1"># including constraining the data to the plot_from keyword argument.</span>
+</span><span id="seastrend_plot-40"><a href="#seastrend_plot-40"><span class="linenos">40</span></a>
+</span><span id="seastrend_plot-41"><a href="#seastrend_plot-41"><span class="linenos">41</span></a>    <span class="c1"># --- check the kwargs</span>
+</span><span id="seastrend_plot-42"><a href="#seastrend_plot-42"><span class="linenos">42</span></a>    <span class="n">report_kwargs</span><span class="p">(</span><span class="n">caller</span><span class="o">=</span><span class="n">ME</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="seastrend_plot-43"><a href="#seastrend_plot-43"><span class="linenos">43</span></a>    <span class="n">validate_kwargs</span><span class="p">(</span><span class="n">schema</span><span class="o">=</span><span class="n">LineKwargs</span><span class="p">,</span> <span class="n">caller</span><span class="o">=</span><span class="n">ME</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="seastrend_plot-44"><a href="#seastrend_plot-44"><span class="linenos">44</span></a>
+</span><span id="seastrend_plot-45"><a href="#seastrend_plot-45"><span class="linenos">45</span></a>    <span class="c1"># --- check the data</span>
+</span><span id="seastrend_plot-46"><a href="#seastrend_plot-46"><span class="linenos">46</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">check_clean_timeseries</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ME</span><span class="p">)</span>
+</span><span id="seastrend_plot-47"><a href="#seastrend_plot-47"><span class="linenos">47</span></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="seastrend_plot-48"><a href="#seastrend_plot-48"><span class="linenos">48</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="seastrend_plot-49"><a href="#seastrend_plot-49"><span class="linenos">49</span></a>            <span class="s2">&quot;seas_trend_plot() expects a DataFrame data item with at least 2 columns.&quot;</span>
+</span><span id="seastrend_plot-50"><a href="#seastrend_plot-50"><span class="linenos">50</span></a>        <span class="p">)</span>
 </span><span id="seastrend_plot-51"><a href="#seastrend_plot-51"><span class="linenos">51</span></a>
-</span><span id="seastrend_plot-52"><a href="#seastrend_plot-52"><span class="linenos">52</span></a>    <span class="c1"># --- check the data</span>
-</span><span id="seastrend_plot-53"><a href="#seastrend_plot-53"><span class="linenos">53</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">check_clean_timeseries</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">me</span><span class="p">)</span>
-</span><span id="seastrend_plot-54"><a href="#seastrend_plot-54"><span class="linenos">54</span></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-</span><span id="seastrend_plot-55"><a href="#seastrend_plot-55"><span class="linenos">55</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="seastrend_plot-56"><a href="#seastrend_plot-56"><span class="linenos">56</span></a>            <span class="s2">&quot;seas_trend_plot() expects a DataFrame data item with at least 2 columns.&quot;</span>
-</span><span id="seastrend_plot-57"><a href="#seastrend_plot-57"><span class="linenos">57</span></a>        <span class="p">)</span>
-</span><span id="seastrend_plot-58"><a href="#seastrend_plot-58"><span class="linenos">58</span></a>
-</span><span id="seastrend_plot-59"><a href="#seastrend_plot-59"><span class="linenos">59</span></a>    <span class="c1"># --- defaults if not in kwargs</span>
-</span><span id="seastrend_plot-60"><a href="#seastrend_plot-60"><span class="linenos">60</span></a>    <span class="n">colors</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">COLOR</span><span class="p">,</span> <span class="n">get_color_list</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
-</span><span id="seastrend_plot-61"><a href="#seastrend_plot-61"><span class="linenos">61</span></a>    <span class="n">widths</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">WIDTH</span><span class="p">,</span> <span class="p">[</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_normal&quot;</span><span class="p">),</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_wide&quot;</span><span class="p">)])</span>
-</span><span id="seastrend_plot-62"><a href="#seastrend_plot-62"><span class="linenos">62</span></a>    <span class="n">styles</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">STYLE</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">])</span>
-</span><span id="seastrend_plot-63"><a href="#seastrend_plot-63"><span class="linenos">63</span></a>    <span class="n">annotations</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ANNOTATE</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
-</span><span id="seastrend_plot-64"><a href="#seastrend_plot-64"><span class="linenos">64</span></a>    <span class="n">rounding</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ROUNDING</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-</span><span id="seastrend_plot-65"><a href="#seastrend_plot-65"><span class="linenos">65</span></a>
-</span><span id="seastrend_plot-66"><a href="#seastrend_plot-66"><span class="linenos">66</span></a>    <span class="c1"># series breaks are common in seas-trend data</span>
-</span><span id="seastrend_plot-67"><a href="#seastrend_plot-67"><span class="linenos">67</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="n">DROPNA</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">DROPNA</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</span><span id="seastrend_plot-52"><a href="#seastrend_plot-52"><span class="linenos">52</span></a>    <span class="c1"># --- defaults if not in kwargs</span>
+</span><span id="seastrend_plot-53"><a href="#seastrend_plot-53"><span class="linenos">53</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">,</span> <span class="n">get_color_list</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+</span><span id="seastrend_plot-54"><a href="#seastrend_plot-54"><span class="linenos">54</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span><span id="seastrend_plot-55"><a href="#seastrend_plot-55"><span class="linenos">55</span></a>        <span class="s2">&quot;width&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_normal&quot;</span><span class="p">),</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;line_wide&quot;</span><span class="p">)]</span>
+</span><span id="seastrend_plot-56"><a href="#seastrend_plot-56"><span class="linenos">56</span></a>    <span class="p">)</span>
+</span><span id="seastrend_plot-57"><a href="#seastrend_plot-57"><span class="linenos">57</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;style&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">])</span>
+</span><span id="seastrend_plot-58"><a href="#seastrend_plot-58"><span class="linenos">58</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;annotate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;annotate&quot;</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
+</span><span id="seastrend_plot-59"><a href="#seastrend_plot-59"><span class="linenos">59</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;rounding&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rounding&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="seastrend_plot-60"><a href="#seastrend_plot-60"><span class="linenos">60</span></a>
+</span><span id="seastrend_plot-61"><a href="#seastrend_plot-61"><span class="linenos">61</span></a>    <span class="c1"># series breaks are common in seas-trend data</span>
+</span><span id="seastrend_plot-62"><a href="#seastrend_plot-62"><span class="linenos">62</span></a>    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;dropna&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dropna&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</span><span id="seastrend_plot-63"><a href="#seastrend_plot-63"><span class="linenos">63</span></a>
+</span><span id="seastrend_plot-64"><a href="#seastrend_plot-64"><span class="linenos">64</span></a>    <span class="n">axes</span> <span class="o">=</span> <span class="n">line_plot</span><span class="p">(</span>
+</span><span id="seastrend_plot-65"><a href="#seastrend_plot-65"><span class="linenos">65</span></a>        <span class="n">data</span><span class="p">,</span>
+</span><span id="seastrend_plot-66"><a href="#seastrend_plot-66"><span class="linenos">66</span></a>        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+</span><span id="seastrend_plot-67"><a href="#seastrend_plot-67"><span class="linenos">67</span></a>    <span class="p">)</span>
 </span><span id="seastrend_plot-68"><a href="#seastrend_plot-68"><span class="linenos">68</span></a>
-</span><span id="seastrend_plot-69"><a href="#seastrend_plot-69"><span class="linenos">69</span></a>    <span class="n">axes</span> <span class="o">=</span> <span class="n">line_plot</span><span class="p">(</span>
-</span><span id="seastrend_plot-70"><a href="#seastrend_plot-70"><span class="linenos">70</span></a>        <span class="n">data</span><span class="p">,</span>
-</span><span id="seastrend_plot-71"><a href="#seastrend_plot-71"><span class="linenos">71</span></a>        <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
-</span><span id="seastrend_plot-72"><a href="#seastrend_plot-72"><span class="linenos">72</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">widths</span><span class="p">,</span>
-</span><span id="seastrend_plot-73"><a href="#seastrend_plot-73"><span class="linenos">73</span></a>        <span class="n">style</span><span class="o">=</span><span class="n">styles</span><span class="p">,</span>
-</span><span id="seastrend_plot-74"><a href="#seastrend_plot-74"><span class="linenos">74</span></a>        <span class="n">annotate</span><span class="o">=</span><span class="n">annotations</span><span class="p">,</span>
-</span><span id="seastrend_plot-75"><a href="#seastrend_plot-75"><span class="linenos">75</span></a>        <span class="n">rounding</span><span class="o">=</span><span class="n">rounding</span><span class="p">,</span>
-</span><span id="seastrend_plot-76"><a href="#seastrend_plot-76"><span class="linenos">76</span></a>        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-</span><span id="seastrend_plot-77"><a href="#seastrend_plot-77"><span class="linenos">77</span></a>    <span class="p">)</span>
-</span><span id="seastrend_plot-78"><a href="#seastrend_plot-78"><span class="linenos">78</span></a>
-</span><span id="seastrend_plot-79"><a href="#seastrend_plot-79"><span class="linenos">79</span></a>    <span class="k">return</span> <span class="n">axes</span>
+</span><span id="seastrend_plot-69"><a href="#seastrend_plot-69"><span class="linenos">69</span></a>    <span class="k">return</span> <span class="n">axes</span>
 </span></pre></div>
 
 
