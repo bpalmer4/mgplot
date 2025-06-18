@@ -276,17 +276,17 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
 
     # tight layout and save the figure
     fig = axes.figure
+    if "preserve_lims" in kwargs and kwargs["preserve_lims"]:
+        # restore the original limits of the axes
+        axes.set_xlim(xlim)
+        axes.set_ylim(ylim)
     if not isinstance(fig, mpl.figure.SubFigure):  # should never be a SubFigure
         fig.tight_layout(pad=1.1)
-        if "preserve_lims" in kwargs and kwargs["preserve_lims"]:
-            # restore the original limits of the axes
-            axes.set_xlim(xlim)
-            axes.set_ylim(ylim)
-        apply_late_kwargs(axes, **kwargs)
-        legend = axes.get_legend()
-        if legend and kwargs.get("remove_legend", False):
-            legend.remove()
-        save_to_file(fig, **kwargs)
+    apply_late_kwargs(axes, **kwargs)
+    legend = axes.get_legend()
+    if legend and kwargs.get("remove_legend", False):
+        legend.remove()
+    save_to_file(fig, **kwargs)
 
     # show the plot in Jupyter Lab
     if "show" in kwargs and kwargs["show"]:

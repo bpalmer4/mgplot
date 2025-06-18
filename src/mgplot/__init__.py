@@ -22,6 +22,7 @@ from mgplot.growth_plot import (
     GrowthKwargs,
     series_growth_plot,
     SeriesGrowthKwargs,
+    calc_growth,
 )
 from mgplot.summary_plot import summary_plot, SummaryKwargs
 from mgplot.multi_plot import plot_then_finalise, multi_start, multi_column
@@ -36,8 +37,6 @@ from mgplot.finalisers import (
     series_growth_plot_finalise,
     summary_plot_finalise,
 )
-
-# ,import multi_start, multi_column
 from mgplot.finalise_plot import finalise_plot, FinaliseKwargs
 from mgplot.colors import (
     get_color,
@@ -102,6 +101,7 @@ __all__ = (
     "GrowthKwargs",
     "series_growth_plot",
     "SeriesGrowthKwargs",
+    "calc_growth",
     # --- summary plot
     "summary_plot",
     "SummaryKwargs",

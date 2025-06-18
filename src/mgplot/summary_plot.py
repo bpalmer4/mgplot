@@ -11,11 +11,12 @@ from typing import Any, NotRequired, Unpack
 
 # analytic third-party imports
 from numpy import ndarray, array
-from matplotlib.pyplot import Axes, subplots
+from matplotlib.pyplot import Axes
 from pandas import DataFrame, Period
 
 # local imports
 from mgplot.settings import DataT
+from mgplot.utilities import get_axes
 from mgplot.finalise_plot import make_legend
 from mgplot.utilities import constrain_data, check_clean_timeseries
 from mgplot.keyword_checking import (
@@ -27,7 +28,6 @@ from mgplot.keyword_checking import (
 
 # --- constants
 ME = "summary_plot"
-
 ZSCORES = "zscores"
 ZSCALED = "zscaled"
 
@@ -99,8 +99,8 @@ def _plot_middle_bars(
     space = 0.2
     low = min(adjusted.iloc[-1].min(), lo_hi.min().min(), -span) - space
     high = max(adjusted.iloc[-1].max(), lo_hi.max().max(), span) + space
-    kwargs["xlim"] = (low, high)  # remember the x-axis limits
-    _fig, ax = subplots()
+    kwargs["xlim"] = (low, high)  # update the kwargs with the xlim
+    ax, _ = get_axes(**kwargs)
     ax.barh(
         y=lo_hi.index,
         width=lo_hi[q[1]] - lo_hi[q[0]],
@@ -144,6 +144,7 @@ def _label_extremes(
 
     original, adjusted = data
     low, high = kwargs["xlim"]
+    ax.set_xlim(low, high)  # set the x-axis limits
     if plot_type == ZSCALED:
         ax.axvline(-1, color="#555555", linewidth=0.5, linestyle="--")
         ax.axvline(1, color="#555555", linewidth=0.5, linestyle="--")
@@ -159,7 +160,7 @@ def _label_extremes(
             ax.text(
                 low,
                 col_num,
-                f" {original[col_name].min():.1f}",
+                f" {original[col_name].min():.2f}",
                 ha="left",
                 va="center",
                 size=f_size,
@@ -167,7 +168,7 @@ def _label_extremes(
             ax.text(
                 high,
                 col_num,
-                f"{original[col_name].max():.1f} ",
+                f"{original[col_name].max():.2f} ",
                 ha="right",
                 va="center",
                 size=f_size,
@@ -201,15 +202,10 @@ def _horizontal_bar_plot(
 def summary_plot(data: DataT, **kwargs: Unpack[SummaryKwargs]) -> Axes:
     """Plot a summary of historical data for a given DataFrame.
 
-    Args:
+    Args:x
     - summary: DataFrame containing the summary data. The column names are
       used as labels for the plot.
     - kwargs: additional arguments for the plot, including:
-        - plot_from: int | Period | None
-        - verbose: if True, print the summary data.
-        - middle: proportion of data to highlight (default is 0.8).
-        - plot_types: list of plot types to generate.
-
 
     Returns Axes.
     """
@@ -249,6 +245,6 @@ def summary_plot(data: DataT, **kwargs: Unpack[SummaryKwargs]) -> Axes:
     ax = _horizontal_bar_plot(subset, adjusted, middle, plot_type, kwargsd)
     ax.tick_params(axis="y", labelsize="small")
     make_legend(ax, kwargsd["legend"])
-    ax.set_xlim(kwargsd.get("xlim", None))  # provide space for the labels
+    ax.set_xlim(kwargsd.get("xlim"))  # provide space for the labels
 
     return ax

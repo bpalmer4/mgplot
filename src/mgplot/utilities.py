@@ -205,7 +205,7 @@ def get_axes(**kwargs) -> tuple[Axes, dict[str, Any]]:
     if axes is not None:
         raise TypeError(f"{ax} must be a matplotlib Axes object, not {type(axes)}")
 
-    figsize = kwargs.pop("figsize", get_setting("figsize"))
+    figsize = kwargs.get("figsize", get_setting("figsize"))
     _fig, axes = subplots(figsize=figsize)
     return axes, kwargs
 
