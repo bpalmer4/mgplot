@@ -44,9 +44,7 @@ def _identify_runs(
     """Identify monotonic increasing/decreasing runs."""
 
     diffed = series.diff()
-    change_points = concat(
-        [diffed[diffed.gt(threshold)], diffed[diffed.lt(-threshold)]]
-    ).sort_index()
+    change_points = concat([diffed[diffed.gt(threshold)], diffed[diffed.lt(-threshold)]]).sort_index()
     if series.index[0] not in change_points.index:
         starting_point = Series([0], index=[series.index[0]])
         change_points = concat([change_points, starting_point]).sort_index()
@@ -71,8 +69,7 @@ def _plot_runs(
             highlight = kwargs["highlight"][0] if up else kwargs["highlight"][1]
         case _:
             raise ValueError(
-                f"Invalid type for highlight: {type(kwargs.get('highlight'))}. "
-                "Expected str or Sequence."
+                f"Invalid type for highlight: {type(kwargs.get('highlight'))}. Expected str or Sequence."
             )
 
     # highlight the runs
@@ -87,18 +84,11 @@ def _plot_runs(
         )
         space_above = series.max() - series[stretch.index].max()
         space_below = series[stretch.index].min() - series.min()
-        y_pos, vert_align = (
-            (series.max(), "top")
-            if space_above > space_below
-            else (series.min(), "bottom")
-        )
+        y_pos, vert_align = (series.max(), "top") if space_above > space_below else (series.min(), "bottom")
         text = axes.text(
             x=stretch.index.min(),
             y=y_pos,
-            s=(
-                change_points[stretch.index].sum().round(kwargs["rounding"]).astype(str)
-                + " pp"
-            ),
+            s=(change_points[stretch.index].sum().round(kwargs["rounding"]).astype(str) + " pp"),
             va=vert_align,
             ha="left",
             fontsize="x-small",
@@ -141,7 +131,9 @@ def run_plot(data: DataT, **kwargs: Unpack[RunKwargs]) -> Axes:
         (
             ("gold", "skyblue")
             if kwargs_d["direction"] == "both"
-            else "gold" if kwargs_d["direction"] == "up" else "skyblue"
+            else "gold"
+            if kwargs_d["direction"] == "up"
+            else "skyblue"
         ),
     )
     kwargs_d["color"] = kwargs_d.get("color", "darkblue")
@@ -162,8 +154,7 @@ def run_plot(data: DataT, **kwargs: Unpack[RunKwargs]) -> Axes:
             _plot_runs(axes, series, up=False, **kwargs_d)
         case _:
             raise ValueError(
-                f"Invalid value for direction: {kwargs['direction']}. "
-                "Expected 'up', 'down', or 'both'."
+                f"Invalid value for direction: {kwargs['direction']}. Expected 'up', 'down', or 'both'."
             )
 
     # --- set the labels

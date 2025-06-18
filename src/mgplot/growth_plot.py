@@ -237,9 +237,7 @@ def series_growth_plot(
 
     # --- sanity checks
     if not isinstance(data, Series):
-        raise TypeError(
-            "The data argument to series_growth_plot() must be a pandas Series"
-        )
+        raise TypeError("The data argument to series_growth_plot() must be a pandas Series")
 
     # --- calculate growth and plot - add ylabel
     ylabel: str | None = kwargs.pop("ylabel", None)

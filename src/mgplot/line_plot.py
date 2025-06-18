@@ -102,13 +102,9 @@ def _get_style_width_color_etc(
 
     data_point_thresh = 151  # switch from wide to narrow lines
     line_defaults: dict[str, Any] = {
-        "style": (
-            "solid" if item_count < 4 else ["solid", "dashed", "dashdot", "dotted"]
-        ),
+        "style": ("solid" if item_count < 4 else ["solid", "dashed", "dashdot", "dotted"]),
         "width": (
-            get_setting("line_normal")
-            if num_data_points > data_point_thresh
-            else get_setting("line_wide")
+            get_setting("line_normal") if num_data_points > data_point_thresh else get_setting("line_wide")
         ),
         "color": get_color_list(item_count),
         "alpha": 1.0,
@@ -158,9 +154,7 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
 
     # --- some special defaults
     kwargs_d["label_series"] = (
-        kwargs_d.get("label_series", True)
-        if len(df.columns) > 1
-        else kwargs_d.get("label_series", False)
+        kwargs_d.get("label_series", True) if len(df.columns) > 1 else kwargs_d.get("label_series", False)
     )
 
     # --- Let's plot
@@ -191,22 +185,14 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
             marker=swce["marker"][i],
             ms=swce["markersize"][i],
             drawstyle=swce["drawstyle"][i],
-            label=(
-                column
-                if "label_series" in swce and swce["label_series"][i]
-                else f"_{column}_"
-            ),
+            label=(column if "label_series" in swce and swce["label_series"][i] else f"_{column}_"),
             ax=axes,
         )
 
         if swce["annotate"][i] is None or not swce["annotate"][i]:
             continue
 
-        color = (
-            swce["color"][i]
-            if swce["annotate_color"][i] is True
-            else swce["annotate_color"][i]
-        )
+        color = swce["color"][i] if swce["annotate_color"][i] is True else swce["annotate_color"][i]
         annotate_series(
             series,
             axes,
@@ -219,8 +205,6 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
 
     # --- set the labels
     if saved_pi is not None:
-        set_labels(
-            axes, saved_pi[1], kwargs_d.get("max_ticks", get_setting("max_ticks"))
-        )
+        set_labels(axes, saved_pi[1], kwargs_d.get("max_ticks", get_setting("max_ticks")))
 
     return axes

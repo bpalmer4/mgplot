@@ -1,3 +1,4 @@
+# mypy: disable-error-code="misc"
 """
 finalisers.py
 
@@ -55,7 +56,7 @@ def impose_legend(
 
 
 # --- public functions
-class LPFKwargs(LineKwargs, FinaliseKwargs):  # type: ignore[misc]
+class LPFKwargs(LineKwargs, FinaliseKwargs):
     """combined kwargs for line_plot_finalise()"""
 
 
@@ -71,7 +72,7 @@ def line_plot_finalise(
     plot_then_finalise(data, function=line_plot, **kwargs)
 
 
-class BPFKwargs(BarKwargs, FinaliseKwargs):  # type: ignore[misc]
+class BPFKwargs(BarKwargs, FinaliseKwargs):
     """combined kwargs for bar_plot_finalise()"""
 
 
@@ -91,7 +92,7 @@ def bar_plot_finalise(
     )
 
 
-class SFKwargs(LineKwargs, FinaliseKwargs):  # type: ignore[misc]
+class SFKwargs(LineKwargs, FinaliseKwargs):
     """combined kwargs for seastrend_plot_finalise()"""
 
 
@@ -107,7 +108,7 @@ def seastrend_plot_finalise(
     plot_then_finalise(data, function=seastrend_plot, **kwargs)
 
 
-class PCFKwargs(PostcovidKwargs, FinaliseKwargs):  # type: ignore[misc]
+class PCFKwargs(PostcovidKwargs, FinaliseKwargs):
     """combined kwargs for postcovid_plot_finalise()"""
 
 
@@ -123,7 +124,7 @@ def postcovid_plot_finalise(
     plot_then_finalise(data, function=postcovid_plot, **kwargs)
 
 
-class RevPFKwargs(LineKwargs, FinaliseKwargs):  # type: ignore[misc]
+class RevPFKwargs(LineKwargs, FinaliseKwargs):
     """combined kwargs for revision_plot_finalise()"""
 
 
@@ -139,7 +140,7 @@ def revision_plot_finalise(
     plot_then_finalise(data=data, function=revision_plot, **kwargs)
 
 
-class RunPFKwargs(RunKwargs, FinaliseKwargs):  # type: ignore[misc]
+class RunPFKwargs(RunKwargs, FinaliseKwargs):
     """combined kwargs for run_plot_finalise()"""
 
 
@@ -155,7 +156,7 @@ def run_plot_finalise(
     plot_then_finalise(data=data, function=run_plot, **kwargs)
 
 
-class SGFPKwargs(SeriesGrowthKwargs, FinaliseKwargs):  # type: ignore[misc]
+class SGFPKwargs(SeriesGrowthKwargs, FinaliseKwargs):
     """combined kwargs for series_growth_plot_finalise()"""
 
 
@@ -168,7 +169,7 @@ def series_growth_plot_finalise(data: DataT, **kwargs: Unpack[SGFPKwargs]) -> No
     plot_then_finalise(data=data, function=series_growth_plot, **kwargs)
 
 
-class GrowthPFKwargs(GrowthKwargs, FinaliseKwargs):  # type: ignore[misc]
+class GrowthPFKwargs(GrowthKwargs, FinaliseKwargs):
     """combined kwargs for growth_plot_finalise()"""
 
 
@@ -183,7 +184,7 @@ def growth_plot_finalise(data: DataT, **kwargs: Unpack[GrowthPFKwargs]) -> None:
     plot_then_finalise(data=data, function=growth_plot, **kwargs)
 
 
-class SumPFKwargs(SummaryKwargs, FinaliseKwargs):  # type: ignore[misc]
+class SumPFKwargs(SummaryKwargs, FinaliseKwargs):
     """combined kwargs for summary_plot_finalise()"""
 
 

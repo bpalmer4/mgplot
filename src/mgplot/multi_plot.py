@@ -281,7 +281,6 @@ def multi_column(
 
     # --- iterate over the columns
     for i, col in enumerate(data.columns):
-
         series = data[[col]]
         kwargs["title"] = f"{title_stem}{col}" if title_stem else col
 

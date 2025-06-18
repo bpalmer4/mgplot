@@ -30,10 +30,7 @@ def is_categorical(data: DataT) -> bool:
     if is_string_dtype(data.index.dtype):
         # unique strings are categoricals by default
         return True
-    if (
-        not data.index.is_monotonic_increasing
-        and not data.index.is_monotonic_decreasing
-    ):
+    if not data.index.is_monotonic_increasing and not data.index.is_monotonic_decreasing:
         # these categoricals should be monotonic
         return False
     if is_integer_dtype(data.index.dtype):
@@ -41,9 +38,7 @@ def is_categorical(data: DataT) -> bool:
         return data.index.max() - data.index.min() == len(data.index) - 1
     if isinstance(data.index, PeriodIndex):
         # completeness check for PeriodIndex
-        return (
-            data.index.max().ordinal - data.index.min().ordinal == len(data.index) - 1
-        )
+        return data.index.max().ordinal - data.index.min().ordinal == len(data.index) - 1
 
     return False
 
@@ -61,9 +56,7 @@ def map_periodindex(data: DataT) -> None | tuple[DataT, PeriodIndex]:
         start=og_index[0].ordinal,
         stop=og_index[-1].ordinal + (1 if og_index[0] < og_index[-1] else -1),
     )
-    assert len(data.index) == len(
-        og_index
-    ), "Mapped PeriodIndex to RangeIndex, but the lengths do not match."
+    assert len(data.index) == len(og_index), "Mapped PeriodIndex to RangeIndex, but the lengths do not match."
     return data, og_index
 
 
@@ -124,9 +117,7 @@ def get_count(p: PeriodIndex, max_ticks: int) -> tuple[int, DateLike, int]:
         r_freq = r_freqs[test_freq]
         for interval in intervals[test_freq]:
             count = (
-                p.max().asfreq(r_freq, how="end").ordinal
-                - p.min().asfreq(r_freq, how="end").ordinal
-                + 1
+                p.max().asfreq(r_freq, how="end").ordinal - p.min().asfreq(r_freq, how="end").ordinal + 1
             ) // interval
             if count <= max_ticks:
                 return count, test_freq, interval
@@ -148,9 +139,7 @@ def day_labeller(labels: dict[Period, str]) -> dict[Period, str]:
         return labels
 
     start = min(labels.keys())
-    month_previous: str = calendar.month_abbr[
-        start.month - 1 if start.month > 1 else 12
-    ]
+    month_previous: str = calendar.month_abbr[start.month - 1 if start.month > 1 else 12]
     year_previous: str = str(start.year if start.month > 1 else start.year - 1)
     final_year = str(start.year) == year_previous
 
@@ -367,7 +356,6 @@ def set_labels(axes: Axes, p: PeriodIndex, max_ticks: int = 10) -> None:
 
 # --- test ---
 if __name__ == "__main__":
-
     tests = [
         PeriodIndex(["2020-01-01", "2020-01-02", "2020-01-03", "2020-01-04"], freq="D"),
         period_range(start="2020-01-01", end="2020-01-15", freq="D"),
@@ -385,9 +373,7 @@ if __name__ == "__main__":
     int_test1: Series = Series(range(N), index=range(N))
     int_test2: Series = Series(range(N), index=[1, 2, 3, 4])
     str_test3: Series = Series(range(N), index=[f"Item {i}" for i in range(N)])
-    pi_test4: Series = Series(
-        range(N), index=period_range(start="2020-01", periods=N, freq="M")
-    )
+    pi_test4: Series = Series(range(N), index=period_range(start="2020-01", periods=N, freq="M"))
     for s_test in (int_test1, int_test2, str_test3, pi_test4):
         print(f"Testing is_categorical {s_test.index}:", is_categorical(s_test))
         print("========")

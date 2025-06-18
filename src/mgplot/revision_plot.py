@@ -39,10 +39,7 @@ def revision_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
 
     # --- additional checks
     if not isinstance(data, DataFrame):
-        print(
-            f"{ME}() requires a DataFrame with columns for each revision, "
-            "not a Series or any other type."
-        )
+        print(f"{ME}() requires a DataFrame with columns for each revision, not a Series or any other type.")
 
     # --- critical defaults
     kwargs["plot_from"] = kwargs.get("plot_from", -15)

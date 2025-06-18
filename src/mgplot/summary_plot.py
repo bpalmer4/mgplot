@@ -62,8 +62,7 @@ def _calculate_z(
     z_scores: DataFrame = (original - original.mean()) / original.std()
     z_scaled: DataFrame = (
         # scale z-scores between -1 and +1
-        (((z_scores - z_scores.min()) / (z_scores.max() - z_scores.min())) - 0.5)
-        * 2
+        (((z_scores - z_scores.min()) / (z_scores.max() - z_scores.min())) - 0.5) * 2
     )
     q_middle = _calc_quantiles(middle)
 
@@ -106,7 +105,7 @@ def _plot_middle_bars(
         width=lo_hi[q[1]] - lo_hi[q[0]],
         left=lo_hi[q[0]],
         color="#bbbbbb",
-        label=f"Middle {middle*100:0.0f}% of prints",
+        label=f"Middle {middle * 100:0.0f}% of prints",
     )
     return ax
 
@@ -191,9 +190,7 @@ def _horizontal_bar_plot(
     ax = _plot_middle_bars(adjusted, middle, kwargs)
     f_size = 10
     _plot_latest_datapoint(ax, original, adjusted, f_size)
-    _label_extremes(
-        ax, data=(original, adjusted), plot_type=plot_type, f_size=f_size, kwargs=kwargs
-    )
+    _label_extremes(ax, data=(original, adjusted), plot_type=plot_type, f_size=f_size, kwargs=kwargs)
 
     return ax
 

@@ -44,15 +44,11 @@ def seastrend_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
     # --- check the data
     data = check_clean_timeseries(data, ME)
     if len(data.columns) < 2:
-        raise ValueError(
-            "seas_trend_plot() expects a DataFrame data item with at least 2 columns."
-        )
+        raise ValueError("seas_trend_plot() expects a DataFrame data item with at least 2 columns.")
 
     # --- defaults if not in kwargs
     kwargs["color"] = kwargs.get("color", get_color_list(2))
-    kwargs["width"] = kwargs.get(
-        "width", [get_setting("line_normal"), get_setting("line_wide")]
-    )
+    kwargs["width"] = kwargs.get("width", [get_setting("line_normal"), get_setting("line_wide")])
     kwargs["style"] = kwargs.get("style", ["-", "-"])
     kwargs["annotate"] = kwargs.get("annotate", [True, False])
     kwargs["rounding"] = kwargs.get("rounding", True)

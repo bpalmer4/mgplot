@@ -78,32 +78,24 @@ def annotate_bars(
 
     # --- internal logic check
     if len(base) != len(series):
-        print(
-            f"Warning: base array length {len(base)} does not match series length {len(series)}."
-        )
+        print(f"Warning: base array length {len(base)} does not match series length {len(series)}.")
         return
 
     # --- assemble the annotation parameters
-    above: Final[bool | None] = anno_kwargs.get(
-        "above", False
-    )  # None is also False-ish
+    above: Final[bool | None] = anno_kwargs.get("above", False)  # None is also False-ish
     annotate_style = {
         "fontsize": anno_kwargs.get("fontsize"),
         "fontname": anno_kwargs.get("fontname"),
         "color": anno_kwargs.get("color"),
         "rotation": anno_kwargs.get("rotation"),
     }
-    rounding = default_rounding(
-        series=series, provided=anno_kwargs.get("rounding", None)
-    )
+    rounding = default_rounding(series=series, provided=anno_kwargs.get("rounding", None))
     adjustment = (series.max() - series.min()) * 0.02
     zero_correction = series.index.min()
 
     # --- annotate each bar
     for index, value in zip(series.index.astype(int), series):  # mypy syntactic sugar
-        position = base[index - zero_correction] + (
-            adjustment if value >= 0 else -adjustment
-        )
+        position = base[index - zero_correction] + (adjustment if value >= 0 else -adjustment)
         if above:
             position += value
         text = axes.text(
@@ -117,9 +109,7 @@ def annotate_bars(
         if not above and "foreground" in anno_kwargs:
             # apply a stroke-effect to within bar annotations
             # to make them more readable with very small bars.
-            text.set_path_effects(
-                [pe.withStroke(linewidth=2, foreground=anno_kwargs.get("foreground"))]
-            )
+            text.set_path_effects([pe.withStroke(linewidth=2, foreground=anno_kwargs.get("foreground"))])
 
 
 def grouped(axes, df: DataFrame, anno_args, **kwargs) -> None:
@@ -225,9 +215,7 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
 
     # --- deal with complete PeriodIdex indicies
     if not is_categorical(df):
-        print(
-            "Warning: bar_plot is not designed for incomplete or non-categorical data indexes."
-        )
+        print("Warning: bar_plot is not designed for incomplete or non-categorical data indexes.")
     saved_pi = map_periodindex(df)
     if saved_pi is not None:
         df = saved_pi[0]  # extract the reindexed DataFrame from the PeriodIndex

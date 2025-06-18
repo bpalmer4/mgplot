@@ -60,11 +60,7 @@ def limit_kwargs(
     """
     Limit the keyword arguments to those in the expected TypedDict.
     """
-    return {
-        k: v
-        for k, v in kwargs.items()
-        if k in dict(cast(dict[str, Any], expected.__annotations__))
-    }
+    return {k: v for k, v in kwargs.items() if k in dict(cast(dict[str, Any], expected.__annotations__))}
 
 
 def package_kwargs(mapping: TransitionKwargs, **kwargs: Any) -> dict[str, Any]:
@@ -81,16 +77,10 @@ def package_kwargs(mapping: TransitionKwargs, **kwargs: Any) -> dict[str, Any]:
     Returns:
     -   A dictionary with the packaged keyword arguments.
     """
-    return {
-        v[0]: kwargs.get(k, v[1])
-        for k, v in mapping.items()
-        if k in kwargs or v[1] is not None
-    }
+    return {v[0]: kwargs.get(k, v[1]) for k, v in mapping.items() if k in kwargs or v[1] is not None}
 
 
-def validate_kwargs(
-    schema: type[Any] | dict[str, Any], caller: str, **kwargs: Any
-) -> None:
+def validate_kwargs(schema: type[Any] | dict[str, Any], caller: str, **kwargs: Any) -> None:
     """
     Validates the types of keyword arguments against expected types.
 
@@ -108,9 +98,7 @@ def validate_kwargs(
     elif isinstance(schema, dict):
         scheme = schema
     else:
-        raise TypeError(
-            f"Expected a TypedDict or dict, got {type(schema).__name__} in {caller}()."
-        )
+        raise TypeError(f"Expected a TypedDict or dict, got {type(schema).__name__} in {caller}().")
 
     # --- Check for type mismatches
     dprint("--------------------------")

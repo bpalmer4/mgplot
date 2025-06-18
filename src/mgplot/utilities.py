@@ -188,7 +188,7 @@ def get_color_list(count: int) -> list[str]:
         return colors[min(options)][:count]
 
     c = cm.get_cmap("nipy_spectral")(np.linspace(0, 1, count))
-    return [f"#{int(x*255):02x}{int(y*255):02x}{int(z*255):02x}" for x, y, z, _ in c]
+    return [f"#{int(x * 255):02x}{int(y * 255):02x}{int(z * 255):02x}" for x, y, z, _ in c]
 
 
 def get_axes(**kwargs) -> tuple[Axes, dict[str, Any]]:
@@ -228,11 +228,7 @@ def default_rounding(
       (Typically called as: provided=kwargs.get(ROUNDING, None))
     """
 
-    if (
-        provided is not None
-        and not isinstance(provided, bool)
-        and isinstance(provided, int)
-    ):
+    if provided is not None and not isinstance(provided, bool) and isinstance(provided, int):
         return provided  # use the provided rounding when it is good
 
     if series is not None and not series.dropna().empty:
@@ -247,7 +243,6 @@ def default_rounding(
 
 # --- test code
 if __name__ == "__main__":
-
     # --- test check_clean_timeseries_data()
     my_list = [np.nan, np.nan, 1.12345, 2.12345, 3.12345, 4.12345, 5.12345]
     _ = Series(my_list, period_range(start="2023-01", periods=len(my_list), freq="M"))

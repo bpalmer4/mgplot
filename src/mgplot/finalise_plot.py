@@ -131,7 +131,6 @@ def apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
 
     for method_name in settings:
         if method_name in kwargs:
-
             if method_name == "legend":
                 # special case for legend
                 make_legend(axes, kwargs[method_name])
@@ -280,13 +279,14 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
         # restore the original limits of the axes
         axes.set_xlim(xlim)
         axes.set_ylim(ylim)
-    if not isinstance(fig, mpl.figure.SubFigure):  # should never be a SubFigure
+    if not isinstance(fig, mpl.figure.SubFigure):  # mypy
         fig.tight_layout(pad=1.1)
     apply_late_kwargs(axes, **kwargs)
     legend = axes.get_legend()
     if legend and kwargs.get("remove_legend", False):
         legend.remove()
-    save_to_file(fig, **kwargs)
+    if not isinstance(fig, mpl.figure.SubFigure):  # mypy
+        save_to_file(fig, **kwargs)
 
     # show the plot in Jupyter Lab
     if "show" in kwargs and kwargs["show"]:
