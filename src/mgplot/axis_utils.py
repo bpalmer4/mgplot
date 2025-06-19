@@ -10,7 +10,7 @@ axis in Matplotlib, specifically:
 
 import calendar
 from enum import Enum
-from pandas import Series, Period, PeriodIndex, period_range, RangeIndex
+from pandas import Period, PeriodIndex, period_range, RangeIndex
 from pandas.api.types import is_integer_dtype, is_string_dtype
 from matplotlib.pyplot import Axes
 
@@ -352,28 +352,3 @@ def set_labels(axes: Axes, p: PeriodIndex, max_ticks: int = 10) -> None:
     ticks, ticklabels = make_ilabels(p, max_ticks)
     axes.set_xticks(ticks)
     axes.set_xticklabels(ticklabels, rotation=0, ha="center")
-
-
-# --- test ---
-if __name__ == "__main__":
-    tests = [
-        PeriodIndex(["2020-01-01", "2020-01-02", "2020-01-03", "2020-01-04"], freq="D"),
-        period_range(start="2020-01-01", end="2020-01-15", freq="D"),
-        period_range(start="2020-02-01", end="2022-07-15", freq="D"),
-        period_range(start="2020-Q2", end="2022-Q4", freq="Q"),
-        period_range(start="2000-Q2", end="2022-Q4", freq="Q"),
-        period_range(start="1950-01-01", end="2026-12-15", freq="D"),
-    ]
-    for index, test in enumerate(tests):
-        print(f"Test {index + 1}")
-        print("Labels:", make_labels(test, 10), "\n")
-        print("========")
-
-    N = 4
-    int_test1: Series = Series(range(N), index=range(N))
-    int_test2: Series = Series(range(N), index=[1, 2, 3, 4])
-    str_test3: Series = Series(range(N), index=[f"Item {i}" for i in range(N)])
-    pi_test4: Series = Series(range(N), index=period_range(start="2020-01", periods=N, freq="M"))
-    for s_test in (int_test1, int_test2, str_test3, pi_test4):
-        print(f"Testing is_categorical {s_test.index}:", is_categorical(s_test))
-        print("========")

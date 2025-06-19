@@ -352,32 +352,3 @@ def dprint(*args, **kwargs) -> None:
     if not active or __name__ != "__main__":
         return
     print(*args, **kwargs)
-
-
-# --- testing code
-if __name__ == "__main__":
-
-    class Expected(TypedDict):
-        """Test."""
-
-        a: int
-        b: NotRequired[str]
-        c: int | str
-        c1: None | int
-        d: Sequence[int]
-        e: Mapping[str, int]
-        f: Set[str]
-        g: NotRequired[list[list[int]]]
-
-    kwargs_: Expected = {
-        "a": "bad",  # type: ignore[typeddict-item] # -- test should fail
-        "b": "test",
-        "c": "good",
-        "c1": None,
-        "d": [1, 2, 3],
-        "e": {"key1": 1, "key2": 2},
-        "f": {"set1", "set2"},
-        "g": [[1, 2], ["bad", 4]],  # type: ignore[list-item] # -- test should fail
-    }
-
-    validate_kwargs(schema=Expected, caller="test_function", **kwargs_)

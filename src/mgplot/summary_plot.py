@@ -188,7 +188,7 @@ def _horizontal_bar_plot(
     # set the x-axis limits.
 
     ax = _plot_middle_bars(adjusted, middle, kwargs)
-    f_size = 10
+    f_size = "x-small"
     _plot_latest_datapoint(ax, original, adjusted, f_size)
     _label_extremes(ax, data=(original, adjusted), plot_type=plot_type, f_size=f_size, kwargs=kwargs)
 

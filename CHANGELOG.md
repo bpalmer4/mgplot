@@ -1,11 +1,20 @@
-Version 0.2.0 - released 18-Jun-2025 (Canberra,m Australia)
+Version 0.2.1 - released 19-Jun-2025 (Canberra Australia)
+
+* minor changes
+    - changed linting regime - resulted in numerous minor 
+      changes.
+    - other minor changes
+
+---
+
+Version 0.2.0 - released 18-Jun-2025 (Canberra Australia)
 
 * minor changes
     - fixed a glitch with the scaled summary plot
 
 ---
 
-Version 0.2.0a2 - released 18-Jun-2025 (Canberra,m Australia)
+Version 0.2.0a2 - released 18-Jun-2025 (Canberra Australia)
 
 * major changes
     - rewrote dynamic type-checking, to leverage static type 

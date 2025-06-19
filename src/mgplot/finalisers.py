@@ -22,7 +22,7 @@ Note: these functions are in a separate module to stop circular imports
 
 # --- imports
 from typing import Unpack
-from pandas import DataFrame, Period
+from pandas import DataFrame, Period, PeriodIndex
 
 from mgplot.settings import DataT
 from mgplot.keyword_checking import validate_kwargs
@@ -194,7 +194,7 @@ def summary_plot_finalise(
 ) -> None:
     """
     A convenience function to call summary_plot() and finalise_plot().
-    This is more complex than most convienience methods.
+    This is more complex than most of the above convienience methods.
 
     Arguments
     - data: DataFrame containing the summary data. The index must be a PeriodIndex.
@@ -202,8 +202,10 @@ def summary_plot_finalise(
     """
 
     # --- standard arguments
+    if not isinstance(data, DataFrame) and isinstance(data.index, PeriodIndex):
+        raise TypeError("Data must be a DataFrame with a PeriodIndex.")
     validate_kwargs(schema=SumPFKwargs, caller="summary_plot_finalise", **kwargs)
-    kwargs["title"] = kwargs.get("title", f"Summary at {data.index[-1]}")
+    kwargs["title"] = kwargs.get("title", f"Summary at {data.index[-1].strftime('%b-%Y')}")
     kwargs["preserve_lims"] = kwargs.get("preserve_lims", True)
 
     start: int | Period | None = kwargs.get("plot_from", 0)
@@ -212,17 +214,20 @@ def summary_plot_finalise(
     if isinstance(start, int):
         start = data.index[start]
     kwargs["plot_from"] = start
+    if not isinstance(start, Period):
+        raise TypeError("plot_from must be a Period or convertible to one")
 
+    pre_tag: str = kwargs.get("pre_tag", "")
     for plot_type in ("zscores", "zscaled"):
         # some sorting of kwargs for plot production
         kwargs["plot_type"] = plot_type
-        kwargs["pre_tag"] = plot_type  # necessary because the title is the same
+        kwargs["pre_tag"] = pre_tag + plot_type
 
         if plot_type == "zscores":
-            kwargs["xlabel"] = f"Z-scores for prints since {start}"
+            kwargs["xlabel"] = f"Z-scores for prints since {start.strftime('%b-%Y')}"
             kwargs["x0"] = True
         else:
-            kwargs["xlabel"] = f"-1 to 1 scaled z-scores since {start}"
+            kwargs["xlabel"] = f"-1 to 1 scaled z-scores since {start.strftime('%b-%Y')}"
             kwargs.pop("x0", None)
 
         plot_then_finalise(

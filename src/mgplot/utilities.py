@@ -15,7 +15,7 @@ Functions:
 # --- imports
 import math
 from typing import Any
-from pandas import Series, DataFrame, Period, PeriodIndex, RangeIndex, period_range
+from pandas import Series, DataFrame, Period, PeriodIndex, RangeIndex
 from pandas.api.types import is_integer_dtype
 import numpy as np
 from matplotlib import cm
@@ -239,13 +239,3 @@ def default_rounding(
         value = 10
 
     return 0 if value >= 100 else 1 if value >= 10 else 2 if value >= 1 else 3
-
-
-# --- test code
-if __name__ == "__main__":
-    # --- test check_clean_timeseries_data()
-    my_list = [np.nan, np.nan, 1.12345, 2.12345, 3.12345, 4.12345, 5.12345]
-    _ = Series(my_list, period_range(start="2023-01", periods=len(my_list), freq="M"))
-    _ = _.drop(index=[_.index[3]])
-    clean = check_clean_timeseries(_, "test")
-    print(f"Cleaned data:\n{clean}")
