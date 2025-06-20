@@ -10,6 +10,7 @@ Functions:
 - get_color_list()
 - get_axes()
 - default_rounding()
+- label_period()
 """
 
 # --- imports
@@ -239,3 +240,16 @@ def default_rounding(
         value = 10
 
     return 0 if value >= 100 else 1 if value >= 10 else 2 if value >= 1 else 3
+
+
+def label_period(p: Period) -> str:
+    """
+    Helper function to create a label for the plot based on the period.
+    """
+    if p.freqstr[0] == "D":
+        return p.strftime("%d-%b-%Y")
+    if p.freqstr[0] == "M":
+        return p.strftime("%b-%Y")
+    if p.freqstr[0] == "Q":
+        return f"Q{p.quarter}-{p.strftime('%Y')}"
+    return f"{p.year}"

@@ -41,6 +41,7 @@ from mgplot.growth_plot import (
     SeriesGrowthKwargs,
 )
 from mgplot.summary_plot import summary_plot, SummaryKwargs
+from mgplot.utilities import label_period
 
 
 def impose_legend(
@@ -205,7 +206,7 @@ def summary_plot_finalise(
     if not isinstance(data, DataFrame) and isinstance(data.index, PeriodIndex):
         raise TypeError("Data must be a DataFrame with a PeriodIndex.")
     validate_kwargs(schema=SumPFKwargs, caller="summary_plot_finalise", **kwargs)
-    kwargs["title"] = kwargs.get("title", f"Summary at {data.index[-1].strftime('%b-%Y')}")
+    kwargs["title"] = kwargs.get("title", f"Summary at {label_period(data.index[-1])}")
     kwargs["preserve_lims"] = kwargs.get("preserve_lims", True)
 
     start: int | Period | None = kwargs.get("plot_from", 0)
@@ -222,13 +223,6 @@ def summary_plot_finalise(
         # some sorting of kwargs for plot production
         kwargs["plot_type"] = plot_type
         kwargs["pre_tag"] = pre_tag + plot_type
-
-        if plot_type == "zscores":
-            kwargs["xlabel"] = f"Z-scores for prints since {start.strftime('%b-%Y')}"
-            kwargs["x0"] = True
-        else:
-            kwargs["xlabel"] = f"-1 to 1 scaled z-scores since {start.strftime('%b-%Y')}"
-            kwargs.pop("x0", None)
 
         plot_then_finalise(
             data,

@@ -4,7 +4,7 @@ This module provides a mechanosm for managing global settings.
 """
 
 # --- imports
-from typing import TypedDict, TypeVar, Any
+from typing import TypedDict, TypeVar, Any, Literal
 from pathlib import Path
 
 import matplotlib as mpl
@@ -16,17 +16,17 @@ from pandas import Series, DataFrame
 DataT = TypeVar("DataT", Series, DataFrame)  # python 3.11+
 
 
-# --- global settings
+# --- global plot settings
 plt.style.use("fivethirtyeight")
 mpl.rcParams["font.size"] = 11
 
 
 # --- default settings
-class _DefaultValues(TypedDict):
+class DefaultTypes(TypedDict):
     """
-    _DefaultValues is a dictionary of default values for the settings.
-    It is a TypedDict, which means that it knows a fixed set of keys
-    and their corresponding types.
+    DefaultTypes is a TypedDict for the default values.
+
+    Note: the keys need to be repeated in the Literal below for mypy (kludge)
     """
 
     file_type: str
@@ -48,7 +48,23 @@ class _DefaultValues(TypedDict):
     max_ticks: int  # default for x-axis ticks
 
 
-_mgplot_defaults = _DefaultValues(
+Settings = Literal[
+    "file_type",
+    "figsize",
+    "dpi",
+    "line_narrow",
+    "line_normal",
+    "line_wide",
+    "bar_width",
+    "legend_font_size",
+    "legend",
+    "colors",
+    "chart_dir",
+    "max_ticks",
+]
+
+
+mgplot_defaults = DefaultTypes(
     file_type="png",
     figsize=(9.0, 4.5),
     dpi=300,
@@ -84,7 +100,7 @@ _mgplot_defaults = _DefaultValues(
 # --- get/change settings
 
 
-def get_setting(setting: str) -> Any:
+def get_setting(setting: Settings) -> Any:
     """
     Get a setting from the global settings.
 
@@ -109,12 +125,12 @@ def get_setting(setting: str) -> Any:
     Returns:
         - value: Any - the value of the setting
     """
-    if setting not in _mgplot_defaults:
-        raise KeyError(f"Setting '{setting}' not found in _mgplot_defaults.")
-    return _mgplot_defaults[setting]  # type: ignore[literal-required]
+    if setting not in mgplot_defaults:
+        raise KeyError(f"Setting '{setting}' not found in mgplot_defaults.")
+    return mgplot_defaults[setting]
 
 
-def set_setting(setting: str, value: Any) -> None:
+def set_setting(setting: Settings, value: Any) -> None:
     """
     Set a setting in the global settings.
     Raises KeyError if the setting is not found.
@@ -124,9 +140,9 @@ def set_setting(setting: str, value: Any) -> None:
         - value: Any - the value to set the setting to
     """
 
-    if setting not in _mgplot_defaults:
-        raise KeyError(f"Setting '{setting}' not found in _mgplot_defaults.")
-    _mgplot_defaults[setting] = value  # type: ignore[literal-required]
+    if setting not in DefaultTypes.__required_keys__:
+        raise KeyError(f"Setting '{setting}' not found in mgplot_defaults.")
+    mgplot_defaults[setting] = value
 
 
 def clear_chart_dir() -> None:

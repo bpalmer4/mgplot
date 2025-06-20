@@ -5,7 +5,7 @@ file system. It is used to publish plots.
 """
 
 # --- imports
-from typing import Any, Final, NotRequired, Unpack
+from typing import Any, Final, NotRequired, Unpack, Callable
 from collections.abc import Sequence
 import re
 import matplotlib as mpl
@@ -116,8 +116,17 @@ def apply_value_kwargs(axes: Axes, settings: Sequence[str], **kwargs) -> None:
         value = kwargs.get(setting, None)
         if value is None and setting not in ("title", "xlabel", "ylabel"):
             continue
-        if setting == "ylabel" and value is None and axes.get_ylabel():
-            # already set - probably in series_growth_plot() - so skip
+        function: dict[str, Callable[[], str]] = {
+            "xlabel": axes.get_xlabel,
+            "ylabel": axes.get_ylabel,
+            "title": axes.get_title,
+        }
+
+        def fail() -> str:
+            return ""
+
+        if value is None and function.get(setting, fail)():
+            # setting is already set
             continue
         axes.set(**{setting: value})
 
