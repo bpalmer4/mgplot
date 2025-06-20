@@ -1,5 +1,4 @@
-"""
-axis_utils.py
+"""axis_utils.py
 
 This module contains functions to work with categorical
 axis in Matplotlib, specifically:
@@ -10,21 +9,20 @@ axis in Matplotlib, specifically:
 
 import calendar
 from enum import Enum
-from pandas import Period, PeriodIndex, period_range, RangeIndex
-from pandas.api.types import is_integer_dtype, is_string_dtype
+
 from matplotlib.pyplot import Axes
+from pandas import Period, PeriodIndex, RangeIndex, period_range
+from pandas.api.types import is_integer_dtype, is_string_dtype
 
 from mgplot.settings import DataT
 
 
 def is_categorical(data: DataT) -> bool:
-    """
-    Check if the data.index is usefully categorical
+    """Check if the data.index is usefully categorical
     (index needs to be complete, and unique).
 
     Note: we plot categoricals using bar plots.
     """
-
     if data.index.has_duplicates or data.index.hasnans or data.index.empty:
         return False
     if is_string_dtype(data.index.dtype):
@@ -44,9 +42,7 @@ def is_categorical(data: DataT) -> bool:
 
 
 def map_periodindex(data: DataT) -> None | tuple[DataT, PeriodIndex]:
-    """
-    Map a PeriodIndex to an integer index.
-    """
+    """Map a PeriodIndex to an integer index."""
     if not is_categorical(data):
         return None
     if not isinstance(data.index, PeriodIndex):
@@ -56,7 +52,8 @@ def map_periodindex(data: DataT) -> None | tuple[DataT, PeriodIndex]:
         start=og_index[0].ordinal,
         stop=og_index[-1].ordinal + (1 if og_index[0] < og_index[-1] else -1),
     )
-    assert len(data.index) == len(og_index), "Mapped PeriodIndex to RangeIndex, but the lengths do not match."
+    if len(data.index) != len(og_index):
+        raise ValueError("Mapped PeriodIndex to RangeIndex, but the lengths do not match.")
     return data, og_index
 
 
@@ -89,11 +86,11 @@ intervals = {
 
 
 def get_count(p: PeriodIndex, max_ticks: int) -> tuple[int, DateLike, int]:
-    """
-    Work out the label frequency and interval for a date-like
+    """Work out the label frequency and interval for a date-like
     PeriodIndex.
 
     Parameters
+    ----------
     - p: PeriodIndex - the PeriodIndex
     - max_ticks -  the maximum number of ticks [suggestive]
 
@@ -101,8 +98,8 @@ def get_count(p: PeriodIndex, max_ticks: int) -> tuple[int, DateLike, int]:
     - the roughly anticipated number of ticks to highlight: int
     - the type of ticks to highlight (eg. days/months/quarters/years): str
     - the tick interval (ie. number of days/months/quarters/years): int
-    """
 
+    """
     # --- sanity checks
     error = (0, DateLike.BAD, 0)
     if p.empty:
@@ -132,8 +129,7 @@ def day_labeller(labels: dict[Period, str]) -> dict[Period, str]:
 
     def add_year(label: str, year: str) -> str:
         label = label.replace("\n", " ") if len(label) > 2 else f"{label} {month}"
-        label = f"{label}\n{year}"
-        return label
+        return f"{label}\n{year}"
 
     if not labels:
         return labels
@@ -168,19 +164,17 @@ def day_labeller(labels: dict[Period, str]) -> dict[Period, str]:
 
 def month_locator(p: PeriodIndex, interval: int) -> dict[Period, str]:
     """Select the months to label."""
-
     subset = PeriodIndex([c for c in p if c.day == 1]) if p.freqstr[0] == "D" else p
 
     start = 0
     if interval > 1:
         mod_months = [(c.month - 1) % interval for c in subset]
         start = 0 if 0 not in mod_months else mod_months.index(0)
-    return {k: "" for k in subset[start::interval]}
+    return dict.fromkeys(subset[start::interval], "")
 
 
 def month_labeller(labels: dict[Period, str]) -> dict[Period, str]:
     """Label the selected months."""
-
     if not labels:
         return labels
 
@@ -211,17 +205,15 @@ def month_labeller(labels: dict[Period, str]) -> dict[Period, str]:
 
 def qtr_locator(p: PeriodIndex, interval: int) -> dict[Period, str]:
     """Select the quarters to label."""
-
     start = 0
     if interval > 1:
         mod_qtrs = [(c.quarter - 1) % interval for c in p]
         start = 0 if 0 not in mod_qtrs else mod_qtrs.index(0)
-    return {k: "" for k in p[start::interval]}
+    return dict.fromkeys(p[start::interval], "")
 
 
 def qtr_labeller(labels: dict[Period, str]) -> dict[Period, str]:
     """Label the selected quarters."""
-
     if not labels:
         return labels
 
@@ -246,7 +238,6 @@ def qtr_labeller(labels: dict[Period, str]) -> dict[Period, str]:
 
 def year_locator(p: PeriodIndex, interval: int) -> dict[Period, str]:
     """Select the years to label."""
-
     match p.freqstr[0]:
         case "D":
             subset = PeriodIndex([c for c in p if c.month == 1 and c.day == 1])
@@ -261,12 +252,11 @@ def year_locator(p: PeriodIndex, interval: int) -> dict[Period, str]:
     if interval > 1:
         mod_years = [(c.year) % interval for c in subset]
         start = 0 if 0 not in mod_years else mod_years.index(0)
-    return {k: "" for k in subset[start::interval]}
+    return dict.fromkeys(subset[start::interval], "")
 
 
 def year_labeller(labels: dict[Period, str]) -> dict[Period, str]:
     """Label the selected years."""
-
     if not labels:
         return labels
 
@@ -277,18 +267,18 @@ def year_labeller(labels: dict[Period, str]) -> dict[Period, str]:
 
 
 def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
-    """
-    Provide a dictionary of labels for the date-like PeriodIndex.
+    """Provide a dictionary of labels for the date-like PeriodIndex.
 
     Parameters
+    ----------
     - p: PeriodIndex - the PeriodIndex
     - max_ticks -  the maximum number of ticks [suggestive]
 
     Returns a dictionary:
     - keys are the Periods to label
     - values are the labels to apply
-    """
 
+    """
     labels: dict[Period, str] = {}
     max_ticks = max(max_ticks, 4)
     count, date_like, interval = get_count(p, max_ticks)
@@ -301,7 +291,7 @@ def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
     match target_freq:
         case "D":
             start = 0 if interval == 2 and count % 2 else interval // 2
-            labels = {k: "" for k in complete[start::interval]}
+            labels = dict.fromkeys(complete[start::interval], "")
             labels = day_labeller(labels)
 
         case "M":
@@ -320,18 +310,18 @@ def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
 
 
 def make_ilabels(p: PeriodIndex, max_ticks: int) -> tuple[list[int], list[str]]:
-    """
-    From a PeriodIndex, create a list of integer ticks and ticklabels
+    """From a PeriodIndex, create a list of integer ticks and ticklabels
 
     Parameters
+    ----------
     - p: PeriodIndex - the PeriodIndex
     - max_ticks -  the maximum number of ticks [suggestive]
 
     Returns a tuple:
     - list of integer ticks
     - list of tick label strings
-    """
 
+    """
     labels = make_labels(p, max_ticks)
     ticks = [x.ordinal for x in sorted(labels.keys())]
     ticklabels = [labels[x] for x in sorted(labels.keys())]
@@ -340,15 +330,15 @@ def make_ilabels(p: PeriodIndex, max_ticks: int) -> tuple[list[int], list[str]]:
 
 
 def set_labels(axes: Axes, p: PeriodIndex, max_ticks: int = 10) -> None:
-    """
-    Set the x-axis labels for a date-like PeriodIndex.
+    """Set the x-axis labels for a date-like PeriodIndex.
 
     Parameters
+    ----------
     - axes: Axes - the axes to set the labels on
     - p: PeriodIndex - the PeriodIndex
     - max_ticks: int - the maximum number of ticks [suggestive]
-    """
 
+    """
     ticks, ticklabels = make_ilabels(p, max_ticks)
     axes.set_xticks(ticks)
     axes.set_xticklabels(ticklabels, rotation=0, ha="center")

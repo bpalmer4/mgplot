@@ -1,3 +1,10 @@
+Version 0.2.3 - released 20-Jun-2025 (Canberra, Australia)
+
+* minor changes
+    - Implemented more aggressive lining in ruff.
+
+---
+
 Version 0.2.1 - released 19-Jun-2025 (Canberra Australia)
 
 * minor changes

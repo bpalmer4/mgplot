@@ -1,5 +1,4 @@
-"""
-keyword_checking.py
+"""keyword_checking.py
 - limit_kwargs()
 - package_kwargs()
 - validate_kwargs()
@@ -14,11 +13,10 @@ It is not a full type checker, but it provides a basic level
 of validation to help catch common mistakes in function calls.
 """
 
-from typing import Any, cast, get_origin, get_args, TypedDict, Union, NotRequired, Final
-from types import UnionType
-from collections.abc import Sequence, Mapping, Set
 import textwrap
-
+from collections.abc import Mapping, Sequence, Set
+from types import UnionType
+from typing import Any, Final, NotRequired, TypedDict, Union, cast, get_args, get_origin
 
 # --- constants
 type TransitionKwargs = dict[str, tuple[str, Any]]
@@ -37,8 +35,7 @@ def report_kwargs(
     caller: str,
     **kwargs,
 ) -> None:
-    """
-    Dump the received keyword arguments to the console.
+    """Dump the received keyword arguments to the console.
     Useful for debugging purposes.
 
     Arguments:
@@ -46,8 +43,8 @@ def report_kwargs(
       function, used for debugging.
     - **kwargs - the keyword arguments to be reported, but only if
         the "report_kwargs" key is present and set to True.
-    """
 
+    """
     if kwargs.get("report_kwargs", False):
         wrapped = textwrap.fill(str(kwargs), width=79)
         print(f"{caller} kwargs:\n{wrapped}\n".strip())
@@ -57,15 +54,12 @@ def limit_kwargs(
     expected: type[Any],
     **kwargs,
 ) -> dict[str, Any]:
-    """
-    Limit the keyword arguments to those in the expected TypedDict.
-    """
-    return {k: v for k, v in kwargs.items() if k in dict(cast(dict[str, Any], expected.__annotations__))}
+    """Limit the keyword arguments to those in the expected TypedDict."""
+    return {k: v for k, v in kwargs.items() if k in dict(cast("dict[str, Any]", expected.__annotations__))}
 
 
 def package_kwargs(mapping: TransitionKwargs, **kwargs: Any) -> dict[str, Any]:
-    """
-    Package the keyword arguments for plotting functions.
+    """Package the keyword arguments for plotting functions.
     Substitute defaults where arguments are not provided
     (unless the default is None).
 
@@ -76,13 +70,13 @@ def package_kwargs(mapping: TransitionKwargs, **kwargs: Any) -> dict[str, Any]:
 
     Returns:
     -   A dictionary with the packaged keyword arguments.
+
     """
     return {v[0]: kwargs.get(k, v[1]) for k, v in mapping.items() if k in kwargs or v[1] is not None}
 
 
 def validate_kwargs(schema: type[Any] | dict[str, Any], caller: str, **kwargs: Any) -> None:
-    """
-    Validates the types of keyword arguments against expected types.
+    """Validates the types of keyword arguments against expected types.
 
     Args:
         schema (type[TypedDict]): A TypedDict defining the expected structure and types.
@@ -90,11 +84,11 @@ def validate_kwargs(schema: type[Any] | dict[str, Any], caller: str, **kwargs: A
         **kwargs: The keyword arguments to validate against the schema.
 
     Prints error messages for any mismatched types.
-    """
 
+    """
     # --- Extract the expected types from the schema
     if hasattr(schema, "__annotations__"):
-        scheme = dict(cast(dict[str, Any], schema.__annotations__).items())
+        scheme = dict(cast("dict[str, Any]", schema.__annotations__).items())
     elif isinstance(schema, dict):
         scheme = schema
     else:
@@ -110,24 +104,24 @@ def validate_kwargs(schema: type[Any] | dict[str, Any], caller: str, **kwargs: A
                 print(
                     textwrap.fill(
                         f"Mismatched type: '{key}={value}' must be "
-                        + f"of type '{peel(expected)}', in {caller}().",
+                        f"of type '{peel(expected)}', in {caller}().",
                         width=79,
-                    )
+                    ),
                 )
             else:
                 dprint(
                     textwrap.fill(
                         f"Good: ---> {key}={value} matched {peel(expected)} in {caller}().",
                         width=79,
-                    )
+                    ),
                 )
         else:
             print(
                 textwrap.fill(
                     f"Unexpected keyword argument '{key}' received by {caller}(). "
-                    + "Please check the function call.",
+                    "Please check the function call.",
                     width=79,
-                )
+                ),
             )
         dprint("--------------------------")
 
@@ -142,8 +136,7 @@ def validate_kwargs(schema: type[Any] | dict[str, Any], caller: str, **kwargs: A
 
 # --- private functions
 def peel(expected: type[Any]) -> type[Any]:
-    """
-    Peels off NotRequired andFinal from the expected type.
+    """Peels off NotRequired andFinal from the expected type.
     Used to simplify error messages.
     """
     while get_origin(expected) in (NotRequired, Final):
@@ -155,11 +148,12 @@ def peel(expected: type[Any]) -> type[Any]:
 
 
 def check(value: Any, expected: type) -> bool:
-    """
-    Checks if a value matches the expected type and handles complex types.
+    """Checks if a value matches the expected type and handles complex types.
+
     Args:
         value: The value to check.
         expected: The expected type(s).
+
     """
     dprint(f"check(): implemented {value=} {expected=}")
 
@@ -195,12 +189,12 @@ def check(value: Any, expected: type) -> bool:
 
 
 def check_not_required(value: Any, expected: type) -> bool:
-    """
-    Manages optional keyword arguments.
+    """Manages optional keyword arguments.
 
     Args:
         value: The value to check.
         expected: The expected type(s).
+
     """
     args = get_args(expected)
     if len(args) != 1:
@@ -210,35 +204,33 @@ def check_not_required(value: Any, expected: type) -> bool:
 
 
 def check_type(value: Any, expected: type) -> bool:
-    """
-    Checks if a value is of the expected type and reports an error if not.
+    """Checks if a value is of the expected type and reports an error if not.
 
     Args:
         value: The value to check.
         expected: The expected type(s).
+
     """
     return expected is Any or isinstance(value, expected)
 
 
 def check_union(value: Any, expected: type) -> bool:
-    """
-    Checks if a value is of one of the expected types in a Union.
+    """Checks if a value is of one of the expected types in a Union.
 
     Args:
         value: The value to check.
         expected: The expected type(s) for the Union.
+
     """
     return any(check(value, arg) for arg in get_args(expected))
 
 
 def check_sequence(value: Any, expected: type) -> bool:
-    """
-    Checks if a value is a sequence and of the expected type.
-    """
+    """Checks if a value is a sequence and of the expected type."""
     origin = get_origin(expected)
-    assert origin is not None, "Expected a mapping type with parameters"
-    if not isinstance(value, origin):
-        return False
+    if origin is None:
+        # should never happen, but just in case
+        raise TypeError("Expected a sequence type with parameters.")
     if not value:
         # Empty sequence is always valid for any type of sequence
         return True
@@ -247,7 +239,7 @@ def check_sequence(value: Any, expected: type) -> bool:
         # Handle tuple types separately
         return check_tuple(value, expected)
 
-    if value and not isinstance(value, (Sequence, list)):
+    if value and not isinstance(value, (Sequence)):
         # If value is not empty, it must be a sequence
         return False
 
@@ -260,10 +252,7 @@ def check_sequence(value: Any, expected: type) -> bool:
 
 
 def check_tuple(value: Any, expected: type) -> bool:
-    """
-    Checks if a value is a tuple and of the expected type.
-    """
-
+    """Checks if a value is a tuple and of the expected type."""
     # --- check if value is a tuple, and if an empty tuple
     if not isinstance(value, tuple):
         return False
@@ -285,22 +274,23 @@ def check_tuple(value: Any, expected: type) -> bool:
 
     # --- Fixed length tuple ==> e.g. tuple[int, str]
     elif len(expected_args) == len(value):
-        good = all(check(item, arg) for item, arg in zip(value, expected_args))
+        good = all(check(item, arg) for item, arg in zip(value, expected_args, strict=False))
 
     return good
 
 
 def check_mapping(value: Any, expected: type) -> bool:
-    """
-    Checks if a value is a mapping (dict) and of the expected type.
+    """Checks if a value is a mapping (dict) and of the expected type.
 
     Args:
         value: The value to check.
         expected: The expected type(s) for the mapping values.
-    """
 
+    """
     origin = get_origin(expected)
-    assert origin is not None, "Expected a mapping type with parameters"
+    if origin is None:
+        # should never happen, but just in case
+        raise TypeError("Expected a mapping type with parameters")
     if not isinstance(value, origin):
         # not of the right type
         return False
@@ -317,16 +307,17 @@ def check_mapping(value: Any, expected: type) -> bool:
 
 
 def check_set(value: Any, expected: type) -> bool:
-    """
-    Checks if a value is a set and of the expected type.
+    """Checks if a value is a set and of the expected type.
 
     Args:
         value: The value to check.
         expected: The expected type(s) for the set elements.
-    """
 
+    """
     origin = get_origin(expected)
-    assert origin is not None, "Expected a mapping type with parameters"
+    if origin is None:
+        # should never happen, but just in case
+        raise TypeError("Expected a set type with parameters")
     if not isinstance(value, origin):
         # not of the right type
         return False
@@ -344,8 +335,7 @@ def check_set(value: Any, expected: type) -> bool:
 
 # --- debug print function
 def dprint(*args, **kwargs) -> None:
-    """
-    Debug print function to output debug information.
+    """Debug print function to output debug information.
     This is a placeholder for more sophisticated logging.
     """
     active = True  # Set to False to disable debug printing

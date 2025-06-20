@@ -1,26 +1,25 @@
-"""
-line_plot.py:
+"""line_plot.py:
 Plot a series or a dataframe with lines.
 """
 
 # --- imports
-from typing import Any, Final, Unpack, NotRequired
-from collections.abc import Sequence
 import math
+from collections.abc import Sequence
+from typing import Any, Final, NotRequired, Unpack
+
 from matplotlib.pyplot import Axes
-from pandas import DataFrame, Series, Period
+from pandas import DataFrame, Period, Series
 
+from mgplot.axis_utils import map_periodindex, set_labels
+from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import DataT, get_setting
-from mgplot.axis_utils import set_labels, map_periodindex
-from mgplot.keyword_checking import validate_kwargs, report_kwargs, BaseKwargs
-
 from mgplot.utilities import (
     apply_defaults,
-    get_color_list,
-    get_axes,
-    constrain_data,
     check_clean_timeseries,
+    constrain_data,
     default_rounding,
+    get_axes,
+    get_color_list,
 )
 
 # --- constants
@@ -58,7 +57,6 @@ def annotate_series(
     **kwargs,  # "fontsize", "rounding",
 ) -> None:
     """Annotate the right-hand end-point of a line-plotted series."""
-
     # --- check the series has a value to annotate
     latest = series.dropna()
     if series.empty:
@@ -76,7 +74,7 @@ def annotate_series(
 
     # --- add the annotation
     color = kwargs["color"]
-    rounding = default_rounding(value=y, provided=kwargs.get("rounding", None))
+    rounding = default_rounding(value=y, provided=kwargs.get("rounding"))
     r_string = f"  {y:.{rounding}f}" if rounding > 0 else f"  {int(y)}"
     axes.text(
         x=x,
@@ -92,14 +90,14 @@ def annotate_series(
 
 
 def _get_style_width_color_etc(
-    item_count, num_data_points, **kwargs
+    item_count,
+    num_data_points,
+    **kwargs,
 ) -> tuple[dict[str, list | tuple], dict[str, Any]]:
-    """
-    Get the plot-line attributes arguemnts.
+    """Get the plot-line attributes arguemnts.
     Returns a dictionary of lists of attributes for each line, and
     a modified kwargs dictionary.
     """
-
     data_point_thresh = 151  # switch from wide to narrow lines
     line_defaults: dict[str, Any] = {
         "style": ("solid" if item_count < 4 else ["solid", "dashed", "dashdot", "dotted"]),
@@ -125,8 +123,7 @@ def _get_style_width_color_etc(
 
 
 def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
-    """
-    Build a single plot from the data passed in.
+    """Build a single plot from the data passed in.
     This can be a single- or multiple-line plot.
     Return the axes object for the build.
 
@@ -136,8 +133,8 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
 
     Returns:
     - axes: Axes - the axes object for the plot
-    """
 
+    """
     # --- check the kwargs
     report_kwargs(caller=ME, **kwargs)
     validate_kwargs(schema=LineKwargs, caller=ME, **kwargs)

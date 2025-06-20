@@ -1,25 +1,25 @@
-"""
-run_plot.py
+"""run_plot.py
 This code contains a function to plot and highlighted
 the 'runs' in a series.
 """
 
 # --- imports
 from collections.abc import Sequence
-from typing import Unpack, NotRequired
-from pandas import Series, concat
-from matplotlib.pyplot import Axes
-from matplotlib import patheffects as pe
+from typing import NotRequired, Unpack
 
-from mgplot.settings import DataT, get_setting
+from matplotlib import patheffects as pe
+from matplotlib.pyplot import Axes
+from pandas import Series, concat
+
 from mgplot.axis_utils import map_periodindex, set_labels
-from mgplot.line_plot import line_plot, LineKwargs
 from mgplot.keyword_checking import (
-    validate_kwargs,
-    report_kwargs,
     limit_kwargs,
+    report_kwargs,
+    validate_kwargs,
 )
-from mgplot.utilities import constrain_data, check_clean_timeseries
+from mgplot.line_plot import LineKwargs, line_plot
+from mgplot.settings import DataT, get_setting
+from mgplot.utilities import check_clean_timeseries, constrain_data
 
 # --- constants
 ME = "run_plot"
@@ -39,10 +39,10 @@ class RunKwargs(LineKwargs):
 def _identify_runs(
     series: Series,
     threshold: float,
+    *,
     up: bool,  # False means down
 ) -> tuple[Series, Series]:
     """Identify monotonic increasing/decreasing runs."""
-
     diffed = series.diff()
     change_points = concat([diffed[diffed.gt(threshold)], diffed[diffed.lt(-threshold)]]).sort_index()
     if series.index[0] not in change_points.index:
@@ -56,11 +56,11 @@ def _identify_runs(
 def _plot_runs(
     axes: Axes,
     series: Series,
+    *,
     up: bool,
     **kwargs,
 ) -> None:
     """Highlight the runs of a series."""
-
     threshold = kwargs["threshold"]
     match kwargs.get("highlight"):  # make sure highlight is a color string
         case str():
@@ -69,7 +69,7 @@ def _plot_runs(
             highlight = kwargs["highlight"][0] if up else kwargs["highlight"][1]
         case _:
             raise ValueError(
-                f"Invalid type for highlight: {type(kwargs.get('highlight'))}. Expected str or Sequence."
+                f"Invalid type for highlight: {type(kwargs.get('highlight'))}. Expected str or Sequence.",
             )
 
     # highlight the runs
@@ -100,13 +100,14 @@ def _plot_runs(
 def run_plot(data: DataT, **kwargs: Unpack[RunKwargs]) -> Axes:
     """Plot a series of percentage rates, highlighting the increasing runs.
 
-    Arguments
+    Arguments:
      - data - ordered pandas Series of percentages, with PeriodIndex
      - **kwargs: RunKwargs
 
-    Return
-     - matplotlib Axes object"""
+    Return:
+     - matplotlib Axes object
 
+    """
     # --- check the kwargs
     report_kwargs(caller="run_plot", **kwargs)
     validate_kwargs(schema=RunKwargs, caller=ME, **kwargs)
@@ -154,7 +155,7 @@ def run_plot(data: DataT, **kwargs: Unpack[RunKwargs]) -> Axes:
             _plot_runs(axes, series, up=False, **kwargs_d)
         case _:
             raise ValueError(
-                f"Invalid value for direction: {kwargs['direction']}. Expected 'up', 'down', or 'both'."
+                f"Invalid value for direction: {kwargs['direction']}. Expected 'up', 'down', or 'both'.",
             )
 
     # --- set the labels

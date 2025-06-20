@@ -1,5 +1,4 @@
-"""
-growth_plot.py:
+"""growth_plot.py:
 plot period and annual/through-the-year growth rates on the same axes.
 - calc_growth()
 - growth_plot()
@@ -7,24 +6,24 @@ plot period and annual/through-the-year growth rates on the same axes.
 """
 
 # --- imports
-from typing import Unpack, NotRequired, cast
-from pandas import Series, DataFrame, Period, PeriodIndex, period_range
-from numpy import nan
-from matplotlib.pyplot import Axes
+from typing import NotRequired, Unpack, cast
 
+from matplotlib.pyplot import Axes
+from numpy import nan
+from pandas import DataFrame, Period, PeriodIndex, Series, period_range
+
+from mgplot.axis_utils import map_periodindex, set_labels
 from mgplot.bar_plot import bar_plot
-from mgplot.line_plot import line_plot
-from mgplot.axis_utils import map_periodindex
-from mgplot.settings import DataT
-from mgplot.axis_utils import set_labels
-from mgplot.utilities import check_clean_timeseries, constrain_data
 from mgplot.keyword_checking import (
-    validate_kwargs,
-    report_kwargs,
     BaseKwargs,
     TransitionKwargs,
     package_kwargs,
+    report_kwargs,
+    validate_kwargs,
 )
+from mgplot.line_plot import line_plot
+from mgplot.settings import DataT
+from mgplot.utilities import check_clean_timeseries, constrain_data
 
 # === constants
 
@@ -104,8 +103,7 @@ to_bar_plot: TransitionKwargs = common_transitions | {
 # === functions
 # --- public functions
 def calc_growth(series: Series) -> DataFrame:
-    """
-    Calculate annual and periodic growth for a pandas Series,
+    """Calculate annual and periodic growth for a pandas Series,
     where the index is a PeriodIndex.
 
     Args:
@@ -113,14 +111,14 @@ def calc_growth(series: Series) -> DataFrame:
 
     Returns a two column DataFrame:
 
-    Raises
+    Raises:
     -   TypeError if the series is not a pandas Series.
     -   TypeError if the series index is not a PeriodIndex.
     -   ValueError if the series is empty.
     -   ValueError if the series index does not have a frequency of Q, M, or D.
     -   ValueError if the series index has duplicates.
-    """
 
+    """
     # --- sanity checks
     if not isinstance(series, Series):
         raise TypeError("The series argument must be a pandas Series")
@@ -147,7 +145,7 @@ def calc_growth(series: Series) -> DataFrame:
         {
             "Annual Growth": annual,
             periodic_name: periodic,
-        }
+        },
     )
 
 
@@ -155,23 +153,22 @@ def growth_plot(
     data: DataT,
     **kwargs: Unpack[GrowthKwargs],
 ) -> Axes:
-    """
-    Plot annual growth (as a line) and periodic growth (as bars)
+    """Plot annual growth (as a line) and periodic growth (as bars)
     on the same axes.
 
     Args:
     -   data: A pandas DataFrame with two columns:
     -   kwargs: GrowthKwargs
 
-            Returns:
+    Returns:
     -   axes: The matplotlib Axes object.
 
     Raises:
     -   TypeError if the annual and periodic arguments are not pandas Series.
     -   TypeError if the annual index is not a PeriodIndex.
     -   ValueError if the annual and periodic series do not have the same index.
-    """
 
+    """
     # --- check the kwargs
     me = "growth_plot"
     report_kwargs(caller=me, **kwargs)
@@ -220,16 +217,15 @@ def series_growth_plot(
     data: DataT,
     **kwargs: Unpack[SeriesGrowthKwargs],
 ) -> Axes:
-    """
-    Plot annual and periodic growth in percentage terms from
+    """Plot annual and periodic growth in percentage terms from
     a pandas Series, and finalise the plot.
 
     Args:
     -   data: A pandas Series with an appropriate PeriodIndex.
     -   kwargs: SeriesGrowthKwargs
         -   takes much the same kwargs as for growth_plot()
-    """
 
+    """
     # --- check the kwargs
     me = "series_growth_plot"
     report_kwargs(caller=me, **kwargs)
@@ -245,6 +241,6 @@ def series_growth_plot(
         print(f"Did you intend to specify a value for the 'ylabel' in {me}()?")
     ylabel = "Growth (%)" if ylabel is None else ylabel
     growth = calc_growth(data)
-    ax = growth_plot(growth, **cast(GrowthKwargs, kwargs))
+    ax = growth_plot(growth, **cast("GrowthKwargs", kwargs))
     ax.set_ylabel(ylabel)
     return ax

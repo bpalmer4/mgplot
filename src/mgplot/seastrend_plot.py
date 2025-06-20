@@ -1,17 +1,17 @@
-"""
-seas_trend_plot.py
+"""seas_trend_plot.py
 This module contains a function to create seasonal+trend plots.
 It is just a light-weight wrapper around line_plot().
 """
 
 # --- imports
 from typing import Final, Unpack
+
 from matplotlib.pyplot import Axes
 
-from mgplot.settings import DataT
-from mgplot.line_plot import line_plot, LineKwargs
-from mgplot.utilities import get_color_list, get_setting, check_clean_timeseries
 from mgplot.keyword_checking import report_kwargs, validate_kwargs
+from mgplot.line_plot import LineKwargs, line_plot
+from mgplot.settings import DataT
+from mgplot.utilities import check_clean_timeseries, get_color_list, get_setting
 
 # --- constants
 ME: Final[str] = "seastrend_plot"
@@ -19,8 +19,7 @@ ME: Final[str] = "seastrend_plot"
 
 # --- public functions
 def seastrend_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
-    """
-    Publish a DataFrame, where the first column is seasonally
+    """Publish a DataFrame, where the first column is seasonally
     adjusted data, and the second column is trend data.
 
     Aguments:
@@ -32,8 +31,8 @@ def seastrend_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
 
     Returns:
     - a matplotlib Axes object
-    """
 
+    """
     # Note: we will rely on the line_plot() function to do most of the work.
     # including constraining the data to the plot_from keyword argument.
 
@@ -56,9 +55,7 @@ def seastrend_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
     # series breaks are common in seas-trend data
     kwargs["dropna"] = kwargs.get("dropna", False)
 
-    axes = line_plot(
+    return line_plot(
         data,
         **kwargs,
     )
-
-    return axes

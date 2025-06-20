@@ -1,20 +1,19 @@
-"""
-finalise_plot.py:
+"""finalise_plot.py:
 This module provides a function to finalise and save plots to the
 file system. It is used to publish plots.
 """
 
 # --- imports
-from typing import Any, Final, NotRequired, Unpack, Callable
-from collections.abc import Sequence
 import re
+from collections.abc import Callable, Sequence
+from typing import Any, Final, NotRequired, Unpack
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import Axes, Figure
 
+from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import get_setting
-from mgplot.keyword_checking import validate_kwargs, report_kwargs, BaseKwargs
-
 
 # --- constants
 ME: Final[str] = "finalise_plot"
@@ -93,9 +92,8 @@ _remove = re.compile(r"[^0-9A-Za-z]")  # sensible file names from alphamum title
 _reduce = re.compile(r"[-]+")  # eliminate multiple hyphens
 
 
-def make_legend(axes: Axes, legend: None | bool | dict[str, Any]) -> None:
+def make_legend(axes: Axes, *, legend: None | bool | dict[str, Any]) -> None:
     """Create a legend for the plot."""
-
     if legend is None or legend is False:
         return
 
@@ -111,9 +109,8 @@ def make_legend(axes: Axes, legend: None | bool | dict[str, Any]) -> None:
 
 def apply_value_kwargs(axes: Axes, settings: Sequence[str], **kwargs) -> None:
     """Set matplotlib elements by name using Axes.set()."""
-
     for setting in settings:
-        value = kwargs.get(setting, None)
+        value = kwargs.get(setting)
         if value is None and setting not in ("title", "xlabel", "ylabel"):
             continue
         function: dict[str, Callable[[], str]] = {
@@ -132,17 +129,15 @@ def apply_value_kwargs(axes: Axes, settings: Sequence[str], **kwargs) -> None:
 
 
 def apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
-    """
-    Set matplotlib elements dynamically using setting_name and splat.
+    """Set matplotlib elements dynamically using setting_name and splat.
     This is used for legend, axhspan, axvspan, axhline, and axvline.
     These can be ignored if not in kwargs, or set to None in kwargs.
     """
-
     for method_name in settings:
         if method_name in kwargs:
             if method_name == "legend":
                 # special case for legend
-                make_legend(axes, kwargs[method_name])
+                make_legend(axes, legend=kwargs[method_name])
                 continue
 
             if kwargs[method_name] is None or kwargs[method_name] is False:
@@ -157,14 +152,12 @@ def apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
                 method(**kwargs[method_name])
             else:
                 print(
-                    f"Warning expected dict argument for {method_name} but got "
-                    + f"{type(kwargs[method_name])}."
+                    f"Warning expected dict argument for {method_name} but got {type(kwargs[method_name])}.",
                 )
 
 
 def apply_annotations(axes: Axes, **kwargs) -> None:
     """Set figure size and apply chart annotations."""
-
     fig = axes.figure
     fig_size = kwargs.get("figsize", get_setting("figsize"))
     if not isinstance(fig, mpl.figure.SubFigure):
@@ -227,7 +220,6 @@ def apply_kwargs(axes: Axes, **kwargs) -> None:
 
 def save_to_file(fig: Figure, **kwargs) -> None:
     """Save the figure to file."""
-
     saving = not kwargs.get("dont_save", False)  # save by default
     if saving:
         chart_dir = kwargs.get("chart_dir", get_setting("chart_dir"))
@@ -250,8 +242,7 @@ def save_to_file(fig: Figure, **kwargs) -> None:
 
 
 def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
-    """
-    A function to finalise and save plots to the file system. The filename
+    """A function to finalise and save plots to the file system. The filename
     for the saved plot is constructed from the global chart_dir, the plot's title,
     any specified tag text, and the file_type for the plot.
 
@@ -259,10 +250,10 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
     - axes - matplotlib axes object - required
     - kwargs: FinaliseKwargs
 
-     Returns:
+    Returns:
         - None
-    """
 
+    """
     # --- check the kwargs
     me = "finalise_plot"
     report_kwargs(caller=me, **kwargs)
@@ -284,7 +275,7 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
 
     # tight layout and save the figure
     fig = axes.figure
-    if "preserve_lims" in kwargs and kwargs["preserve_lims"]:
+    if kwargs.get("preserve_lims"):
         # restore the original limits of the axes
         axes.set_xlim(xlim)
         axes.set_ylim(ylim)
@@ -298,7 +289,7 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
         save_to_file(fig, **kwargs)
 
     # show the plot in Jupyter Lab
-    if "show" in kwargs and kwargs["show"]:
+    if kwargs.get("show"):
         plt.show()
 
     # And close

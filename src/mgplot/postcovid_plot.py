@@ -1,29 +1,28 @@
-"""
-covid_recovery_plot.py
+"""covid_recovery_plot.py
 Plot the pre-COVID trajectory against the current trend.
 """
 
 # --- imports
 from typing import NotRequired, Unpack, cast
-from pandas import DataFrame, Series, Period, PeriodIndex
+
 from matplotlib.pyplot import Axes
 from numpy import arange, polyfit
+from pandas import DataFrame, Period, PeriodIndex, Series
 
-from mgplot.settings import DataT, get_setting
-from mgplot.line_plot import line_plot, LineKwargs
-from mgplot.utilities import check_clean_timeseries
 from mgplot.keyword_checking import (
-    validate_kwargs,
     report_kwargs,
+    validate_kwargs,
 )
-
+from mgplot.line_plot import LineKwargs, line_plot
+from mgplot.settings import DataT, get_setting
+from mgplot.utilities import check_clean_timeseries
 
 # --- constants
 ME = "postcovid_plot"
 
 
 class PostcovidKwargs(LineKwargs):
-    "Keyword arguments for the post-COVID plot."
+    """Keyword arguments for the post-COVID plot."""
 
     start_r: NotRequired[Period]  # start of regression period
     end_r: NotRequired[Period]  # end of regression period
@@ -31,27 +30,22 @@ class PostcovidKwargs(LineKwargs):
 
 # --- functions
 def get_projection(original: Series, to_period: Period) -> Series:
-    """
-    Projection based on data from the start of a series
+    """Projection based on data from the start of a series
     to the to_period (inclusive). Returns projection over the whole
     period of the original series.
     """
-
     y_regress = original[original.index <= to_period].copy()
     x_regress = arange(len(y_regress))
     m, b = polyfit(x_regress, y_regress, 1)
 
     x_complete = arange(len(original))
-    projection = Series((x_complete * m) + b, index=original.index)
-
-    return projection
+    return Series((x_complete * m) + b, index=original.index)
 
 
 def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
-    """
-    Plots a series with a PeriodIndex.
+    """Plots a series with a PeriodIndex.
 
-    Arguments
+    Arguments:
     - data - the series to be plotted (note that this function
       is designed to work with a single series, not a DataFrame).
     - **kwargs - same as for line_plot() and finalise_plot().
@@ -61,8 +55,8 @@ def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
     - TypeError if series does not have a PeriodIndex
     - ValueError if series does not have a D, M or Q frequency
     - ValueError if regression start is after regression end
-    """
 
+    """
     # --- check the kwargs
     report_kwargs(caller=ME, **kwargs)
     validate_kwargs(schema=PostcovidKwargs, caller=ME, **kwargs)
@@ -108,7 +102,8 @@ def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
 
     # --- activate plot settings
     kwargs["width"] = kwargs.pop(
-        "width", (get_setting("line_normal"), get_setting("line_wide"))
+        "width",
+        (get_setting("line_normal"), get_setting("line_wide")),
     )  # series line is thicker than projection
     kwargs["style"] = kwargs.pop("style", ("--", "-"))  # dashed regression line
     kwargs["label_series"] = kwargs.pop("label_series", True)
@@ -117,5 +112,5 @@ def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
 
     return line_plot(
         data_set,
-        **cast(LineKwargs, kwargs),
+        **cast("LineKwargs", kwargs),
     )

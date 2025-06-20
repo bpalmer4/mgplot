@@ -1,16 +1,14 @@
-"""
-settings.py
+"""settings.py
 This module provides a mechanosm for managing global settings.
 """
 
 # --- imports
-from typing import TypedDict, TypeVar, Any, Literal
 from pathlib import Path
+from typing import Any, Literal, TypedDict, TypeVar
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from pandas import Series, DataFrame
-
+from pandas import DataFrame, Series
 
 # --- default types
 DataT = TypeVar("DataT", Series, DataFrame)  # python 3.11+
@@ -23,8 +21,7 @@ mpl.rcParams["font.size"] = 11
 
 # --- default settings
 class DefaultTypes(TypedDict):
-    """
-    DefaultTypes is a TypedDict for the default values.
+    """DefaultTypes is a TypedDict for the default values.
 
     Note: the keys need to be repeated in the Literal below for mypy (kludge)
     """
@@ -101,8 +98,7 @@ mgplot_defaults = DefaultTypes(
 
 
 def get_setting(setting: Settings) -> Any:
-    """
-    Get a setting from the global settings.
+    """Get a setting from the global settings.
 
     Arguments:
     - setting: str - name of the setting to get. The possible settings are:
@@ -124,6 +120,7 @@ def get_setting(setting: Settings) -> Any:
 
     Returns:
         - value: Any - the value of the setting
+
     """
     if setting not in mgplot_defaults:
         raise KeyError(f"Setting '{setting}' not found in mgplot_defaults.")
@@ -131,28 +128,25 @@ def get_setting(setting: Settings) -> Any:
 
 
 def set_setting(setting: Settings, value: Any) -> None:
-    """
-    Set a setting in the global settings.
+    """Set a setting in the global settings.
     Raises KeyError if the setting is not found.
 
     Arguments:
         - setting: str - name of the setting to set (see get_setting())
         - value: Any - the value to set the setting to
-    """
 
+    """
     if setting not in DefaultTypes.__required_keys__:
         raise KeyError(f"Setting '{setting}' not found in mgplot_defaults.")
     mgplot_defaults[setting] = value
 
 
 def clear_chart_dir() -> None:
-    """
-    Remove all graph-image files from the global chart_dir.
+    """Remove all graph-image files from the global chart_dir.
     This is a convenience function to remove all files from the
     chart_dir directory. It does not remove the directory itself.
     Note: the function creates the directory if it does not exist.
     """
-
     chart_dir = get_setting("chart_dir")
     Path(chart_dir).mkdir(parents=True, exist_ok=True)
     for ext in ("png", "svg", "jpg", "jpeg"):
@@ -162,8 +156,7 @@ def clear_chart_dir() -> None:
 
 
 def set_chart_dir(chart_dir: str) -> None:
-    """
-    A function to set a global chart directory for finalise_plot(),
+    """A function to set a global chart directory for finalise_plot(),
     so that it does not need to be included as an argument in each
     call to finalise_plot(). Create the directory if it does not exist.
 
@@ -174,8 +167,8 @@ def set_chart_dir(chart_dir: str) -> None:
 
     Arguments:
         - chart_dir: str - the directory to set as the chart directory
-    """
 
+    """
     if not chart_dir:
         chart_dir = "."  # avoid the empty string
     Path(chart_dir).mkdir(parents=True, exist_ok=True)

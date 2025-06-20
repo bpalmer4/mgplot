@@ -1,5 +1,4 @@
-"""
-utilities.py:
+"""utilities.py:
 Utiltiy functions used by more than one mgplot module.
 These are not intended to be used directly by the user.
 
@@ -16,20 +15,19 @@ Functions:
 # --- imports
 import math
 from typing import Any
-from pandas import Series, DataFrame, Period, PeriodIndex, RangeIndex
-from pandas.api.types import is_integer_dtype
+
 import numpy as np
 from matplotlib import cm
 from matplotlib.pyplot import Axes, subplots
+from pandas import DataFrame, Period, PeriodIndex, RangeIndex, Series
+from pandas.api.types import is_integer_dtype
 
-from mgplot.settings import get_setting
-from mgplot.settings import DataT
+from mgplot.settings import DataT, get_setting
 
 
 # --- functions
 def check_clean_timeseries(data: DataT, called_by: str) -> DataT:
-    """
-    Check timeseries data for the following:
+    """Check timeseries data for the following:
     - That the data is a Series or DataFrame.
     - That the index is a PeriodIndex
     - That the index is unique and monotonic increasing
@@ -45,12 +43,12 @@ def check_clean_timeseries(data: DataT, called_by: str) -> DataT:
     - The data with leading NaN values removed.
 
     Raises TypeError/Value if problems found
-    """
 
+    """
     # --- initial checks
-    if not isinstance(data, (Series, DataFrame)):
+    if not isinstance(data, (Series | DataFrame)):
         raise TypeError("Data must be a pandas Series or DataFrame.")
-    if not isinstance(data.index, (PeriodIndex, RangeIndex)):
+    if not isinstance(data.index, (PeriodIndex | RangeIndex)):
         raise TypeError("Data index must be a PeriodIndex/RangeIndex.")
     if not data.index.is_unique:
         raise ValueError("Data index must be unique.")
@@ -61,7 +59,7 @@ def check_clean_timeseries(data: DataT, called_by: str) -> DataT:
     start = data.first_valid_index()
     if start is None:
         return data  # no valid index, return original data
-    if not isinstance(start, (Period, int)):  # syntactic sugar for type hinting
+    if not isinstance(start, (Period | int)):  # syntactic sugar for type hinting
         raise TypeError("First valid index must be a Period or an int.")
     if isinstance(data.index, PeriodIndex) and isinstance(start, Period):
         data = data.loc[data.index >= start]
@@ -78,7 +76,7 @@ def check_clean_timeseries(data: DataT, called_by: str) -> DataT:
     if missing:
         print(
             f"Warning: Data index appears to be missing {missing} values, "
-            f"in {called_by}. Check the data for completeness."
+            f"in {called_by}. Check the data for completeness.",
         )
 
     # --- return the final data
@@ -86,8 +84,7 @@ def check_clean_timeseries(data: DataT, called_by: str) -> DataT:
 
 
 def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
-    """
-    Constrain the data to start after a certain point - kwargs["plot_from"].
+    """Constrain the data to start after a certain point - kwargs["plot_from"].
 
     Args:
         data: the data to be constrained
@@ -101,8 +98,8 @@ def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
 
     Returns:
         A tuple of the constrained data and the modified kwargs.
-    """
 
+    """
     plot_from = kwargs.pop("plot_from", 0)
 
     if isinstance(plot_from, Period):
@@ -125,16 +122,17 @@ def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
     else:
         print(
             "Warning: 'plot_from' must be a Period or an integer. "
-            + f"Found {type(plot_from)}. No data constrained."
+            f"Found {type(plot_from)}. No data constrained.",
         )
     return data, kwargs
 
 
 def apply_defaults(
-    length: int, defaults: dict[str, Any], kwargs_d: dict[str, Any]
+    length: int,
+    defaults: dict[str, Any],
+    kwargs_d: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, list[Any] | tuple[Any]]]:
-    """
-    Get arguments from kwargs_d, and apply a default from the
+    """Get arguments from kwargs_d, and apply a default from the
     defaults dict if not there. Remove the item from kwargs_d.
 
     Agumenets:
@@ -149,17 +147,15 @@ def apply_defaults(
         - the second is a modified kwargs_d dictionary, with the default
           keys removed.
     """
-
     returnable = {}  # return vehicle
 
     for option, default in defaults.items():
         val = kwargs_d.get(option, default)
         # make sure our return value is a list/tuple
-        returnable[option] = val if isinstance(val, (list, tuple)) else (val,)
+        returnable[option] = val if isinstance(val, (list | tuple)) else (val,)
 
         # remove the option from kwargs
-        if option in kwargs_d:
-            del kwargs_d[option]
+        kwargs_d.pop(option, None)
 
         # repeat multi-item lists if not long enough for all lines to be plotted
         if len(returnable[option]) < length and length > 1:
@@ -170,22 +166,21 @@ def apply_defaults(
 
 
 def get_color_list(count: int) -> list[str]:
-    """
-    Get a list of colours for plotting.
+    """Get a list of colours for plotting.
 
     Args:
         count: the number of colours to return
 
     Returns:
         A list of colours.
-    """
 
+    """
     colors: dict[int, list[str]] = get_setting("colors")
     if count in colors:
         return colors[count]
 
     if count < max(colors.keys()):
-        options = [k for k in colors.keys() if k > count]
+        options = [k for k in colors if k > count]
         return colors[min(options)][:count]
 
     c = cm.get_cmap("nipy_spectral")(np.linspace(0, 1, count))
@@ -193,11 +188,9 @@ def get_color_list(count: int) -> list[str]:
 
 
 def get_axes(**kwargs) -> tuple[Axes, dict[str, Any]]:
-    """
-    Get the axes to plot on.
+    """Get the axes to plot on.
     If not passed in kwargs, create a new figure and axes.
     """
-
     ax = "ax"
     axes: Axes = kwargs.pop(ax, None)
     if axes and isinstance(axes, Axes):
@@ -212,7 +205,7 @@ def get_axes(**kwargs) -> tuple[Axes, dict[str, Any]]:
 
 
 def default_rounding(
-    value: int | float | None = None,
+    value: float | None = None,
     series: Series | None = None,
     provided: int | None = None,
 ) -> int:
@@ -227,8 +220,8 @@ def default_rounding(
     - provided: return this rounding-value if it is not None, and not
       a boolean. This is used to override the default rounding.
       (Typically called as: provided=kwargs.get(ROUNDING, None))
-    """
 
+    """
     if provided is not None and not isinstance(provided, bool) and isinstance(provided, int):
         return provided  # use the provided rounding when it is good
 
@@ -243,9 +236,7 @@ def default_rounding(
 
 
 def label_period(p: Period) -> str:
-    """
-    Helper function to create a label for the plot based on the period.
-    """
+    """Helper function to create a label for the plot based on the period."""
     if p.freqstr[0] == "D":
         return p.strftime("%d-%b-%Y")
     if p.freqstr[0] == "M":

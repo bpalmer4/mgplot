@@ -1,5 +1,4 @@
-"""
-bar_plot.py
+"""bar_plot.py
 This module contains functions to create bar plots using Matplotlib.
 Note: bar plots in Matplotlib are not the same as bar charts in other
 libraries. Bar plots are used to represent categorical data with
@@ -8,27 +7,25 @@ cannot be plotted on the same axes.
 """
 
 # --- imports
-from typing import Any, Final, Unpack, NotRequired
 from collections.abc import Sequence
+from typing import Any, Final, NotRequired, Unpack
 
-import numpy as np
-from pandas import Series, DataFrame, Period
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import Axes
 import matplotlib.patheffects as pe
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.pyplot import Axes
+from pandas import DataFrame, Period, Series
 
-
+from mgplot.axis_utils import is_categorical, map_periodindex, set_labels
+from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import DataT, get_setting
 from mgplot.utilities import (
     apply_defaults,
-    get_color_list,
-    get_axes,
     constrain_data,
     default_rounding,
+    get_axes,
+    get_color_list,
 )
-from mgplot.keyword_checking import validate_kwargs, report_kwargs, BaseKwargs
-from mgplot.axis_utils import set_labels, map_periodindex, is_categorical
-
 
 # --- constants
 ME: Final[str] = "bar_plot"
@@ -68,7 +65,6 @@ def annotate_bars(
 
     Note: "annotate", "fontsize", "fontname", "color", and "rotation" are expected in anno_kwargs.
     """
-
     # --- only annotate in limited circumstances
     if "annotate" not in anno_kwargs or not anno_kwargs["annotate"]:
         return
@@ -89,12 +85,12 @@ def annotate_bars(
         "color": anno_kwargs.get("color"),
         "rotation": anno_kwargs.get("rotation"),
     }
-    rounding = default_rounding(series=series, provided=anno_kwargs.get("rounding", None))
+    rounding = default_rounding(series=series, provided=anno_kwargs.get("rounding"))
     adjustment = (series.max() - series.min()) * 0.02
     zero_correction = series.index.min()
 
     # --- annotate each bar
-    for index, value in zip(series.index.astype(int), series):  # mypy syntactic sugar
+    for index, value in zip(series.index.astype(int), series, strict=False):  # mypy syntactic sugar
         position = base[index - zero_correction] + (adjustment if value >= 0 else -adjustment)
         if above:
             position += value
@@ -113,10 +109,7 @@ def annotate_bars(
 
 
 def grouped(axes, df: DataFrame, anno_args, **kwargs) -> None:
-    """
-    plot a grouped bar plot
-    """
-
+    """Plot a grouped bar plot"""
     series_count = len(df.columns)
 
     for i, col in enumerate(df.columns):
@@ -149,16 +142,15 @@ def grouped(axes, df: DataFrame, anno_args, **kwargs) -> None:
 
 
 def stacked(axes, df: DataFrame, anno_args, **kwargs) -> None:
-    """
-    plot a stacked bar plot
-    """
-
+    """Plot a stacked bar plot"""
     series_count = len(df)
     base_plus: np.ndarray[tuple[int, ...], np.dtype[np.float64]] = np.zeros(
-        shape=series_count, dtype=np.float64
+        shape=series_count,
+        dtype=np.float64,
     )
     base_minus: np.ndarray[tuple[int, ...], np.dtype[np.float64]] = np.zeros(
-        shape=series_count, dtype=np.float64
+        shape=series_count,
+        dtype=np.float64,
     )
     for i, col in enumerate(df.columns):
         series = df[col]
@@ -185,12 +177,12 @@ def stacked(axes, df: DataFrame, anno_args, **kwargs) -> None:
 
 
 def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
-    """
-    Create a bar plot from the given data. Each column in the DataFrame
+    """Create a bar plot from the given data. Each column in the DataFrame
     will be stacked on top of each other, with positive values above
     zero and negative values below zero.
 
     Parameters
+    ----------
     - data: Series - The data to plot. Can be a DataFrame or a Series.
     - **kwargs: BarKwargs - Additional keyword arguments for customization.
       (see BarKwargs for details)
@@ -198,9 +190,10 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     Note: This function does not assume all data is timeseries with a PeriodIndex,
 
     Returns
+    -------
     - axes: Axes - The axes for the plot.
-    """
 
+    """
     # --- check the kwargs
     report_kwargs(caller=ME, **kwargs)
     validate_kwargs(schema=BarKwargs, caller=ME, **kwargs)

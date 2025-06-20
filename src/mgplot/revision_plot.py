@@ -1,5 +1,4 @@
-"""
-revision_plot.py
+"""revision_plot.py
 
 Plot ABS revisions to estimates over time.  This is largely
 a wrapper around the line_plot function, with some
@@ -8,14 +7,14 @@ default settings and minimal checks on the data.
 
 # --- imports
 from typing import Unpack
+
 from matplotlib.pyplot import Axes
 from pandas import DataFrame
 
-from mgplot.utilities import check_clean_timeseries
+from mgplot.keyword_checking import report_kwargs, validate_kwargs
 from mgplot.line_plot import LineKwargs, line_plot
-from mgplot.keyword_checking import validate_kwargs, report_kwargs
 from mgplot.settings import DataT
-
+from mgplot.utilities import check_clean_timeseries
 
 # --- constants
 ME = "revision_plot"
@@ -23,15 +22,14 @@ ME = "revision_plot"
 
 # --- functions
 def revision_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
-    """
-    Plot the revisions to ABS data.
+    """Plot the revisions to ABS data.
 
-    Arguments
+    Arguments:
     data: pd.DataFrame - the data to plot, the DataFrame has a
         column for each data revision
     kwargs - additional keyword arguments for the line_plot function.
-    """
 
+    """
     # --- check the kwargs and data
     report_kwargs(caller=ME, **kwargs)
     validate_kwargs(schema=LineKwargs, caller=ME, **kwargs)
@@ -48,6 +46,4 @@ def revision_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
     kwargs["rounding"] = kwargs.get("rounding", 3)
 
     # --- plot
-    axes = line_plot(data, **kwargs)
-
-    return axes
+    return line_plot(data, **kwargs)

@@ -1,5 +1,4 @@
-"""
-summary_plot.py:
+"""summary_plot.py:
 
 Produce a summary plot for the data in a given DataFrame.
 The data is normalised to z-scores and scaled.
@@ -9,22 +8,22 @@ The data is normalised to z-scores and scaled.
 # system imports
 from typing import Any, NotRequired, Unpack
 
-# analytic third-party imports
-from numpy import ndarray, array
 from matplotlib.pyplot import Axes
+
+# analytic third-party imports
+from numpy import array, ndarray
 from pandas import DataFrame, Period
+
+from mgplot.finalise_plot import make_legend
+from mgplot.keyword_checking import (
+    BaseKwargs,
+    report_kwargs,
+    validate_kwargs,
+)
 
 # local imports
 from mgplot.settings import DataT
-from mgplot.utilities import get_axes, label_period
-from mgplot.finalise_plot import make_legend
-from mgplot.utilities import constrain_data, check_clean_timeseries
-from mgplot.keyword_checking import (
-    report_kwargs,
-    validate_kwargs,
-    BaseKwargs,
-)
-
+from mgplot.utilities import check_clean_timeseries, constrain_data, get_axes, label_period
 
 # --- constants
 ME = "summary_plot"
@@ -53,12 +52,13 @@ def _calc_quantiles(middle: float) -> ndarray:
 def calculate_z(
     original: DataFrame,  # only contains the data points of interest
     middle: float,  # middle proportion of data to highlight (eg. 0.8)
+    *,
     verbose: bool = False,  # print the summary data
 ) -> tuple[DataFrame, DataFrame]:
     """Calculate z-scores, scaled z-scores and middle quantiles.
     Return z_scores, z_scaled, q (which are the quantiles for the
-    start/end of the middle proportion of data to highlight)."""
-
+    start/end of the middle proportion of data to highlight).
+    """
     # calculate z-scores, scaled scores and middle quantiles
     z_scores: DataFrame = (original - original.mean()) / original.std()
     z_scaled: DataFrame = (
@@ -77,7 +77,7 @@ def calculate_z(
                 "max shaded": original.quantile(q=q_middle[1]),
                 "z-scores": z_scores.iloc[-1],
                 "scaled": z_scaled.iloc[-1],
-            }
+            },
         )
         print(frame)
 
@@ -91,8 +91,8 @@ def _plot_middle_bars(
 ) -> Axes:
     """Plot the middle (typically 80%) of the data as a bar.
     Note: also sets the x-axis limits in kwargs.
-    Return the matplotlib Axes object."""
-
+    Return the matplotlib Axes object.
+    """
     q = _calc_quantiles(middle)
     lo_hi: DataFrame = adjusted.quantile(q=q).T  # get the middle section of data
     span = 1.15
@@ -118,7 +118,6 @@ def plot_latest_datapoint(
     f_size: int | str,
 ) -> None:
     """Add the latest datapoints to the summary plot"""
-
     ax.scatter(adjusted.iloc[-1], adjusted.columns, color="darkorange", label="Latest")
     f_size = 10
     row = adjusted.index[-1]
@@ -141,7 +140,6 @@ def label_extremes(
     kwargs: dict[str, Any],  # must be a dictionary, not a splat
 ) -> None:
     """Label the extremes in the scaled plots."""
-
     original, adjusted = data
     low, high = kwargs["xlim"]
     ax.set_xlim(low, high)  # set the x-axis limits
@@ -181,7 +179,6 @@ def horizontal_bar_plot(
     kwargs: dict[str, Any],  # must be a dictionary, not a splat
 ) -> Axes:
     """Plot horizontal bars for the middle of the data."""
-
     # kwargs is a dictionary, not a splat
     # so that we can pass it to the Axes object and
     # set the x-axis limits.
@@ -196,7 +193,6 @@ def horizontal_bar_plot(
 
 def label_x_axis(plot_from: int | Period, label: str | None, plot_type: str, ax: Axes, df: DataFrame) -> None:
     """Label the x-axis for the plot."""
-
     start: Period = plot_from if isinstance(plot_from, Period) else df.index[plot_from]
     if label is not None:
         if not label:
@@ -209,7 +205,6 @@ def label_x_axis(plot_from: int | Period, label: str | None, plot_type: str, ax:
 
 def mark_reference_lines(plot_type: str, ax: Axes) -> None:
     """Mark the reference lines for the plot."""
-
     if plot_type == ZSCALED:
         ax.axvline(-1, color="#555555", linewidth=0.5, linestyle="--", label="-1")
         ax.axvline(1, color="#555555", linewidth=0.5, linestyle="--", label="+1")
@@ -219,6 +214,7 @@ def mark_reference_lines(plot_type: str, ax: Axes) -> None:
 
 def plot_the_data(df: DataFrame, **kwargs) -> tuple[Axes, str]:
     """Plot the data as a summary plot.
+
     Args:
     - df: DataFrame containing the data to plot.
     - kwargs
@@ -226,8 +222,8 @@ def plot_the_data(df: DataFrame, **kwargs) -> tuple[Axes, str]:
     Returns:
     - ax: Axes object containing the plot.
     - plot_type: type of plot, either 'zscores' or 'zscaled'.
-    """
 
+    """
     # get the data, calculate z-scores and scaled scores based on the start period
     verbose = kwargs.pop("verbose", False)
     middle = float(kwargs.pop("middle", 0.8))
@@ -239,7 +235,7 @@ def plot_the_data(df: DataFrame, **kwargs) -> tuple[Axes, str]:
     adjusted = z_scores if plot_type == ZSCORES else z_scaled
     ax = horizontal_bar_plot(subset, adjusted, middle, plot_type, kwargsd)
     ax.tick_params(axis="y", labelsize="small")
-    make_legend(ax, kwargsd["legend"])
+    make_legend(ax, legend=kwargsd["legend"])
     ax.set_xlim(kwargsd.get("xlim"))  # provide space for the labels
 
     return ax, plot_type
@@ -256,7 +252,6 @@ def summary_plot(data: DataT, **kwargs: Unpack[SummaryKwargs]) -> Axes:
 
     Returns Axes.
     """
-
     # --- check the kwargs
     me = "summary_plot"
     report_kwargs(caller=me, **kwargs)
@@ -283,7 +278,11 @@ def summary_plot(data: DataT, **kwargs: Unpack[SummaryKwargs]) -> Axes:
     # --- and plot it ...
     ax, plot_type = plot_the_data(df, **kwargs)
     label_x_axis(
-        kwargs.get("plot_from", 0), label=kwargs.get("xlabel", ""), plot_type=plot_type, ax=ax, df=df
+        kwargs.get("plot_from", 0),
+        label=kwargs.get("xlabel", ""),
+        plot_type=plot_type,
+        ax=ax,
+        df=df,
     )
     mark_reference_lines(plot_type, ax)
 

@@ -1,5 +1,4 @@
-"""
-multi_plot.py
+"""multi_plot.py
 
 This module provides a function to create multiple plots
 from a single dataset
@@ -43,33 +42,32 @@ Note: rather than pass the kwargs dict directly, we will re-pack-it
 """
 
 # --- imports
-from typing import Callable, Final, Any, cast
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
+from typing import Any, Final, cast
+
 from pandas import DataFrame, Period
 
+from mgplot.bar_plot import BarKwargs, bar_plot
+from mgplot.finalise_plot import FinaliseKwargs, finalise_plot
+from mgplot.growth_plot import (
+    GrowthKwargs,
+    SeriesGrowthKwargs,
+    growth_plot,
+    series_growth_plot,
+)
 from mgplot.keyword_checking import (
+    BaseKwargs,
     limit_kwargs,
     report_kwargs,
     validate_kwargs,
-    BaseKwargs,
 )
-from mgplot.finalise_plot import finalise_plot, FinaliseKwargs
-from mgplot.settings import DataT
-
-from mgplot.line_plot import line_plot, LineKwargs
-from mgplot.bar_plot import bar_plot, BarKwargs
-from mgplot.seastrend_plot import seastrend_plot
-from mgplot.postcovid_plot import postcovid_plot, PostcovidKwargs
+from mgplot.line_plot import LineKwargs, line_plot
+from mgplot.postcovid_plot import PostcovidKwargs, postcovid_plot
 from mgplot.revision_plot import revision_plot
-from mgplot.run_plot import run_plot, RunKwargs
-from mgplot.summary_plot import summary_plot, SummaryKwargs
-
-from mgplot.growth_plot import (
-    series_growth_plot,
-    growth_plot,
-    GrowthKwargs,
-    SeriesGrowthKwargs,
-)
+from mgplot.run_plot import RunKwargs, run_plot
+from mgplot.seastrend_plot import seastrend_plot
+from mgplot.settings import DataT
+from mgplot.summary_plot import SummaryKwargs, summary_plot
 
 # --- constants
 
@@ -93,13 +91,13 @@ EXPECTED_CALLABLES: Final[dict[Callable, type[Any]]] = {
 def first_unchain(
     function: Callable | list[Callable],
 ) -> tuple[Callable, list[Callable]]:
-    """
-    Extract the first Callable from function (which may be
+    """Extract the first Callable from function (which may be
     a stand alone Callable or a nonr-empty list of Callables).
     Store the remaining Callables in kwargs['function'].
     This allows for chaining multiple functions together.
 
     Parameters
+    ----------
     - function - a Callable or a non-empty list of Callables
 
     Returns a tuple containing the first function and a list of the remaining
@@ -108,8 +106,8 @@ def first_unchain(
     Raises ValueError if function is an empty list.
 
     Not intended for direct use by the user.
-    """
 
+    """
     error_msg = "function must be a Callable or a non-empty list of Callables"
 
     if isinstance(function, list):
@@ -130,11 +128,11 @@ def plot_then_finalise(
     function: Callable | list[Callable],
     **kwargs,
 ) -> None:
-    """
-    Chain a plotting function with the finalise_plot() function.
+    """Chain a plotting function with the finalise_plot() function.
     This is designed to be the last function in a chain.
 
     Parameters
+    ----------
     - data: Series | DataFrame - The data to be plotted.
     - function: Callable | list[Callable] - The plotting function
       to be used.
@@ -142,8 +140,8 @@ def plot_then_finalise(
       the plotting function, and then the finalise_plot() function.
 
     Returns None.
-    """
 
+    """
     # --- checks
     me = "plot_then_finalise"
     report_kwargs(caller=me, **kwargs)
@@ -162,7 +160,7 @@ def plot_then_finalise(
         # these functions should not be called by plot_then_finalise()
         raise ValueError(
             f"[{', '.join(k.__name__ for k in bad_next)}] should not be called by {me}. "
-            "Call them before calling {me}. "
+            "Call them before calling {me}. ",
         )
 
     if first in EXPECTED_CALLABLES:
@@ -177,8 +175,8 @@ def plot_then_finalise(
     # --- validate the original kwargs (could not do before now)
     kw_types = (
         # combine the expected kwargs types with the finalise kwargs types
-        dict(cast(dict[str, Any], expected.__annotations__))
-        | dict(cast(dict[str, Any], FinaliseKwargs.__annotations__))
+        dict(cast("dict[str, Any]", expected.__annotations__))
+        | dict(cast("dict[str, Any]", FinaliseKwargs.__annotations__))
     )
     validate_kwargs(schema=kw_types, caller=me, **kwargs)
 
@@ -202,11 +200,11 @@ def multi_start(
     starts: Iterable[None | Period | int],
     **kwargs,
 ) -> None:
-    """
-    Create multiple plots with different starting points.
+    """Create multiple plots with different starting points.
     Each plot will start from the specified starting point.
 
     Parameters
+    ----------
     - data: Series | DataFrame - The data to be plotted.
     - function: Callable | list[Callable] - The plotting function
       to be used.
@@ -218,11 +216,12 @@ def multi_start(
     Returns None.
 
     Raises
+    ------
     - ValueError if the starts is not an iterable of None, Period or int.
 
     Note: kwargs['tag'] is used to create a unique tag for each plot.
-    """
 
+    """
     # --- sanity checks
     me = "multi_start"
     report_kwargs(caller=me, **kwargs)
@@ -251,19 +250,19 @@ def multi_column(
     function: Callable | list[Callable],
     **kwargs,
 ) -> None:
-    """
-    Create multiple plots, one for each column in a DataFrame.
+    """Create multiple plots, one for each column in a DataFrame.
     The plot title will be the column name.
 
     Parameters
+    ----------
     - data: DataFrame - The data to be plotted
     - function: Callable - The plotting function to be used.
     - **kwargs: Additional keyword arguments to be passed to
       the plotting function.
 
     Returns None.
-    """
 
+    """
     # --- sanity checks
     me = "multi_column"
     report_kwargs(caller=me, **kwargs)
