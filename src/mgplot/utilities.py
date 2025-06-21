@@ -1,6 +1,4 @@
-"""utilities.py:
-Utiltiy functions used by more than one mgplot module.
-These are not intended to be used directly by the user.
+"""Ancillary suppoprt for the package.
 
 Functions:
 - check_clean_timeseries()
@@ -12,7 +10,6 @@ Functions:
 - label_period()
 """
 
-# --- imports
 import math
 from typing import Any
 
@@ -26,8 +23,25 @@ from mgplot.settings import DataT, get_setting
 
 
 # --- functions
-def check_clean_timeseries(data: DataT, called_by: str) -> DataT:
-    """Check timeseries data for the following:
+def missing(data: DataT, caller: str) -> None:
+    """Check for missing values in the data index."""
+    length = len(data.index)
+    missing_count = 0
+    if isinstance(data.index, PeriodIndex):
+        missing_count = (data.index.max().ordinal - data.index.min().ordinal + 1) - length
+    if isinstance(data.index, RangeIndex):
+        missing_count = (data.index.max() - data.index.min() + 1) - length
+    if missing_count:
+        print(
+            f"Warning: Data index appears to be missing {missing_count} values, "
+            f"in {caller}. Check the data for completeness.",
+        )
+
+
+def check_clean_timeseries(data: DataT, caller: str = "") -> DataT:
+    """Check the coherence of timeseries data.
+
+    Checks for the following:
     - That the data is a Series or DataFrame.
     - That the index is a PeriodIndex
     - That the index is unique and monotonic increasing
@@ -37,7 +51,8 @@ def check_clean_timeseries(data: DataT, called_by: str) -> DataT:
     Return the cleaned data.
 
     Args:
-    - data: the data to be cleaned
+        data: Series | DataFrame - the data to be cleaned
+        caller: str - the name of the calling function, used for warnings
 
     Returns:
     - The data with leading NaN values removed.
@@ -67,17 +82,7 @@ def check_clean_timeseries(data: DataT, called_by: str) -> DataT:
         data = data.loc[data.index >= start]
 
     # --- report and missing periods (ie. potentially incomplete data)
-    length = len(data.index)
-    missing = 0
-    if isinstance(data.index, PeriodIndex):
-        missing = (data.index.max().ordinal - data.index.min().ordinal + 1) - length
-    if isinstance(data.index, RangeIndex):
-        missing = (data.index.max() - data.index.min() + 1) - length
-    if missing:
-        print(
-            f"Warning: Data index appears to be missing {missing} values, "
-            f"in {called_by}. Check the data for completeness.",
-        )
+    missing(data, caller=caller)
 
     # --- return the final data
     return data
@@ -128,15 +133,14 @@ def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
 
 
 def apply_defaults(
-    length: int,
+    series_count: int,
     defaults: dict[str, Any],
     kwargs_d: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, list[Any] | tuple[Any]]]:
-    """Get arguments from kwargs_d, and apply a default from the
-    defaults dict if not there. Remove the item from kwargs_d.
+    """Apply default arguments where necessary.
 
     Agumenets:
-        length: the number of lines to be plotted
+        series_count: the number of lines to be plotted
         defaults: a dictionary of default values
         kwargs_d: a dictionary of keyword arguments
 
@@ -154,12 +158,12 @@ def apply_defaults(
         # make sure our return value is a list/tuple
         returnable[option] = val if isinstance(val, (list | tuple)) else (val,)
 
-        # remove the option from kwargs
+        # remove the option from the kwargs dictionary
         kwargs_d.pop(option, None)
 
         # repeat multi-item lists if not long enough for all lines to be plotted
-        if len(returnable[option]) < length and length > 1:
-            multiplier = math.ceil(length / len(returnable[option]))
+        if len(returnable[option]) < series_count and series_count > 1:
+            multiplier = math.ceil(series_count / len(returnable[option]))
             returnable[option] = returnable[option] * multiplier
 
     return returnable, kwargs_d
@@ -188,16 +192,13 @@ def get_color_list(count: int) -> list[str]:
 
 
 def get_axes(**kwargs) -> tuple[Axes, dict[str, Any]]:
-    """Get the axes to plot on.
-    If not passed in kwargs, create a new figure and axes.
-    """
-    ax = "ax"
-    axes: Axes = kwargs.pop(ax, None)
+    """Get the axes to plot on."""
+    axes: Axes = kwargs.pop("ax", None)
     if axes and isinstance(axes, Axes):
         return axes, kwargs
 
     if axes is not None:
-        raise TypeError(f"{ax} must be a matplotlib Axes object, not {type(axes)}")
+        raise TypeError(f"ax must be a matplotlib Axes object, not {type(axes)}")
 
     figsize = kwargs.get("figsize", get_setting("figsize"))
     _fig, axes = subplots(figsize=figsize)
@@ -209,34 +210,37 @@ def default_rounding(
     series: Series | None = None,
     provided: int | None = None,
 ) -> int:
-    """Default rounding regime, based on the value of value.
-    (which typically would be value = series.abs().max())
+    """Determine appropriate rounding based on the value of value.
 
     Args:
-    - value: the value to inform how many decimal places to round to.
-      We are aiming for three significant digits when rounding
-    - series: a pandas Series, used to determine the maximum value
-      if value is None.
-    - provided: return this rounding-value if it is not None, and not
-      a boolean. This is used to override the default rounding.
-      (Typically called as: provided=kwargs.get(ROUNDING, None))
+        value: int | None - the value to inform how many decimal places to round to.
+        series: Series | None - used to determine the maximum value
+        provided: int | None - return this rounding-value if it is not None.
 
     """
     if provided is not None and not isinstance(provided, bool) and isinstance(provided, int):
         return provided  # use the provided rounding when it is good
 
+    default_value = 10  # implied a round to one decimal place
     if series is not None and not series.dropna().empty:
         value = series.abs().max()  # series over-writes value if both are provided
     elif value is not None:
         value = abs(value)  # ensure value is positive
     else:
-        value = 10
+        value = default_value
 
-    return 0 if value >= 100 else 1 if value >= 10 else 2 if value >= 1 else 3
+    significant_digits = 3  # default significant digits
+    n = 0
+    while n < significant_digits:
+        if value < 10**n:
+            break
+        n += 1
+
+    return significant_digits - n
 
 
 def label_period(p: Period) -> str:
-    """Helper function to create a label for the plot based on the period."""
+    """Create a label for the plot based on the period type."""
     if p.freqstr[0] == "D":
         return p.strftime("%d-%b-%Y")
     if p.freqstr[0] == "M":

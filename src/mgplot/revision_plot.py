@@ -1,11 +1,5 @@
-"""revision_plot.py
+"""Plot ABS revisions to estimates over time."""
 
-Plot ABS revisions to estimates over time.  This is largely
-a wrapper around the line_plot function, with some
-default settings and minimal checks on the data.
-"""
-
-# --- imports
 from typing import Unpack
 
 from matplotlib.pyplot import Axes
@@ -24,10 +18,9 @@ ME = "revision_plot"
 def revision_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
     """Plot the revisions to ABS data.
 
-    Arguments:
-    data: pd.DataFrame - the data to plot, the DataFrame has a
-        column for each data revision
-    kwargs - additional keyword arguments for the line_plot function.
+    Args:
+        data: DataFrame - the data to plot, with a column for each data revision
+        kwargs: LineKwargs - additional keyword arguments for the line_plot function.
 
     """
     # --- check the kwargs and data

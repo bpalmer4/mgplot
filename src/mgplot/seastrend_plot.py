@@ -1,9 +1,5 @@
-"""seas_trend_plot.py
-This module contains a function to create seasonal+trend plots.
-It is just a light-weight wrapper around line_plot().
-"""
+"""Create seasonal+trend plots."""
 
-# --- imports
 from typing import Final, Unpack
 
 from matplotlib.pyplot import Axes
@@ -19,15 +15,11 @@ ME: Final[str] = "seastrend_plot"
 
 # --- public functions
 def seastrend_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
-    """Publish a DataFrame, where the first column is seasonally
-    adjusted data, and the second column is trend data.
+    """Produce a seasonal+trend plot.
 
     Aguments:
-    - data: DataFrame - the data to plot with the first column
-      being the seasonally adjusted data, and the second column
-      being the trend data.
-    The remaining arguments are the same as those passed to
-    line_plot().
+        data: DataFrame - the data to plot - Seasonal in column 0, Trend in columm 1
+        kwargs: LineKwargs - additional keyword arguments to pass to line_plot()
 
     Returns:
     - a matplotlib Axes object
@@ -42,8 +34,9 @@ def seastrend_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
 
     # --- check the data
     data = check_clean_timeseries(data, ME)
-    if len(data.columns) < 2:
-        raise ValueError("seas_trend_plot() expects a DataFrame data item with at least 2 columns.")
+    two_columns: Final[int] = 2
+    if data.shape[1] < two_columns:
+        raise ValueError(f"{ME}() expects a DataFrame with at least {two_columns} columns.")
 
     # --- defaults if not in kwargs
     kwargs["color"] = kwargs.get("color", get_color_list(2))

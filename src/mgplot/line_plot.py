@@ -1,11 +1,8 @@
-"""line_plot.py:
-Plot a series or a dataframe with lines.
-"""
+"""Plot a series or a dataframe with lines."""
 
-# --- imports
 import math
 from collections.abc import Sequence
-from typing import Any, Final, NotRequired, Unpack
+from typing import Any, Final, NotRequired, Unpack, cast
 
 from matplotlib.pyplot import Axes
 from pandas import DataFrame, Period, Series
@@ -89,18 +86,28 @@ def annotate_series(
     )
 
 
-def _get_style_width_color_etc(
-    item_count,
-    num_data_points,
-    **kwargs,
+def get_style_width_color_etc(
+    item_count: int,
+    num_data_points: int,
+    **kwargs: Unpack[LineKwargs],
 ) -> tuple[dict[str, list | tuple], dict[str, Any]]:
     """Get the plot-line attributes arguemnts.
-    Returns a dictionary of lists of attributes for each line, and
-    a modified kwargs dictionary.
+
+    Args:
+        item_count: Number of data series to plot (columns in DataFrame)
+        num_data_points: Number of data points in the series (rows in DataFrame)
+        kwargs: LineKwargs - other arguments
+
+    Returns a tuple comprising:
+        - swce: dict[str, list | tuple] - style, width, color, etc. for each line
+        - kwargs_d: dict[str, Any] - the kwargs with defaults applied for the line plot
+
     """
     data_point_thresh = 151  # switch from wide to narrow lines
+    force_lines_styles = 4
+
     line_defaults: dict[str, Any] = {
-        "style": ("solid" if item_count < 4 else ["solid", "dashed", "dashdot", "dotted"]),
+        "style": ("solid" if item_count <= force_lines_styles else ["solid", "dashed", "dashdot", "dotted"]),
         "width": (
             get_setting("line_normal") if num_data_points > data_point_thresh else get_setting("line_wide")
         ),
@@ -119,17 +126,15 @@ def _get_style_width_color_etc(
         "label_series": True,
     }
 
-    return apply_defaults(item_count, line_defaults, kwargs)
+    return apply_defaults(item_count, line_defaults, cast("dict[str, Any]", kwargs))
 
 
 def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
-    """Build a single plot from the data passed in.
-    This can be a single- or multiple-line plot.
-    Return the axes object for the build.
+    """Build a single or multi-line plot.
 
-    Arguments:
-    - data: DataFrame | Series - data to plot
-    - kwargs: Unpack[LineKwargs]
+    Args:
+        data: DataFrame | Series - data to plot
+        kwargs: LineKwargs - keyword arguments for the line plot
 
     Returns:
     - axes: Axes - the axes object for the plot
@@ -164,7 +169,7 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
     # --- get the arguments for each line we will plot ...
     item_count = len(df.columns)
     num_data_points = len(df)
-    swce, kwargs_d = _get_style_width_color_etc(item_count, num_data_points, **kwargs_d)
+    swce, kwargs_d = get_style_width_color_etc(item_count, num_data_points, **kwargs_d)
 
     for i, column in enumerate(df.columns):
         series = df[column]

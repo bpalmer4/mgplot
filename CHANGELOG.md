@@ -1,7 +1,10 @@
-Version 0.2.3 - released 20-Jun-2025 (Canberra, Australia)
+Version 0.2.4 - released 21-Jun-2025 (Canberra, Australia)
 
 * minor changes
-    - Implemented more aggressive lining in ruff.
+    - Implemented more aggressive code linting in ruff.
+      with all but a handful of ruff linting rules
+      activated (see pyproject.toml and lint-all.sh)
+    - retired pylint and black
 
 ---
 

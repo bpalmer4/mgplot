@@ -1,9 +1,5 @@
-"""run_plot.py
-This code contains a function to plot and highlighted
-the 'runs' in a series.
-"""
+"""Plot and highlight the 'runs' in a series."""
 
-# --- imports
 from collections.abc import Sequence
 from typing import NotRequired, Unpack
 
@@ -101,8 +97,8 @@ def run_plot(data: DataT, **kwargs: Unpack[RunKwargs]) -> Axes:
     """Plot a series of percentage rates, highlighting the increasing runs.
 
     Arguments:
-     - data - ordered pandas Series of percentages, with PeriodIndex
-     - **kwargs: RunKwargs
+        data: Series - ordered pandas Series of percentages, with PeriodIndex.
+        kwargs: RunKwargs - keyword arguments for the run_plot function.
 
     Return:
      - matplotlib Axes object

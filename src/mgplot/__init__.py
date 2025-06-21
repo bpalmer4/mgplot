@@ -1,8 +1,8 @@
-"""mgplot
-------
+"""Provide a frontend to matplotlib for working with timeseries data, indexed with a PeriodIndex.
 
-Package to provide a frontend to matplotlib for working
-with timeseries data that is indexed with a PeriodIndex.
+This package simplifiers the creation of common plots used in economic and financial analysis,
+such as bar plots, line plots, growth plots, and seasonal trend plots. It also includes utilities
+for color management and finalising plots with consistent styling.
 """
 
 # --- version and author
@@ -63,63 +63,49 @@ __author__ = "Bryan Palmer"
 
 # --- public API
 __all__ = (
-    "__version__",
+    "BarKwargs",
+    "FinaliseKwargs",
+    "GrowthKwargs",
+    "LineKwargs",
+    "PostcovidKwargs",
+    "RunKwargs",
+    "SeriesGrowthKwargs",
+    "SummaryKwargs",
     "__author__",
-    # --- settings
-    "get_setting",
-    "set_setting",
-    "set_chart_dir",
+    "__version__",
+    "abbreviate_state",
+    "bar_plot",
+    "bar_plot_finalise",
+    "calc_growth",
     "clear_chart_dir",
-    # --- colors
-    "get_color",
-    "get_party_palette",
     "colorise_list",
     "contrast",
-    "abbreviate_state",
-    "state_names",
-    "state_abbrs",
-    # --- bar plot
-    "bar_plot",
-    "BarKwargs",
-    # --- line plot
-    "line_plot",
-    "LineKwargs",
-    # --- seasonal + trend plot
-    "seastrend_plot",
-    # --- post-COVID plot
-    "postcovid_plot",
-    "PostcovidKwargs",
-    # --- run plot
-    "run_plot",
-    "RunKwargs",
-    # --- revision plot
-    "revision_plot",
-    # --- growth plot
-    "growth_plot",
-    "GrowthKwargs",
-    "series_growth_plot",
-    "SeriesGrowthKwargs",
-    "calc_growth",
-    # --- summary plot
-    "summary_plot",
-    "SummaryKwargs",
-    # --- multi plot
-    "multi_start",
-    "multi_column",
-    "plot_then_finalise",
-    # --- finalise plot
     "finalise_plot",
-    "FinaliseKwargs",
-    # --- finalisers
-    "bar_plot_finalise",
-    "line_plot_finalise",
-    "postcovid_plot_finalise",
+    "get_color",
+    "get_party_palette",
+    "get_setting",
+    "growth_plot",
     "growth_plot_finalise",
+    "line_plot",
+    "line_plot_finalise",
+    "multi_column",
+    "multi_start",
+    "plot_then_finalise",
+    "postcovid_plot",
+    "postcovid_plot_finalise",
+    "revision_plot",
     "revision_plot_finalise",
+    "run_plot",
+    "run_plot",
     "run_plot_finalise",
+    "seastrend_plot",
     "seastrend_plot_finalise",
+    "series_growth_plot",
     "series_growth_plot_finalise",
+    "set_chart_dir",
+    "set_setting",
+    "state_abbrs",
+    "state_names",
+    "summary_plot",
     "summary_plot_finalise",
-    # --- The rest are internal use only
 )
-# __pdoc__: dict[str, Any] = {"test": False}  # hide submodules from documentation

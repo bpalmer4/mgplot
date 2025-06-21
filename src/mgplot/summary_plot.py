@@ -1,10 +1,5 @@
-"""summary_plot.py:
+"""Produce a summary plot for the data in a given DataFrame."""
 
-Produce a summary plot for the data in a given DataFrame.
-The data is normalised to z-scores and scaled.
-"""
-
-# --- imports
 # system imports
 from typing import Any, NotRequired, Unpack
 
@@ -44,20 +39,27 @@ class SummaryKwargs(BaseKwargs):
 
 
 # --- functions
-def _calc_quantiles(middle: float) -> ndarray:
+def calc_quantiles(middle: float) -> ndarray:
     """Calculate the quantiles for the middle of the data."""
     return array([(1 - middle) / 2.0, 1 - (1 - middle) / 2.0])
 
 
 def calculate_z(
-    original: DataFrame,  # only contains the data points of interest
-    middle: float,  # middle proportion of data to highlight (eg. 0.8)
+    original: DataFrame,
+    middle: float,
     *,
-    verbose: bool = False,  # print the summary data
+    verbose: bool = False,
 ) -> tuple[DataFrame, DataFrame]:
     """Calculate z-scores, scaled z-scores and middle quantiles.
+
+    Args:
+        original: DataFrame containing the original data.
+        middle: float, the proportion of data to highlight in the middle (eg. 0.8 for 80%).
+        verbose: bool, whether to print the summary data.
+
     Return z_scores, z_scaled, q (which are the quantiles for the
     start/end of the middle proportion of data to highlight).
+
     """
     # calculate z-scores, scaled scores and middle quantiles
     z_scores: DataFrame = (original - original.mean()) / original.std()
@@ -65,7 +67,7 @@ def calculate_z(
         # scale z-scores between -1 and +1
         (((z_scores - z_scores.min()) / (z_scores.max() - z_scores.min())) - 0.5) * 2
     )
-    q_middle = _calc_quantiles(middle)
+    q_middle = calc_quantiles(middle)
 
     if verbose:
         frame = DataFrame(
@@ -84,16 +86,13 @@ def calculate_z(
     return DataFrame(z_scores), DataFrame(z_scaled)  # syntactic sugar for type hinting
 
 
-def _plot_middle_bars(
+def plot_middle_bars(
     adjusted: DataFrame,
     middle: float,
-    kwargs: dict[str, Any],  # must be a dictionary, not a splat
+    kwargs: dict[str, Any],
 ) -> Axes:
-    """Plot the middle (typically 80%) of the data as a bar.
-    Note: also sets the x-axis limits in kwargs.
-    Return the matplotlib Axes object.
-    """
-    q = _calc_quantiles(middle)
+    """Plot the middle (typically 80%) of the data as a bar."""
+    q = calc_quantiles(middle)
     lo_hi: DataFrame = adjusted.quantile(q=q).T  # get the middle section of data
     span = 1.15
     space = 0.2
@@ -117,15 +116,16 @@ def plot_latest_datapoint(
     adjusted: DataFrame,
     f_size: int | str,
 ) -> None:
-    """Add the latest datapoints to the summary plot"""
+    """Add the latest datapoints to the summary plot."""
     ax.scatter(adjusted.iloc[-1], adjusted.columns, color="darkorange", label="Latest")
     f_size = 10
     row = adjusted.index[-1]
     for col_num, col_name in enumerate(original.columns):
+        x = float(adjusted.at[row, col_name])
         ax.text(
-            x=adjusted.at[row, col_name],
+            x=x,
             y=col_num,
-            s=f"{original.at[row, col_name]:.1f}",
+            s=f"{x:.{2 if x < 1 else 1}f}",
             ha="center",
             va="center",
             size=f_size,
@@ -183,7 +183,7 @@ def horizontal_bar_plot(
     # so that we can pass it to the Axes object and
     # set the x-axis limits.
 
-    ax = _plot_middle_bars(adjusted, middle, kwargs)
+    ax = plot_middle_bars(adjusted, middle, kwargs)
     f_size = "x-small"
     plot_latest_datapoint(ax, original, adjusted, f_size)
     label_extremes(ax, data=(original, adjusted), plot_type=plot_type, f_size=f_size, kwargs=kwargs)
@@ -212,14 +212,14 @@ def mark_reference_lines(plot_type: str, ax: Axes) -> None:
         ax.axvline(0, color="#555555", linewidth=0.5, linestyle="--", label="0")
 
 
-def plot_the_data(df: DataFrame, **kwargs) -> tuple[Axes, str]:
+def plot_the_data(df: DataFrame, **kwargs: Unpack[SummaryKwargs]) -> tuple[Axes, str]:
     """Plot the data as a summary plot.
 
     Args:
-    - df: DataFrame containing the data to plot.
-    - kwargs
+        df: DataFrame - the data to plot.
+        kwargs: SummaryKwargs, additional keyword arguments for the plot, including:
 
-    Returns:
+    Returns a tuple comprising:
     - ax: Axes object containing the plot.
     - plot_type: type of plot, either 'zscores' or 'zscaled'.
 

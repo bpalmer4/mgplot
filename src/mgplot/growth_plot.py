@@ -1,11 +1,11 @@
-"""growth_plot.py:
-plot period and annual/through-the-year growth rates on the same axes.
+"""Plot period and annual/through-the-year growth rates on the same axes.
+
+Key functions:
 - calc_growth()
 - growth_plot()
 - series_growth_plot()
 """
 
-# --- imports
 from typing import NotRequired, Unpack, cast
 
 from matplotlib.pyplot import Axes
@@ -25,7 +25,7 @@ from mgplot.line_plot import line_plot
 from mgplot.settings import DataT
 from mgplot.utilities import check_clean_timeseries, constrain_data
 
-# === constants
+# --- constants
 
 
 # - overarching constants
@@ -100,23 +100,22 @@ to_bar_plot: TransitionKwargs = common_transitions | {
 }
 
 
-# === functions
-# --- public functions
+# --- functions
+# - public functions
 def calc_growth(series: Series) -> DataFrame:
-    """Calculate annual and periodic growth for a pandas Series,
-    where the index is a PeriodIndex.
+    """Calculate annual and periodic growth for a pandas Series.
 
     Args:
-    -   series: A pandas Series with an appropriate PeriodIndex.
+        series: Series - a pandas series with a date-like PeriodIndex.
 
     Returns a two column DataFrame:
 
     Raises:
-    -   TypeError if the series is not a pandas Series.
-    -   TypeError if the series index is not a PeriodIndex.
-    -   ValueError if the series is empty.
-    -   ValueError if the series index does not have a frequency of Q, M, or D.
-    -   ValueError if the series index has duplicates.
+        TypeError if the series is not a pandas Series.
+        TypeError if the series index is not a PeriodIndex.
+        ValueError if the series is empty.
+        ValueError if the series index does not have a frequency of Q, M, or D.
+        ValueError if the series index has duplicates.
 
     """
     # --- sanity checks
@@ -153,20 +152,19 @@ def growth_plot(
     data: DataT,
     **kwargs: Unpack[GrowthKwargs],
 ) -> Axes:
-    """Plot annual growth (as a line) and periodic growth (as bars)
-    on the same axes.
+    """Plot annual growth and periodic growth on the same axes.
 
     Args:
-    -   data: A pandas DataFrame with two columns:
-    -   kwargs: GrowthKwargs
+        data: A pandas DataFrame with two columns:
+        kwargs: GrowthKwargs
 
     Returns:
-    -   axes: The matplotlib Axes object.
+        axes: The matplotlib Axes object.
 
     Raises:
-    -   TypeError if the annual and periodic arguments are not pandas Series.
-    -   TypeError if the annual index is not a PeriodIndex.
-    -   ValueError if the annual and periodic series do not have the same index.
+        TypeError if the data is not a 2-column DataFrame.
+        TypeError if the annual index is not a PeriodIndex.
+        ValueError if the annual and periodic series do not have the same index.
 
     """
     # --- check the kwargs
@@ -176,7 +174,8 @@ def growth_plot(
 
     # --- data checks
     data = check_clean_timeseries(data, me)
-    if len(data.columns) != 2:
+    two_columns = 2
+    if len(data.columns) != two_columns:
         raise TypeError("The data argument must be a pandas DataFrame with two columns")
     data, kwargsd = constrain_data(data, **kwargs)
 
@@ -217,13 +216,11 @@ def series_growth_plot(
     data: DataT,
     **kwargs: Unpack[SeriesGrowthKwargs],
 ) -> Axes:
-    """Plot annual and periodic growth in percentage terms from
-    a pandas Series, and finalise the plot.
+    """Plot annual and periodic growth in percentage terms from a pandas Series.
 
     Args:
-    -   data: A pandas Series with an appropriate PeriodIndex.
-    -   kwargs: SeriesGrowthKwargs
-        -   takes much the same kwargs as for growth_plot()
+        data: A pandas Series with an appropriate PeriodIndex.
+        kwargs: SeriesGrowthKwargs
 
     """
     # --- check the kwargs

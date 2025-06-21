@@ -1,9 +1,5 @@
-"""finalise_plot.py:
-This module provides a function to finalise and save plots to the
-file system. It is used to publish plots.
-"""
+"""Functions to finalise and save plots to the file system."""
 
-# --- imports
 import re
 from collections.abc import Callable, Sequence
 from typing import Any, Final, NotRequired, Unpack
@@ -129,10 +125,7 @@ def apply_value_kwargs(axes: Axes, settings: Sequence[str], **kwargs) -> None:
 
 
 def apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
-    """Set matplotlib elements dynamically using setting_name and splat.
-    This is used for legend, axhspan, axvspan, axhline, and axvline.
-    These can be ignored if not in kwargs, or set to None in kwargs.
-    """
+    """Set matplotlib elements dynamically using setting_name and splat."""
     for method_name in settings:
         if method_name in kwargs:
             if method_name == "legend":
@@ -193,7 +186,7 @@ def apply_late_kwargs(axes: Axes, **kwargs) -> None:
 def apply_kwargs(axes: Axes, **kwargs) -> None:
     """Apply settings found in kwargs."""
 
-    def check_kwargs(name):
+    def check_kwargs(name: str) -> Any:
         return name in kwargs and kwargs[name]
 
     apply_value_kwargs(axes, value_kwargs, **kwargs)
@@ -242,26 +235,24 @@ def save_to_file(fig: Figure, **kwargs) -> None:
 
 
 def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
-    """A function to finalise and save plots to the file system. The filename
-    for the saved plot is constructed from the global chart_dir, the plot's title,
-    any specified tag text, and the file_type for the plot.
+    """Finalise and save plots to the file system.
 
-    Arguments:
-    - axes - matplotlib axes object - required
-    - kwargs: FinaliseKwargs
+    The filename for the saved plot is constructed from the global
+    chart_dir, the plot's title, any specified tag text, and the
+    file_type for the plot.
 
-    Returns:
-        - None
+    Args:
+        axes: Axes - matplotlib axes object - required
+        kwargs: FinaliseKwargs
 
     """
     # --- check the kwargs
-    me = "finalise_plot"
-    report_kwargs(caller=me, **kwargs)
-    validate_kwargs(schema=FinaliseKwargs, caller=me, **kwargs)
+    report_kwargs(caller=ME, **kwargs)
+    validate_kwargs(schema=FinaliseKwargs, caller=ME, **kwargs)
 
     # --- sanity checks
     if len(axes.get_children()) < 1:
-        print("Warning: finalise_plot() called with empty axes, which was ignored.")
+        print(f"Warning: {ME}() called with empty axes, which was ignored.")
         return
 
     # --- remember axis-limits should we need to restore thems

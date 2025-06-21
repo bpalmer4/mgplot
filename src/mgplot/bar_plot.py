@@ -1,12 +1,11 @@
-"""bar_plot.py
-This module contains functions to create bar plots using Matplotlib.
+"""Create bar plots using Matplotlib.
+
 Note: bar plots in Matplotlib are not the same as bar charts in other
 libraries. Bar plots are used to represent categorical data with
 rectangular bars. As a result, bar plots and line plots typically
 cannot be plotted on the same axes.
 """
 
-# --- imports
 from collections.abc import Sequence
 from typing import Any, Final, NotRequired, Unpack
 
@@ -108,13 +107,13 @@ def annotate_bars(
             text.set_path_effects([pe.withStroke(linewidth=2, foreground=anno_kwargs.get("foreground"))])
 
 
-def grouped(axes, df: DataFrame, anno_args, **kwargs) -> None:
-    """Plot a grouped bar plot"""
+def grouped(axes: Axes, df: DataFrame, anno_args: dict[str, Any], **kwargs) -> None:
+    """Plot a grouped bar plot."""
     series_count = len(df.columns)
 
     for i, col in enumerate(df.columns):
         series = df[col]
-        if series.isnull().all():
+        if series.isna().all():
             continue
         width = kwargs["width"][i]
         if width < 0 or width > 1:
@@ -141,8 +140,8 @@ def grouped(axes, df: DataFrame, anno_args, **kwargs) -> None:
         )
 
 
-def stacked(axes, df: DataFrame, anno_args, **kwargs) -> None:
-    """Plot a stacked bar plot"""
+def stacked(axes: Axes, df: DataFrame, anno_args: dict[str, Any], **kwargs) -> None:
+    """Plot a stacked bar plot."""
     series_count = len(df)
     base_plus: np.ndarray[tuple[int, ...], np.dtype[np.float64]] = np.zeros(
         shape=series_count,
@@ -177,21 +176,21 @@ def stacked(axes, df: DataFrame, anno_args, **kwargs) -> None:
 
 
 def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
-    """Create a bar plot from the given data. Each column in the DataFrame
+    """Create a bar plot from the given data.
+
+    Each column in the DataFrame
     will be stacked on top of each other, with positive values above
     zero and negative values below zero.
 
-    Parameters
-    ----------
-    - data: Series - The data to plot. Can be a DataFrame or a Series.
-    - **kwargs: BarKwargs - Additional keyword arguments for customization.
-      (see BarKwargs for details)
+    Args:
+        data: Series - The data to plot. Can be a DataFrame or a Series.
+        **kwargs: BarKwargs - Additional keyword arguments for customization.
+        (see BarKwargs for details)
 
     Note: This function does not assume all data is timeseries with a PeriodIndex,
 
-    Returns
-    -------
-    - axes: Axes - The axes for the plot.
+    Returns:
+        axes: Axes - The axes for the plot.
 
     """
     # --- check the kwargs
@@ -227,7 +226,7 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
         "label_series": (item_count > 1),
     }
     above = kwargs_d.get("above", False)
-    anno_args = {
+    anno_args: dict[str, Any] = {
         "annotate": kwargs_d.get("annotate", False),
         "fontsize": kwargs_d.get("fontsize", "small"),
         "fontname": kwargs_d.get("fontname", "Helvetica"),

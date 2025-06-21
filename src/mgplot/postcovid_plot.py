@@ -1,8 +1,5 @@
-"""covid_recovery_plot.py
-Plot the pre-COVID trajectory against the current trend.
-"""
+"""Plot the pre-COVID trajectory against the current trend."""
 
-# --- imports
 from typing import NotRequired, Unpack, cast
 
 from matplotlib.pyplot import Axes
@@ -30,9 +27,16 @@ class PostcovidKwargs(LineKwargs):
 
 # --- functions
 def get_projection(original: Series, to_period: Period) -> Series:
-    """Projection based on data from the start of a series
-    to the to_period (inclusive). Returns projection over the whole
-    period of the original series.
+    """Projection based on the pre-COVID data.
+
+    Assumes the start of the data has been trimmed to the period before COVID.
+
+    Args:
+        original: Series - the original series with a PeriodIndex.
+        to_period: Period - the period to which the projection should extend.
+
+    Returns a pandas Series with a linear projection.
+
     """
     y_regress = original[original.index <= to_period].copy()
     x_regress = arange(len(y_regress))
@@ -43,18 +47,17 @@ def get_projection(original: Series, to_period: Period) -> Series:
 
 
 def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
-    """Plots a series with a PeriodIndex.
+    """Plot a series with a PeriodIndex, including a post-COVID projection.
 
-    Arguments:
-    - data - the series to be plotted (note that this function
-      is designed to work with a single series, not a DataFrame).
-    - **kwargs - same as for line_plot() and finalise_plot().
+    Args:
+        data: Series - the series to be plotted.
+        kwargs: PostcovidKwargs - plotting arguments.
 
     Raises:
-    - TypeError if series is not a pandas Series
-    - TypeError if series does not have a PeriodIndex
-    - ValueError if series does not have a D, M or Q frequency
-    - ValueError if regression start is after regression end
+        TypeError if series is not a pandas Series
+        TypeError if series does not have a PeriodIndex
+        ValueError if series does not have a D, M or Q frequency
+        ValueError if regression start is after regression end
 
     """
     # --- check the kwargs

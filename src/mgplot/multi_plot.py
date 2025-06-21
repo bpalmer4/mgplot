@@ -1,12 +1,9 @@
-"""multi_plot.py
+"""Chain together multiple plotting actions.
 
-This module provides a function to create multiple plots
-from a single dataset
+Key functions:
+- plot_then_finalise()
 - multi_start()
 - multi_column()
-
-And to chain a plotting function with the finalise_plot() function.
-- plot_then_finalise()
 
 But there is a downside: Because these functions use dynamic
 dispatch, they cannot provide type hints for the
@@ -41,7 +38,6 @@ Note: rather than pass the kwargs dict directly, we will re-pack-it
 
 """
 
-# --- imports
 from collections.abc import Callable, Iterable
 from typing import Any, Final, cast
 
@@ -70,11 +66,7 @@ from mgplot.settings import DataT
 from mgplot.summary_plot import SummaryKwargs, summary_plot
 
 # --- constants
-
-EXPECTED_CALLABLES: Final[dict[Callable, type[Any]]] = {
-    # used by plot_then_finalise() to (1) check the target function
-    # is one of the expected functions, and (2) to limit the kwargs
-    # passed on, to the expected keyword arguments for that function.
+EXPECTED_CALLABLES: dict[Callable, type[Any]] = {
     line_plot: LineKwargs,
     bar_plot: BarKwargs,
     seastrend_plot: LineKwargs,
@@ -91,19 +83,18 @@ EXPECTED_CALLABLES: Final[dict[Callable, type[Any]]] = {
 def first_unchain(
     function: Callable | list[Callable],
 ) -> tuple[Callable, list[Callable]]:
-    """Extract the first Callable from function (which may be
-    a stand alone Callable or a nonr-empty list of Callables).
-    Store the remaining Callables in kwargs['function'].
-    This allows for chaining multiple functions together.
+    """Extract the first Callable from a function list.
 
-    Parameters
-    ----------
-    - function - a Callable or a non-empty list of Callables
+    Args:
+        function: Callable | list[Callable] - a Callable or a non-empty list of Callables
 
-    Returns a tuple containing the first function and a list of the remaining
-    functions (which may be empty if there are no remaining functions).
+    Returns a tuple containing:
+        first: Callable - the first function, and
+        rest: list[Callable] a list of the remaining functions.
 
-    Raises ValueError if function is an empty list.
+    Raises:
+        ValueError if function is an empty list.
+        TypeError if function not a Callable or a non-empty list of Callables.
 
     Not intended for direct use by the user.
 
@@ -117,7 +108,7 @@ def first_unchain(
     elif callable(function):
         first, rest = function, []
     else:
-        raise ValueError(error_msg)
+        raise TypeError(error_msg)
 
     return first, rest
 
@@ -129,15 +120,11 @@ def plot_then_finalise(
     **kwargs,
 ) -> None:
     """Chain a plotting function with the finalise_plot() function.
-    This is designed to be the last function in a chain.
 
-    Parameters
-    ----------
-    - data: Series | DataFrame - The data to be plotted.
-    - function: Callable | list[Callable] - The plotting function
-      to be used.
-    - **kwargs: Additional keyword arguments to be passed to
-      the plotting function, and then the finalise_plot() function.
+    Args:
+        data: Series | DataFrame - The data to be plotted.
+        function: Callable | list[Callable] - the desired plotting function(s).
+        kwargs: Any - Additional keyword arguments.
 
     Returns None.
 
@@ -185,10 +172,7 @@ def plot_then_finalise(
 
     # --- remove potentially overlapping kwargs
     fp_kwargs = limit_kwargs(FinaliseKwargs, **kwargs)
-    # overlapping = expected.keys() & FinaliseKwargs.keys()
-    # if overlapping:
-    #    for key in overlapping:
-    #        fp_kwargs.pop(key, None)  # remove overlapping keys from kwargs
+    # To do: remove any duplicate argument passes
 
     # --- finalise the plot
     finalise_plot(axes, **fp_kwargs)
@@ -201,23 +185,17 @@ def multi_start(
     **kwargs,
 ) -> None:
     """Create multiple plots with different starting points.
-    Each plot will start from the specified starting point.
 
-    Parameters
-    ----------
-    - data: Series | DataFrame - The data to be plotted.
-    - function: Callable | list[Callable] - The plotting function
-      to be used.
-    - starts: Iterable[Period | int | None] - The starting points
-      for each plot (None means use the entire data).
-    - **kwargs: Additional keyword arguments to be passed to
-      the plotting function.
+    Args:
+        data: Series | DataFrame - The data to be plotted.
+        function: Callable | list[Callable] - desierd plotting function(s).
+        starts: Iterable[Period | int | None] - The starting points.
+        kwargs: Any - the other arguments.
 
     Returns None.
 
-    Raises
-    ------
-    - ValueError if the starts is not an iterable of None, Period or int.
+    Raises:
+        TypeError if the starts is not an iterable of None, Period or int.
 
     Note: kwargs['tag'] is used to create a unique tag for each plot.
 
@@ -226,7 +204,7 @@ def multi_start(
     me = "multi_start"
     report_kwargs(caller=me, **kwargs)
     if not isinstance(starts, Iterable):
-        raise ValueError("starts must be an iterable of None, Period or int")
+        raise TypeError("starts must be an iterable of None, Period or int")
     # data not checked here, assume it is checked by the called
     # plot function.
 
@@ -251,14 +229,13 @@ def multi_column(
     **kwargs,
 ) -> None:
     """Create multiple plots, one for each column in a DataFrame.
-    The plot title will be the column name.
 
-    Parameters
-    ----------
-    - data: DataFrame - The data to be plotted
-    - function: Callable - The plotting function to be used.
-    - **kwargs: Additional keyword arguments to be passed to
-      the plotting function.
+    Note: The plot title will be kwargs["title"] plus the column name.
+
+    Args:
+        data: DataFrame - The data to be plotted
+        function: Callable - The plotting function to be used.
+        kwargs: Any - Additional keyword arguments.
 
     Returns None.
 

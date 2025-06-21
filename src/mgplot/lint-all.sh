@@ -1,18 +1,16 @@
-echo "ruff"
-ruff format --line-length=110 *.py
-ruff check --select E,F,W,I,UP,C4,ISC,ICN,RET,SIM,TID,TC,PTH,TD,NPY,A,BLE,COM,FBT,N,DTZ,B,G,YTT,S --fix --line-length=110 *.py
+echo "------------------------"
+echo "ruff check --fix and format ..."
+ruff check --fix *.py
+ruff format *.py
 
-## ruff - TRY
-
-echo "pylint"
-pylint --max-line-length=120 *.py
-
-echo "mypy"
+echo " "
+echo "------------------------"
+echo "mypy ..."
 mypy *.py
 
 # report any lint overrides
-echo "------------------------"
 echo " "
+echo "------------------------"
 echo "Check linting overrides ..."
 grep "# type" *.py
 grep -E "# mypy:.*disable" *.py

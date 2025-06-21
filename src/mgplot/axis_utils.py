@@ -1,10 +1,10 @@
-"""axis_utils.py
+"""Provide functions to work with categorical axis in Matplotlib.
 
-This module contains functions to work with categorical
-axis in Matplotlib, specifically:
-1) integers
-2) date-like PeriodIndex frequencies
-3) strings
+It includes functions to check if the index is categorical, map PeriodIndex to RangeIndex,
+and set labels for date-like PeriodIndex.
+
+It also provides utilities for labelling and selecting ticks for various date-like frequencies
+such as days, months, quarters, and years.
 """
 
 import calendar
@@ -18,8 +18,7 @@ from mgplot.settings import DataT
 
 
 def is_categorical(data: DataT) -> bool:
-    """Check if the data.index is usefully categorical
-    (index needs to be complete, and unique).
+    """Check if the data.index is usefully categorical.
 
     Note: we plot categoricals using bar plots.
     """
@@ -58,7 +57,7 @@ def map_periodindex(data: DataT) -> None | tuple[DataT, PeriodIndex]:
 
 
 class DateLike(Enum):
-    """Recognised date-like PeriodIndex frequencies"""
+    """Recognised date-like PeriodIndex frequencies."""
 
     YEARS = 1
     QUARTERS = 2
@@ -86,18 +85,16 @@ intervals = {
 
 
 def get_count(p: PeriodIndex, max_ticks: int) -> tuple[int, DateLike, int]:
-    """Work out the label frequency and interval for a date-like
-    PeriodIndex.
+    """Work out the label frequency and interval for a date-like PeriodIndex.
 
-    Parameters
-    ----------
-    - p: PeriodIndex - the PeriodIndex
-    - max_ticks -  the maximum number of ticks [suggestive]
+    Args:
+        p: PeriodIndex - the PeriodIndex
+        max_ticks: int - the maximum number of ticks [suggestive]
 
     Returns a tuple:
-    - the roughly anticipated number of ticks to highlight: int
-    - the type of ticks to highlight (eg. days/months/quarters/years): str
-    - the tick interval (ie. number of days/months/quarters/years): int
+        the roughly anticipated number of ticks to highlight: int
+        the type of ticks to highlight (eg. days/months/quarters/years): str
+        the tick interval (ie. number of days/months/quarters/years): int
 
     """
     # --- sanity checks
@@ -128,7 +125,8 @@ def day_labeller(labels: dict[Period, str]) -> dict[Period, str]:
         return f"{label}\n{month}"
 
     def add_year(label: str, year: str) -> str:
-        label = label.replace("\n", " ") if len(label) > 2 else f"{label} {month}"
+        days_only = 2
+        label = label.replace("\n", " ") if len(label) > days_only else f"{label} {month}"
         return f"{label}\n{year}"
 
     if not labels:
@@ -269,14 +267,13 @@ def year_labeller(labels: dict[Period, str]) -> dict[Period, str]:
 def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
     """Provide a dictionary of labels for the date-like PeriodIndex.
 
-    Parameters
-    ----------
-    - p: PeriodIndex - the PeriodIndex
-    - max_ticks -  the maximum number of ticks [suggestive]
+    Args:
+        p: PeriodIndex - the PeriodIndex
+        max_ticks: int - the maximum number of ticks [suggestive]
 
     Returns a dictionary:
-    - keys are the Periods to label
-    - values are the labels to apply
+        keys are the Periods to label
+        values are the labels to apply
 
     """
     labels: dict[Period, str] = {}
@@ -290,7 +287,8 @@ def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
 
     match target_freq:
         case "D":
-            start = 0 if interval == 2 and count % 2 else interval // 2
+            second = 2
+            start = 0 if interval == second and count % second else interval // second
             labels = dict.fromkeys(complete[start::interval], "")
             labels = day_labeller(labels)
 
@@ -310,16 +308,15 @@ def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
 
 
 def make_ilabels(p: PeriodIndex, max_ticks: int) -> tuple[list[int], list[str]]:
-    """From a PeriodIndex, create a list of integer ticks and ticklabels
+    """From a PeriodIndex, create a list of integer ticks and ticklabels.
 
-    Parameters
-    ----------
-    - p: PeriodIndex - the PeriodIndex
-    - max_ticks -  the maximum number of ticks [suggestive]
+    Args:
+        p: PeriodIndex - the PeriodIndex
+        max_ticks: int - the maximum number of ticks [suggestive]
 
     Returns a tuple:
-    - list of integer ticks
-    - list of tick label strings
+        list of integer ticks
+        list of tick label strings
 
     """
     labels = make_labels(p, max_ticks)
@@ -332,11 +329,10 @@ def make_ilabels(p: PeriodIndex, max_ticks: int) -> tuple[list[int], list[str]]:
 def set_labels(axes: Axes, p: PeriodIndex, max_ticks: int = 10) -> None:
     """Set the x-axis labels for a date-like PeriodIndex.
 
-    Parameters
-    ----------
-    - axes: Axes - the axes to set the labels on
-    - p: PeriodIndex - the PeriodIndex
-    - max_ticks: int - the maximum number of ticks [suggestive]
+    Args:
+        axes: Axes - the axes to set the labels on
+        p: PeriodIndex - the PeriodIndex
+        max_ticks: int - the maximum number of ticks [suggestive]
 
     """
     ticks, ticklabels = make_ilabels(p, max_ticks)
