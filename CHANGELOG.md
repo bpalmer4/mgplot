@@ -1,3 +1,16 @@
+Version 0.2.5 - released 22-Jun-2025 (Canberra, Australia)
+
+* minor changes
+    - Fixed the xlabel thing in finalise_plot().
+    - Changed from using Series.plot() to Axes.plot(),
+      in line_plot() to avoid pandas setting the 
+      xlabel/ylabel
+    - fixed a labelling error in summary_plot()
+    - removed an imposed-legend from run_plot_finalise()
+    - added the capacity to label the runs in the run_plot() legend.
+    - small number of consequential changes.
+
+---
 Version 0.2.4 - released 21-Jun-2025 (Canberra, Australia)
 
 * minor changes

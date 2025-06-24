@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from typing import Any, Final, NotRequired, Unpack, cast
 
 from matplotlib.pyplot import Axes
-from pandas import DataFrame, Period, Series
+from pandas import DataFrame, Period, PeriodIndex, Series
 
 from mgplot.axis_utils import map_periodindex, set_labels
 from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
@@ -154,6 +154,9 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
     if saved_pi is not None:
         df = saved_pi[0]
 
+    if isinstance(df.index, PeriodIndex):
+        print("Internal error: data is still a PeriodIndex - come back here and fix it")
+
     # --- some special defaults
     kwargs_d["label_series"] = (
         kwargs_d.get("label_series", True) if len(df.columns) > 1 else kwargs_d.get("label_series", False)
@@ -178,8 +181,10 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
             print(f"Warning: No data to plot for {column} in line_plot().")
             continue
 
-        series.plot(
-            # Note: pandas will plot PeriodIndex against their ordinal values
+        axes.plot(
+            # using matplotlib, as pandas can set xlabel/ylabel
+            series.index,  # x
+            series,  # y
             ls=swce["style"][i],
             lw=swce["width"][i],
             color=swce["color"][i],
@@ -188,7 +193,6 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
             ms=swce["markersize"][i],
             drawstyle=swce["drawstyle"][i],
             label=(column if "label_series" in swce and swce["label_series"][i] else f"_{column}_"),
-            ax=axes,
         )
 
         if swce["annotate"][i] is None or not swce["annotate"][i]:

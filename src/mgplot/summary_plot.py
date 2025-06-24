@@ -121,11 +121,12 @@ def plot_latest_datapoint(
     f_size = 10
     row = adjusted.index[-1]
     for col_num, col_name in enumerate(original.columns):
-        x = float(adjusted.at[row, col_name])
+        x_adj = float(adjusted.at[row, col_name])
+        x_orig = float(original.at[row, col_name])
         ax.text(
-            x=x,
+            x=x_adj,
             y=col_num,
-            s=f"{x:.{2 if x < 1 else 1}f}",
+            s=f"{x_orig:.{2 if abs(x_orig) < 1 else 1}f}",
             ha="center",
             va="center",
             size=f_size,
@@ -153,10 +154,11 @@ def label_extremes(
             label="Median",
         )
         for col_num, col_name in enumerate(original.columns):
+            minima, maxima = original[col_name].min(), original[col_name].max()
             ax.text(
                 low,
                 col_num,
-                f" {original[col_name].min():.2f}",
+                f" {minima:.{2 if abs(minima) < 1 else 1}f}",
                 ha="left",
                 va="center",
                 size=f_size,
@@ -164,7 +166,7 @@ def label_extremes(
             ax.text(
                 high,
                 col_num,
-                f"{original[col_name].max():.2f} ",
+                f"{maxima:.{2 if abs(maxima) < 1 else 1}f} ",
                 ha="right",
                 va="center",
                 size=f_size,
@@ -253,12 +255,11 @@ def summary_plot(data: DataT, **kwargs: Unpack[SummaryKwargs]) -> Axes:
     Returns Axes.
     """
     # --- check the kwargs
-    me = "summary_plot"
-    report_kwargs(caller=me, **kwargs)
-    validate_kwargs(schema=SummaryKwargs, caller=me, **kwargs)
+    report_kwargs(caller=ME, **kwargs)
+    validate_kwargs(schema=SummaryKwargs, caller=ME, **kwargs)
 
     # --- check the data
-    data = check_clean_timeseries(data, me)
+    data = check_clean_timeseries(data, ME)
     if not isinstance(data, DataFrame):
         raise TypeError("data must be a pandas DataFrame for summary_plot()")
     df = DataFrame(data)  # syntactic sugar for type hinting

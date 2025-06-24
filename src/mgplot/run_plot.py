@@ -27,6 +27,7 @@ class RunKwargs(LineKwargs):
     threshold: NotRequired[float]
     highlight: NotRequired[str | Sequence[str]]
     direction: NotRequired[str]
+    label: NotRequired[str | Sequence[str]]
 
 
 # --- functions
@@ -53,6 +54,7 @@ def _plot_runs(
     axes: Axes,
     series: Series,
     *,
+    label: str | None,
     up: bool,
     **kwargs,
 ) -> None:
@@ -77,7 +79,9 @@ def _plot_runs(
             stretch.index.max(),
             color=highlight,
             zorder=-1,
+            label=label,
         )
+        label = "_"  # only label the first run
         space_above = series.max() - series[stretch.index].max()
         space_below = series[stretch.index].min() - series.min()
         y_pos, vert_align = (series.max(), "top") if space_above > space_below else (series.min(), "bottom")
@@ -141,17 +145,27 @@ def run_plot(data: DataT, **kwargs: Unpack[RunKwargs]) -> Axes:
     axes = line_plot(series, **lp_kwargs)
 
     # plot the runs
-    match kwargs["direction"]:
+    direct = kwargs_d["direction"]
+    label: Sequence[str] | str | None = kwargs_d.pop("label", None)
+    up_label: str | None = None
+    down_label: str | None = None
+    if direct == "both":
+        up_label = label[0] if isinstance(label, Sequence) else label
+        down_label = label[1] if isinstance(label, Sequence) else label
+    if isinstance(label, Sequence) and not isinstance(label, str):
+        label = label[0] if direct == "up" else label[1] if direct == "down" else "?"
+
+    match direct:
         case "up":
-            _plot_runs(axes, series, up=True, **kwargs_d)
+            _plot_runs(axes, series, label=label, up=True, **kwargs_d)
         case "down":
-            _plot_runs(axes, series, up=False, **kwargs_d)
+            _plot_runs(axes, series, label=label, up=False, **kwargs_d)
         case "both":
-            _plot_runs(axes, series, up=True, **kwargs_d)
-            _plot_runs(axes, series, up=False, **kwargs_d)
+            _plot_runs(axes, series, label=up_label, up=True, **kwargs_d)
+            _plot_runs(axes, series, label=down_label, up=False, **kwargs_d)
         case _:
             raise ValueError(
-                f"Invalid value for direction: {kwargs['direction']}. Expected 'up', 'down', or 'both'.",
+                f"Invalid value for direction: {direct}. Expected 'up', 'down', or 'both'.",
             )
 
     # --- set the labels

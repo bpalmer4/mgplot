@@ -15,7 +15,7 @@ import numpy as np
 from matplotlib.pyplot import Axes
 from pandas import DataFrame, Period, Series
 
-from mgplot.axis_utils import is_categorical, map_periodindex, set_labels
+from mgplot.axis_utils import map_periodindex, set_labels
 from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import DataT, get_setting
 from mgplot.utilities import (
@@ -206,8 +206,6 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     item_count = len(df.columns)
 
     # --- deal with complete PeriodIdex indicies
-    if not is_categorical(df):
-        print("Warning: bar_plot is not designed for incomplete or non-categorical data indexes.")
     saved_pi = map_periodindex(df)
     if saved_pi is not None:
         df = saved_pi[0]  # extract the reindexed DataFrame from the PeriodIndex

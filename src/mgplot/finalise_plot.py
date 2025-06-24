@@ -26,8 +26,8 @@ class FinaliseKwargs(BaseKwargs):
     ylim: NotRequired[tuple[float, float] | None]
     xticks: NotRequired[list[float] | None]
     yticks: NotRequired[list[float] | None]
-    x_scale: NotRequired[str | None]
-    y_scale: NotRequired[str | None]
+    xscale: NotRequired[str | None]
+    yscale: NotRequired[str | None]
     # --- splat options
     legend: NotRequired[bool | dict[str, Any] | None]
     axhspan: NotRequired[dict[str, Any]]
@@ -65,8 +65,8 @@ value_kwargs = (
     "ylim",
     "xticks",
     "yticks",
-    "x_scale",
-    "y_scale",
+    "xscale",
+    "yscale",
 )
 splat_kwargs = (
     "legend",
@@ -103,24 +103,44 @@ def make_legend(axes: Axes, *, legend: None | bool | dict[str, Any]) -> None:
     print(f"Warning: expected dict argument for legend, but got {type(legend)}.")
 
 
-def apply_value_kwargs(axes: Axes, settings: Sequence[str], **kwargs) -> None:
-    """Set matplotlib elements by name using Axes.set()."""
-    for setting in settings:
+def apply_value_kwargs(axes: Axes, value_kwargs: Sequence[str], **kwargs) -> None:
+    """Set matplotlib elements by name using Axes.set().
+
+    Tricky: some plotting functions may set the xlabel or ylabel.
+    So ... we will set these if a setting is explicitly provided. If no
+    setting is provided, we will set to None if they are not already set.
+    If they have already been set, we will not change them.
+
+    """
+    # --- preliminary
+    function: dict[str, Callable[[], str]] = {
+        "xlabel": axes.get_xlabel,
+        "ylabel": axes.get_ylabel,
+        "title": axes.get_title,
+    }
+
+    def fail() -> str:
+        return ""
+
+    # --- loop over potential value settings
+    for setting in value_kwargs:
         value = kwargs.get(setting)
-        if value is None and setting not in ("title", "xlabel", "ylabel"):
+        if setting in kwargs:
+            # deliberately set, so we will action
+            axes.set(**{setting: value})
             continue
-        function: dict[str, Callable[[], str]] = {
-            "xlabel": axes.get_xlabel,
-            "ylabel": axes.get_ylabel,
-            "title": axes.get_title,
-        }
-
-        def fail() -> str:
-            return ""
-
-        if value is None and function.get(setting, fail)():
-            # setting is already set
+        required_to_set = ("title", "xlabel", "ylabel")
+        if setting not in required_to_set:
+            # not set - and not required - so we can skip
             continue
+
+        # we will set these 'required_to_set' ones
+        # provided they are not already set
+        already_set = function.get(setting, fail)()
+        if already_set and value is None:
+            continue
+
+        # if we get here, we will set the value (implicitly to None)
         axes.set(**{setting: value})
 
 
@@ -252,7 +272,7 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
 
     # --- sanity checks
     if len(axes.get_children()) < 1:
-        print(f"Warning: {ME}() called with empty axes, which was ignored.")
+        print(f"Warning: {ME}() called with an empty axes, which was ignored.")
         return
 
     # --- remember axis-limits should we need to restore thems

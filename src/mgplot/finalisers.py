@@ -163,7 +163,7 @@ def run_plot_finalise(
 ) -> None:
     """Call run_plot() and finalise_plot()."""
     validate_kwargs(schema=RunPFKwargs, caller="run_plot_finalise", **kwargs)
-    impose_legend(force=True, kwargs=kwargs)
+    impose_legend(force=("label" in kwargs), kwargs=kwargs)
     plot_then_finalise(data=data, function=run_plot, **kwargs)
 
 

@@ -11,48 +11,28 @@ import calendar
 from enum import Enum
 
 from matplotlib.pyplot import Axes
-from pandas import Period, PeriodIndex, RangeIndex, period_range
-from pandas.api.types import is_integer_dtype, is_string_dtype
+from pandas import Index, Period, PeriodIndex, RangeIndex, period_range
 
 from mgplot.settings import DataT
 
 
-def is_categorical(data: DataT) -> bool:
-    """Check if the data.index is usefully categorical.
-
-    Note: we plot categoricals using bar plots.
-    """
-    if data.index.has_duplicates or data.index.hasnans or data.index.empty:
-        return False
-    if is_string_dtype(data.index.dtype):
-        # unique strings are categoricals by default
-        return True
-    if not data.index.is_monotonic_increasing and not data.index.is_monotonic_decreasing:
-        # these categoricals should be monotonic
-        return False
-    if is_integer_dtype(data.index.dtype):
-        # completeness check for integers
-        return data.index.max() - data.index.min() == len(data.index) - 1
-    if isinstance(data.index, PeriodIndex):
-        # completeness check for PeriodIndex
-        return data.index.max().ordinal - data.index.min().ordinal == len(data.index) - 1
-
-    return False
-
-
 def map_periodindex(data: DataT) -> None | tuple[DataT, PeriodIndex]:
     """Map a PeriodIndex to an integer index."""
-    if not is_categorical(data):
-        return None
     if not isinstance(data.index, PeriodIndex):
         return None
-    og_index = data.index
-    data.index = RangeIndex(
-        start=og_index[0].ordinal,
-        stop=og_index[-1].ordinal + (1 if og_index[0] < og_index[-1] else -1),
-    )
+    og_index = PeriodIndex(data.index.copy())  # mypy
+    complete = data.index.max().ordinal - data.index.min().ordinal == len(data.index) - 1
+    if complete and (data.index.is_monotonic_decreasing or data.index.is_monotonic_increasing):
+        data.index = RangeIndex(
+            start=og_index[0].ordinal,
+            stop=og_index[-1].ordinal + (1 if og_index[0] < og_index[-1] else -1),
+        )
+    else:
+        # not complete, so we will map to ordinals individually
+        data.index = Index(i.ordinal for i in og_index)
+
     if len(data.index) != len(og_index):
-        raise ValueError("Mapped PeriodIndex to RangeIndex, but the lengths do not match.")
+        raise ValueError("Internal error: Mapped PeriodIndex, but the lengths do not match.")
     return data, og_index
 
 
