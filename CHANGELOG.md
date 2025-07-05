@@ -1,3 +1,11 @@
+Version 0.2.6 - released 95-Jul-2025 (Canberra, Australia)
+
+* minor changes
+    - fixed a glitch where an axhspan was not appearing
+      in nthe legend.
+
+---
+
 Version 0.2.5 - released 22-Jun-2025 (Canberra, Australia)
 
 * minor changes
@@ -11,6 +19,7 @@ Version 0.2.5 - released 22-Jun-2025 (Canberra, Australia)
     - small number of consequential changes.
 
 ---
+
 Version 0.2.4 - released 21-Jun-2025 (Canberra, Australia)
 
 * minor changes

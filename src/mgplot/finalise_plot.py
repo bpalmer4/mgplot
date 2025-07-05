@@ -69,11 +69,11 @@ value_kwargs = (
     "yscale",
 )
 splat_kwargs = (
-    "legend",
     "axhspan",
     "axvspan",
     "axhline",
     "axvline",
+    "legend",  # needs to be last in this tuple
 )
 annotation_kwargs = (
     "lfooter",
