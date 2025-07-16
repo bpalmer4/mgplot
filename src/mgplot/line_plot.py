@@ -2,9 +2,9 @@
 
 import math
 from collections.abc import Sequence
-from typing import Any, Final, NotRequired, Unpack, cast
+from typing import Any, Final, NotRequired, TypedDict, Unpack
 
-from matplotlib.pyplot import Axes
+from matplotlib.axes import Axes
 from pandas import DataFrame, Period, PeriodIndex, Series
 
 from mgplot.axis_utils import map_periodindex, set_labels
@@ -47,16 +47,26 @@ class LineKwargs(BaseKwargs):
     max_ticks: NotRequired[int]
 
 
+class AnnotateKwargs(TypedDict):
+    """Keyword arguments for the annotate_series function."""
+
+    color: str
+    rounding: int | bool
+    fontsize: str | int | float
+    fontname: str
+    rotation: int | float
+
+
 # --- functions
 def annotate_series(
     series: Series,
     axes: Axes,
-    **kwargs,  # "fontsize", "rounding",
+    **kwargs: Unpack[AnnotateKwargs],
 ) -> None:
     """Annotate the right-hand end-point of a line-plotted series."""
     # --- check the series has a value to annotate
     latest = series.dropna()
-    if series.empty:
+    if latest.empty:
         return
     x, y = latest.index[-1], latest.iloc[-1]
     if y is None or math.isnan(y):
@@ -70,7 +80,9 @@ def annotate_series(
     rotation = kwargs.get("rotation", 0)
 
     # --- add the annotation
-    color = kwargs["color"]
+    color = kwargs.get("color")
+    if color is None:
+        raise ValueError("color is required for annotation")
     rounding = default_rounding(value=y, provided=kwargs.get("rounding"))
     r_string = f"  {y:.{rounding}f}" if rounding > 0 else f"  {int(y)}"
     axes.text(
@@ -126,7 +138,7 @@ def get_style_width_color_etc(
         "label_series": True,
     }
 
-    return apply_defaults(item_count, line_defaults, cast("dict[str, Any]", kwargs))
+    return apply_defaults(item_count, line_defaults, dict(kwargs))
 
 
 def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:

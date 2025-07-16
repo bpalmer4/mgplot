@@ -8,6 +8,12 @@ It also provides Australian state names and their abbreviations.
 
 # --- Imports
 from collections.abc import Iterable
+from typing import Final
+
+# --- Constants
+DEFAULT_UNKNOWN_COLOR: Final[str] = "darkgrey"
+DEFAULT_CONTRAST_COLOR: Final[str] = "black"
+DEFAULT_PARTY_PALETTE: Final[str] = "Purples"
 
 
 # --- Functions
@@ -20,7 +26,7 @@ def get_party_palette(party_text: str) -> str:
         party_text: str - the party label or name.
 
     """
-    # Note: light to dark maps work best
+    # Note: light to dark colormaps work best for sequential data visualization
     match party_text.lower():
         case "alp" | "labor":
             return "Reds"
@@ -32,7 +38,7 @@ def get_party_palette(party_text: str) -> str:
             return "YlOrBr"
         case "onp" | "one nation":
             return "YlGnBu"
-    return "Purples"
+    return DEFAULT_PARTY_PALETTE
 
 
 def get_color(s: str) -> str:
@@ -44,82 +50,78 @@ def get_color(s: str) -> str:
     Returns a color string that can be used in matplotlib plots.
 
     """
-    color_map = {
+    # Flattened color map for better readability
+    color_map: dict[str, str] = {
         # --- Australian states and territories
-        ("wa", "western australia"): "gold",
-        ("sa", "south australia"): "red",
-        ("nt", "northern territory"): "#CC7722",  # ochre
-        ("nsw", "new south wales"): "deepskyblue",
-        ("act", "australian capital territory"): "blue",
-        ("vic", "victoria"): "navy",
-        ("tas", "tasmania"): "seagreen",  # bottle green #006A4E?
-        ("qld", "queensland"): "#c32148",  # a lighter maroon
-        ("australia", "aus"): "grey",
+        "wa": "gold",
+        "western australia": "gold",
+        "sa": "red",
+        "south australia": "red",
+        "nt": "#CC7722",  # ochre
+        "northern territory": "#CC7722",
+        "nsw": "deepskyblue",
+        "new south wales": "deepskyblue",
+        "act": "blue",
+        "australian capital territory": "blue",
+        "vic": "navy",
+        "victoria": "navy",
+        "tas": "seagreen",  # bottle green #006A4E?
+        "tasmania": "seagreen",
+        "qld": "#c32148",  # a lighter maroon
+        "queensland": "#c32148",
+        "australia": "grey",
+        "aus": "grey",
         # --- political parties
-        ("dissatisfied",): "darkorange",  # must be before satisfied
-        ("satisfied",): "mediumblue",
-        (
-            "lnp",
-            "l/np",
-            "liberal",
-            "liberals",
-            "coalition",
-            "dutton",
-            "ley",
-            "liberal and/or nationals",
-        ): "royalblue",
-        (
-            "nat",
-            "nats",
-            "national",
-            "nationals",
-        ): "forestgreen",
-        (
-            "alp",
-            "labor",
-            "albanese",
-        ): "#dd0000",
-        (
-            "grn",
-            "green",
-            "greens",
-        ): "limegreen",
-        (
-            "other",
-            "oth",
-        ): "darkorange",
+        "dissatisfied": "darkorange",  # must be before satisfied
+        "satisfied": "mediumblue",
+        "lnp": "royalblue",
+        "l/np": "royalblue",
+        "liberal": "royalblue",
+        "liberals": "royalblue",
+        "coalition": "royalblue",
+        "dutton": "royalblue",
+        "ley": "royalblue",
+        "liberal and/or nationals": "royalblue",
+        "nat": "forestgreen",
+        "nats": "forestgreen",
+        "national": "forestgreen",
+        "nationals": "forestgreen",
+        "alp": "#dd0000",
+        "labor": "#dd0000",
+        "albanese": "#dd0000",
+        "grn": "limegreen",
+        "green": "limegreen",
+        "greens": "limegreen",
+        "other": "darkorange",
+        "oth": "darkorange",
     }
 
-    for find_me, return_me in color_map.items():
-        if any(x == s.lower() for x in find_me):
-            return return_me
-
-    return "darkgrey"
+    return color_map.get(s.lower(), DEFAULT_UNKNOWN_COLOR)
 
 
-def colorise_list(party_list: Iterable) -> list[str]:
+def colorise_list(party_list: Iterable[str]) -> list[str]:
     """Return a list of party/state colors for a party_list."""
     return [get_color(x) for x in party_list]
 
 
 def contrast(orig_color: str) -> str:
-    """Provide a constrasting color to any party color."""
-    new_color = "black"
+    """Provide a contrasting color to any party color."""
+    new_color = DEFAULT_CONTRAST_COLOR
     match orig_color:
         case "royalblue":
             new_color = "indianred"
         case "indianred":
-            new_color = "mediumblue"
+            new_color = "royalblue"
 
         case "darkorange":
             new_color = "mediumblue"
         case "mediumblue":
             new_color = "darkorange"
 
-        case "mediumseagreen":
+        case "seagreen":
             new_color = "darkblue"
 
-        case "darkgrey":
+        case color if color == DEFAULT_UNKNOWN_COLOR:
             new_color = "hotpink"
 
     return new_color
@@ -148,9 +150,8 @@ state_abbrs = tuple(_state_names.values())
 _state_names_multi: dict[str, str] = {}
 for k, v in _state_names.items():
     # allow for fast different case matches
-    _state_names_multi[k.lower()] = v
-    _state_names_multi[k.lower()] = v
-    _state_names_multi[v.lower()] = v
+    _state_names_multi[k.lower()] = v  # full name -> abbreviation
+    _state_names_multi[v.lower()] = v  # abbreviation -> abbreviation
 
 
 def abbreviate_state(state: str) -> str:

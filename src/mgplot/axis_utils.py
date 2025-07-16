@@ -9,8 +9,9 @@ such as days, months, quarters, and years.
 
 import calendar
 from enum import Enum
+from typing import Final
 
-from matplotlib.pyplot import Axes
+from matplotlib.axes import Axes
 from pandas import Index, Period, PeriodIndex, RangeIndex, period_range
 
 from mgplot.settings import DataT
@@ -57,10 +58,10 @@ frequencies = {
 r_freqs = {v[0]: k for k, v in frequencies.items()}
 
 intervals = {
-    DateLike.YEARS: [1, 2, 4, 5, 10, 20, 40, 50, 100, 200, 400, 500, 1000],
+    DateLike.YEARS: [1, 2, 3, 4, 5, 10, 20, 40, 50, 100, 200, 400, 500, 1000],
     DateLike.QUARTERS: [1, 2],
     DateLike.MONTHS: [1, 2, 3, 4, 6],
-    DateLike.DAYS: [1, 2, 4, 7, 14],
+    DateLike.DAYS: [1, 2, 3, 4, 7, 14],
 }
 
 
@@ -83,7 +84,7 @@ def get_count(p: PeriodIndex, max_ticks: int) -> tuple[int, DateLike, int]:
         return error
     freq: str = p.freqstr[0].upper()
     if freq not in frequencies:
-        print("Unrecognised date-like PeriodIndex frequency {freq}")
+        print(f"Unrecognised date-like PeriodIndex frequency {freq}")
         return error
 
     # --- calculate
@@ -104,9 +105,10 @@ def day_labeller(labels: dict[Period, str]) -> dict[Period, str]:
     def add_month(label: str, month: str) -> str:
         return f"{label}\n{month}"
 
-    def add_year(label: str, year: str) -> str:
+    def add_year(label: str, year: str, current_month: str) -> str:
         days_only = 2
-        label = label.replace("\n", " ") if len(label) > days_only else f"{label} {month}"
+        # Fix: month variable should be current_month parameter
+        label = label.replace("\n", " ") if len(label) > days_only else f"{label} {current_month}"
         return f"{label}\n{year}"
 
     if not labels:
@@ -128,14 +130,16 @@ def day_labeller(labels: dict[Period, str]) -> dict[Period, str]:
 
         if year_previous != year:
             final_year = False
-            label = add_year(label, year)
+            label = add_year(label, year, month)
             year_previous = year
 
         labels[period] = label
 
-    if final_year:
+    if final_year and labels:
         final_period = max(labels.keys())
-        labels[final_period] = add_year(label, year)
+        final_month = calendar.month_abbr[final_period.month]
+        final_year_str = str(final_period.year)
+        labels[final_period] = add_year(labels[final_period], final_year_str, final_month)
 
     return labels
 
@@ -147,7 +151,7 @@ def month_locator(p: PeriodIndex, interval: int) -> dict[Period, str]:
     start = 0
     if interval > 1:
         mod_months = [(c.month - 1) % interval for c in subset]
-        start = 0 if 0 not in mod_months else mod_months.index(0)
+        start = mod_months.index(0) if 0 in mod_months else 0
     return dict.fromkeys(subset[start::interval], "")
 
 
@@ -164,9 +168,12 @@ def month_labeller(labels: dict[Period, str]) -> dict[Period, str]:
         label = calendar.month_abbr[period.month]
         year = str(period.year)
 
-        if year_previous != year or period.month == 1:
+        if year_previous != year:
             label = year
             year_previous = year
+            final_year = False
+        elif period.month == 1:
+            label = year
             final_year = False
 
         labels[period] = label
@@ -186,7 +193,7 @@ def qtr_locator(p: PeriodIndex, interval: int) -> dict[Period, str]:
     start = 0
     if interval > 1:
         mod_qtrs = [(c.quarter - 1) % interval for c in p]
-        start = 0 if 0 not in mod_qtrs else mod_qtrs.index(0)
+        start = mod_qtrs.index(0) if 0 in mod_qtrs else 0
     return dict.fromkeys(p[start::interval], "")
 
 
@@ -228,8 +235,8 @@ def year_locator(p: PeriodIndex, interval: int) -> dict[Period, str]:
 
     start = 0
     if interval > 1:
-        mod_years = [(c.year) % interval for c in subset]
-        start = 0 if 0 not in mod_years else mod_years.index(0)
+        mod_years = [c.year % interval for c in subset]
+        start = mod_years.index(0) if 0 in mod_years else 0
     return dict.fromkeys(subset[start::interval], "")
 
 
@@ -257,18 +264,26 @@ def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
 
     """
     labels: dict[Period, str] = {}
-    max_ticks = max(max_ticks, 4)
+    min_ticks: Final[int] = 4
+    max_ticks = max(max_ticks, min_ticks)
     count, date_like, interval = get_count(p, max_ticks)
     if date_like == DateLike.BAD:
         return labels
 
     target_freq = r_freqs[date_like]
-    complete = period_range(start=p.min(), end=p.max(), freq=p.freqstr)
+    try:
+        complete = period_range(start=p.min(), end=p.max(), freq=p.freqstr)
+    except (ValueError, TypeError) as e:
+        print(f"Error creating period range: {e}")
+        return labels
 
     match target_freq:
         case "D":
-            second = 2
-            start = 0 if interval == second and count % second else interval // second
+            second_interval: Final[int] = 2
+            if interval == second_interval and count % second_interval == 0:
+                start = 0
+            else:
+                start = interval // second_interval
             labels = dict.fromkeys(complete[start::interval], "")
             labels = day_labeller(labels)
 

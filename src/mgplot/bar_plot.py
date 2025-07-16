@@ -7,7 +7,7 @@ cannot be plotted on the same axes.
 """
 
 from collections.abc import Sequence
-from typing import Any, Final, NotRequired, Unpack
+from typing import Any, Final, NotRequired, TypedDict, Unpack
 
 import matplotlib.patheffects as pe
 import matplotlib.pyplot as plt
@@ -28,6 +28,13 @@ from mgplot.utilities import (
 
 # --- constants
 ME: Final[str] = "bar_plot"
+MAX_ANNOTATIONS: Final[int] = 30
+ADJUSTMENT_FACTOR: Final[float] = 0.02
+MIN_BAR_WIDTH: Final[float] = 0.0
+MAX_BAR_WIDTH: Final[float] = 1.0
+DEFAULT_GROUPED_WIDTH: Final[float] = 0.8
+DEFAULT_BAR_OFFSET: Final[float] = 0.5
+DEFAULT_MAX_TICKS: Final[int] = 10
 
 
 class BarKwargs(BaseKwargs):
@@ -53,12 +60,25 @@ class BarKwargs(BaseKwargs):
 
 
 # --- functions
+class AnnoKwargs(TypedDict, total=False):
+    """TypedDict for the kwargs used in annotate_bars."""
+
+    annotate: bool
+    fontsize: int | float | str
+    fontname: str
+    color: str
+    rotation: int | float
+    foreground: str  # used for stroke effect on text
+    above: bool
+    rounding: bool | int  # if True, uses default rounding; if int, uses that value
+
+
 def annotate_bars(
     series: Series,
     offset: float,
-    base: np.ndarray[tuple[int, ...], np.dtype[Any]],
+    base: np.ndarray,
     axes: Axes,
-    **anno_kwargs,
+    **anno_kwargs: Unpack[AnnoKwargs],
 ) -> None:
     """Bar plot annotations.
 
@@ -67,7 +87,7 @@ def annotate_bars(
     # --- only annotate in limited circumstances
     if "annotate" not in anno_kwargs or not anno_kwargs["annotate"]:
         return
-    max_annotations = 30
+    max_annotations = MAX_ANNOTATIONS
     if len(series) > max_annotations:
         return
 
@@ -78,18 +98,18 @@ def annotate_bars(
 
     # --- assemble the annotation parameters
     above: Final[bool | None] = anno_kwargs.get("above", False)  # None is also False-ish
-    annotate_style = {
+    annotate_style: dict[str, Any] = {
         "fontsize": anno_kwargs.get("fontsize"),
         "fontname": anno_kwargs.get("fontname"),
         "color": anno_kwargs.get("color"),
         "rotation": anno_kwargs.get("rotation"),
     }
     rounding = default_rounding(series=series, provided=anno_kwargs.get("rounding"))
-    adjustment = (series.max() - series.min()) * 0.02
+    adjustment = (series.max() - series.min()) * ADJUSTMENT_FACTOR
     zero_correction = series.index.min()
 
     # --- annotate each bar
-    for index, value in zip(series.index.astype(int), series, strict=False):  # mypy syntactic sugar
+    for index, value in zip(series.index.astype(int), series, strict=True):
         position = base[index - zero_correction] + (adjustment if value >= 0 else -adjustment)
         if above:
             position += value
@@ -107,7 +127,15 @@ def annotate_bars(
             text.set_path_effects([pe.withStroke(linewidth=2, foreground=anno_kwargs.get("foreground"))])
 
 
-def grouped(axes: Axes, df: DataFrame, anno_args: dict[str, Any], **kwargs) -> None:
+class GroupedKwargs(TypedDict, total=False):
+    """TypedDict for the kwargs used in grouped."""
+
+    color: Sequence[str]
+    width: Sequence[float | int]
+    label_series: Sequence[bool]
+
+
+def grouped(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[GroupedKwargs]) -> None:
     """Plot a grouped bar plot."""
     series_count = len(df.columns)
 
@@ -116,11 +144,11 @@ def grouped(axes: Axes, df: DataFrame, anno_args: dict[str, Any], **kwargs) -> N
         if series.isna().all():
             continue
         width = kwargs["width"][i]
-        if width < 0 or width > 1:
-            width = 0.8
-        adjusted_width = width / series_count  # 0.8
+        if width < MIN_BAR_WIDTH or width > MAX_BAR_WIDTH:
+            width = DEFAULT_GROUPED_WIDTH
+        adjusted_width = width / series_count
         # far-left + margin + halfway through one grouped column
-        left = -0.5 + ((1 - width) / 2.0) + (adjusted_width / 2.0)
+        left = -DEFAULT_BAR_OFFSET + ((1 - width) / 2.0) + (adjusted_width / 2.0)
         offset = left + (i * adjusted_width)
         foreground = kwargs["color"][i]
         axes.bar(
@@ -135,22 +163,23 @@ def grouped(axes: Axes, df: DataFrame, anno_args: dict[str, Any], **kwargs) -> N
             offset=offset,
             base=np.zeros(len(series)),
             axes=axes,
-            foreground=foreground,
             **anno_args,
         )
 
 
-def stacked(axes: Axes, df: DataFrame, anno_args: dict[str, Any], **kwargs) -> None:
+class StackedKwargs(TypedDict, total=False):
+    """TypedDict for the kwargs used in stacked."""
+
+    color: Sequence[str]
+    width: Sequence[float | int]
+    label_series: Sequence[bool]
+
+
+def stacked(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[StackedKwargs]) -> None:
     """Plot a stacked bar plot."""
-    series_count = len(df)
-    base_plus: np.ndarray[tuple[int, ...], np.dtype[np.float64]] = np.zeros(
-        shape=series_count,
-        dtype=np.float64,
-    )
-    base_minus: np.ndarray[tuple[int, ...], np.dtype[np.float64]] = np.zeros(
-        shape=series_count,
-        dtype=np.float64,
-    )
+    row_count = len(df)
+    base_plus: np.ndarray = np.zeros(shape=row_count, dtype=np.float64)
+    base_minus: np.ndarray = np.zeros(shape=row_count, dtype=np.float64)
     for i, col in enumerate(df.columns):
         series = df[col]
         base = np.where(series >= 0, base_plus, base_minus)
@@ -168,7 +197,6 @@ def stacked(axes: Axes, df: DataFrame, anno_args: dict[str, Any], **kwargs) -> N
             offset=0,
             base=base,
             axes=axes,
-            foreground=foreground,
             **anno_args,
         )
         base_plus += np.where(series >= 0, series, 0)
@@ -178,16 +206,15 @@ def stacked(axes: Axes, df: DataFrame, anno_args: dict[str, Any], **kwargs) -> N
 def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     """Create a bar plot from the given data.
 
-    Each column in the DataFrame
-    will be stacked on top of each other, with positive values above
-    zero and negative values below zero.
+    Each column in the DataFrame will be stacked on top of each other,
+    with positive values above zero and negative values below zero.
 
     Args:
-        data: Series - The data to plot. Can be a DataFrame or a Series.
+        data: Series | DataFrame - The data to plot. Can be a DataFrame or a Series.
         **kwargs: BarKwargs - Additional keyword arguments for customization.
         (see BarKwargs for details)
 
-    Note: This function does not assume all data is timeseries with a PeriodIndex,
+    Note: This function does not assume all data is timeseries with a PeriodIndex.
 
     Returns:
         axes: Axes - The axes for the plot.
@@ -205,26 +232,26 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     df, kwargs_d = constrain_data(df, **kwargs)
     item_count = len(df.columns)
 
-    # --- deal with complete PeriodIdex indicies
+    # --- deal with complete PeriodIndex indices
     saved_pi = map_periodindex(df)
     if saved_pi is not None:
         df = saved_pi[0]  # extract the reindexed DataFrame from the PeriodIndex
 
     # --- set up the default arguments
-    chart_defaults: dict[str, Any] = {
+    chart_defaults: dict[str, bool | int] = {
         "stacked": False,
-        "max_ticks": 10,
+        "max_ticks": DEFAULT_MAX_TICKS,
         "label_series": item_count > 1,
     }
     chart_args = {k: kwargs_d.get(k, v) for k, v in chart_defaults.items()}
 
-    bar_defaults: dict[str, Any] = {
+    bar_defaults = {
         "color": get_color_list(item_count),
         "width": get_setting("bar_width"),
-        "label_series": (item_count > 1),
+        "label_series": item_count > 1,
     }
     above = kwargs_d.get("above", False)
-    anno_args: dict[str, Any] = {
+    anno_args: AnnoKwargs = {
         "annotate": kwargs_d.get("annotate", False),
         "fontsize": kwargs_d.get("fontsize", "small"),
         "fontname": kwargs_d.get("fontname", "Helvetica"),
@@ -236,7 +263,7 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     bar_args, remaining_kwargs = apply_defaults(item_count, bar_defaults, kwargs_d)
 
     # --- plot the data
-    axes, remaining_kwargs = get_axes(**remaining_kwargs)
+    axes, remaining_kwargs = get_axes(**dict(remaining_kwargs))
     if chart_args["stacked"]:
         stacked(axes, df, anno_args, **bar_args)
     else:

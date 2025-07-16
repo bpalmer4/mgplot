@@ -1,18 +1,30 @@
 """Functions to finalise and save plots to the file system."""
 
 import re
+import unicodedata
 from collections.abc import Callable, Sequence
+from pathlib import Path
 from typing import Any, Final, NotRequired, Unpack
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import Axes, Figure
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure, SubFigure
 
 from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import get_setting
 
 # --- constants
 ME: Final[str] = "finalise_plot"
+MAX_FILENAME_LENGTH: Final[int] = 150
+DEFAULT_MARGIN: Final[float] = 0.02
+TIGHT_LAYOUT_PAD: Final[float] = 1.1
+FOOTNOTE_FONTSIZE: Final[int] = 8
+FOOTNOTE_FONTSTYLE: Final[str] = "italic"
+FOOTNOTE_COLOR: Final[str] = "#999999"
+ZERO_LINE_WIDTH: Final[float] = 0.66
+ZERO_LINE_COLOR: Final[str] = "#555555"
+ZERO_AXIS_ADJUSTMENT: Final[float] = 0.02
+DEFAULT_FILE_TITLE_NAME: Final[str] = "plot"
 
 
 class FinaliseKwargs(BaseKwargs):
@@ -57,7 +69,7 @@ class FinaliseKwargs(BaseKwargs):
     dont_close: NotRequired[bool]
 
 
-value_kwargs = (
+VALUE_KWARGS = (
     "title",
     "xlabel",
     "ylabel",
@@ -68,14 +80,14 @@ value_kwargs = (
     "xscale",
     "yscale",
 )
-splat_kwargs = (
+SPLAT_KWARGS = (
     "axhspan",
     "axvspan",
     "axhline",
     "axvline",
     "legend",  # needs to be last in this tuple
 )
-annotation_kwargs = (
+HEADER_FOOTER_KWARGS = (
     "lfooter",
     "rfooter",
     "lheader",
@@ -83,9 +95,45 @@ annotation_kwargs = (
 )
 
 
-# filename limitations - regex used to map the plot title to a filename
-_remove = re.compile(r"[^0-9A-Za-z]")  # sensible file names from alphamum title
-_reduce = re.compile(r"[-]+")  # eliminate multiple hyphens
+def sanitize_filename(filename: str, max_length: int = MAX_FILENAME_LENGTH) -> str:
+    """Convert a string to a safe filename.
+
+    Args:
+        filename: The string to convert to a filename
+        max_length: Maximum length for the filename
+
+    Returns:
+        A safe filename string
+
+    """
+    if not filename:
+        return "untitled"
+
+    # Normalize unicode characters (e.g., é -> e)
+    filename = unicodedata.normalize("NFKD", filename)
+
+    # Remove non-ASCII characters
+    filename = filename.encode("ascii", "ignore").decode("ascii")
+
+    # Convert to lowercase
+    filename = filename.lower()
+
+    # Replace spaces and other separators with hyphens
+    filename = re.sub(r"[\s\-_]+", "-", filename)
+
+    # Remove unsafe characters, keeping only alphanumeric and hyphens
+    filename = re.sub(r"[^a-z0-9\-]", "", filename)
+
+    # Remove leading/trailing hyphens and collapse multiple hyphens
+    filename = re.sub(r"^-+|-+$", "", filename)
+    filename = re.sub(r"-+", "-", filename)
+
+    # Truncate to max length
+    if len(filename) > max_length:
+        filename = filename[:max_length].rstrip("-")
+
+    # Ensure we have a valid filename
+    return filename if filename else "untitled"
 
 
 def make_legend(axes: Axes, *, legend: None | bool | dict[str, Any]) -> None:
@@ -103,7 +151,7 @@ def make_legend(axes: Axes, *, legend: None | bool | dict[str, Any]) -> None:
     print(f"Warning: expected dict argument for legend, but got {type(legend)}.")
 
 
-def apply_value_kwargs(axes: Axes, value_kwargs: Sequence[str], **kwargs) -> None:
+def apply_value_kwargs(axes: Axes, value_kwargs_: Sequence[str], **kwargs: Unpack[FinaliseKwargs]) -> None:
     """Set matplotlib elements by name using Axes.set().
 
     Tricky: some plotting functions may set the xlabel or ylabel.
@@ -123,7 +171,7 @@ def apply_value_kwargs(axes: Axes, value_kwargs: Sequence[str], **kwargs) -> Non
         return ""
 
     # --- loop over potential value settings
-    for setting in value_kwargs:
+    for setting in value_kwargs_:
         value = kwargs.get(setting)
         if setting in kwargs:
             # deliberately set, so we will action
@@ -144,36 +192,43 @@ def apply_value_kwargs(axes: Axes, value_kwargs: Sequence[str], **kwargs) -> Non
         axes.set(**{setting: value})
 
 
-def apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs) -> None:
+def apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs: Unpack[FinaliseKwargs]) -> None:
     """Set matplotlib elements dynamically using setting_name and splat."""
     for method_name in settings:
         if method_name in kwargs:
             if method_name == "legend":
                 # special case for legend
-                make_legend(axes, legend=kwargs[method_name])
+                legend_value = kwargs.get(method_name)
+                if isinstance(legend_value, (bool, dict, type(None))):
+                    make_legend(axes, legend=legend_value)
+                else:
+                    print(f"Warning: expected bool, dict, or None for legend, but got {type(legend_value)}.")
                 continue
 
-            if kwargs[method_name] is None or kwargs[method_name] is False:
+            if method_name not in kwargs:
+                continue
+            value = kwargs.get(method_name)
+            if value is None or value is False:
                 continue
 
-            if kwargs[method_name] is True:  # use the global default settings
-                kwargs[method_name] = get_setting(method_name)
+            if value is True:  # use the global default settings
+                value = get_setting(method_name)
 
             # splat the kwargs to the method
-            if isinstance(kwargs[method_name], dict):
+            if isinstance(value, dict):
                 method = getattr(axes, method_name)
-                method(**kwargs[method_name])
+                method(**value)
             else:
                 print(
-                    f"Warning expected dict argument for {method_name} but got {type(kwargs[method_name])}.",
+                    f"Warning expected dict argument for {method_name} but got {type(value)}.",
                 )
 
 
-def apply_annotations(axes: Axes, **kwargs) -> None:
+def apply_annotations(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
     """Set figure size and apply chart annotations."""
     fig = axes.figure
     fig_size = kwargs.get("figsize", get_setting("figsize"))
-    if not isinstance(fig, mpl.figure.SubFigure):
+    if not isinstance(fig, SubFigure):
         fig.set_size_inches(*fig_size)
 
     annotations = {
@@ -183,38 +238,38 @@ def apply_annotations(axes: Axes, **kwargs) -> None:
         "lheader": (0.01, 0.999, "left", "top"),
     }
 
-    for annotation in annotation_kwargs:
+    for annotation in HEADER_FOOTER_KWARGS:
         if annotation in kwargs:
             x_pos, y_pos, h_align, v_align = annotations[annotation]
             fig.text(
                 x_pos,
                 y_pos,
-                kwargs[annotation],
+                str(kwargs.get(annotation, "")),
                 ha=h_align,
                 va=v_align,
-                fontsize=8,
-                fontstyle="italic",
-                color="#999999",
+                fontsize=FOOTNOTE_FONTSIZE,
+                fontstyle=FOOTNOTE_FONTSTYLE,
+                color=FOOTNOTE_COLOR,
             )
 
 
-def apply_late_kwargs(axes: Axes, **kwargs) -> None:
+def apply_late_kwargs(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
     """Apply settings found in kwargs, after plotting the data."""
-    apply_splat_kwargs(axes, splat_kwargs, **kwargs)
+    apply_splat_kwargs(axes, SPLAT_KWARGS, **kwargs)
 
 
-def apply_kwargs(axes: Axes, **kwargs) -> None:
+def apply_kwargs(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
     """Apply settings found in kwargs."""
 
-    def check_kwargs(name: str) -> Any:
-        return name in kwargs and kwargs[name]
+    def check_kwargs(name: str) -> bool:
+        return name in kwargs and bool(kwargs.get(name))
 
-    apply_value_kwargs(axes, value_kwargs, **kwargs)
+    apply_value_kwargs(axes, VALUE_KWARGS, **kwargs)
     apply_annotations(axes, **kwargs)
 
     if check_kwargs("zero_y"):
         bottom, top = axes.get_ylim()
-        adj = (top - bottom) * 0.02
+        adj = (top - bottom) * ZERO_AXIS_ADJUSTMENT
         if bottom > -adj:
             axes.set_ylim(bottom=-adj)
         if top < adj:
@@ -223,32 +278,57 @@ def apply_kwargs(axes: Axes, **kwargs) -> None:
     if check_kwargs("y0"):
         low, high = axes.get_ylim()
         if low < 0 < high:
-            axes.axhline(y=0, lw=0.66, c="#555555")
+            axes.axhline(y=0, lw=ZERO_LINE_WIDTH, c=ZERO_LINE_COLOR)
 
     if check_kwargs("x0"):
         low, high = axes.get_xlim()
         if low < 0 < high:
-            axes.axvline(x=0, lw=0.66, c="#555555")
+            axes.axvline(x=0, lw=ZERO_LINE_WIDTH, c=ZERO_LINE_COLOR)
 
 
-def save_to_file(fig: Figure, **kwargs) -> None:
+def save_to_file(fig: Figure, **kwargs: Unpack[FinaliseKwargs]) -> None:
     """Save the figure to file."""
     saving = not kwargs.get("dont_save", False)  # save by default
-    if saving:
-        chart_dir = kwargs.get("chart_dir", get_setting("chart_dir"))
-        if not chart_dir.endswith("/"):
-            chart_dir += "/"
+    if not saving:
+        return
+
+    try:
+        chart_dir = Path(kwargs.get("chart_dir", get_setting("chart_dir")))
+
+        # Ensure directory exists
+        chart_dir.mkdir(parents=True, exist_ok=True)
 
         title = kwargs.get("title", "")
-        max_title_len = 150  # avoid overly long file names
-        shorter = title if len(title) < max_title_len else title[:max_title_len]
         pre_tag = kwargs.get("pre_tag", "")
         tag = kwargs.get("tag", "")
-        file_title = re.sub(_remove, "-", shorter).lower()
-        file_title = re.sub(_reduce, "-", file_title)
+        file_title = sanitize_filename(title if title else DEFAULT_FILE_TITLE_NAME)
         file_type = kwargs.get("file_type", get_setting("file_type")).lower()
         dpi = kwargs.get("dpi", get_setting("dpi"))
-        fig.savefig(f"{chart_dir}{pre_tag}{file_title}-{tag}.{file_type}", dpi=dpi)
+
+        # Construct filename components safely
+        filename_parts = []
+        if pre_tag:
+            filename_parts.append(sanitize_filename(pre_tag))
+        filename_parts.append(file_title)
+        if tag:
+            filename_parts.append(sanitize_filename(tag))
+
+        # Join filename parts and add extension
+        filename = "-".join(filter(None, filename_parts))
+        filepath = chart_dir / f"{filename}.{file_type}"
+
+        fig.savefig(filepath, dpi=dpi)
+
+    except (
+        OSError,
+        PermissionError,
+        FileNotFoundError,
+        ValueError,
+        RuntimeError,
+        TypeError,
+        UnicodeError,
+    ) as e:
+        print(f"Error: Could not save plot to file: {e}")
 
 
 # - public functions for finalise_plot()
@@ -279,7 +359,7 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
     xlim, ylim = axes.get_xlim(), axes.get_ylim()
 
     # margins
-    axes.margins(0.02)
+    axes.margins(DEFAULT_MARGIN)
     axes.autoscale(tight=False)  # This is problematic ...
 
     apply_kwargs(axes, **kwargs)
@@ -290,13 +370,13 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
         # restore the original limits of the axes
         axes.set_xlim(xlim)
         axes.set_ylim(ylim)
-    if not isinstance(fig, mpl.figure.SubFigure):  # mypy
-        fig.tight_layout(pad=1.1)
+    if not isinstance(fig, SubFigure):
+        fig.tight_layout(pad=TIGHT_LAYOUT_PAD)
     apply_late_kwargs(axes, **kwargs)
     legend = axes.get_legend()
     if legend and kwargs.get("remove_legend", False):
         legend.remove()
-    if not isinstance(fig, mpl.figure.SubFigure):  # mypy
+    if not isinstance(fig, SubFigure):
         save_to_file(fig, **kwargs)
 
     # show the plot in Jupyter Lab
@@ -304,6 +384,5 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
         plt.show()
 
     # And close
-    closing = True if "dont_close" not in kwargs else not kwargs["dont_close"]
-    if closing:
+    if not kwargs.get("dont_close", False):
         plt.close()

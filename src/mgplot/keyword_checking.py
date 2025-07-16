@@ -6,18 +6,21 @@ dynamic keyword argument checking, ensuring that the arguments
 match the expected types and structures defined in TypedDicts.
 It is not a full type checker, but it provides a basic level
 of validation to help catch common mistakes in function calls.
+
+It is designed to be used interactively and in scripts.
 """
 
 import textwrap
 from collections.abc import Mapping, Sequence
 from collections.abc import Set as AbstractSet
 from types import UnionType
-from typing import Any, Final, NotRequired, ReadOnly, TypedDict, Union, cast, get_args, get_origin
+from typing import Any, Final, NotRequired, ReadOnly, TypedDict, Union, get_args, get_origin
 
 # --- constants
 PEELABLE: Final = (NotRequired, Final, ReadOnly)
+_DEBUG_ENABLED: bool = False
 
-type TransitionKwargs = dict[str, tuple[str, Any]]
+TransitionKwargs = dict[str, tuple[str, Any]]
 
 
 class BaseKwargs(TypedDict):
@@ -31,7 +34,7 @@ class BaseKwargs(TypedDict):
 
 def report_kwargs(
     caller: str,
-    **kwargs,
+    **kwargs: Any,
 ) -> None:
     """Dump the received keyword arguments to the console.
 
@@ -47,10 +50,13 @@ def report_kwargs(
 
 def limit_kwargs(
     expected: type[Any],
-    **kwargs,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """Limit the keyword arguments to those in the expected TypedDict."""
-    return {k: v for k, v in kwargs.items() if k in dict(cast("dict[str, Any]", expected.__annotations__))}
+    if hasattr(expected, "__annotations__"):
+        annotations = dict(expected.__annotations__)
+        return {k: v for k, v in kwargs.items() if k in annotations}
+    return {}
 
 
 def package_kwargs(mapping: TransitionKwargs, **kwargs: Any) -> dict[str, Any]:
@@ -83,7 +89,7 @@ def validate_kwargs(schema: type[Any] | dict[str, Any], caller: str, **kwargs: A
     """
     # --- Extract the expected types from the schema
     if hasattr(schema, "__annotations__"):
-        scheme = dict(cast("dict[str, Any]", schema.__annotations__).items())
+        scheme = dict(schema.__annotations__)
     elif isinstance(schema, dict):
         scheme = schema
     else:
@@ -120,13 +126,13 @@ def validate_kwargs(schema: type[Any] | dict[str, Any], caller: str, **kwargs: A
             )
         dprint("--------------------------")
 
-        # --- check for missing requirements
-        for k, v in scheme.items():
-            origin = get_origin(v)
-            if origin is NotRequired:
-                continue
-            if k not in kwargs:
-                print(f"A required keyword argument '{k}' is missing in {caller}().")
+    # --- check for missing requirements
+    for k, v in scheme.items():
+        origin = get_origin(v)
+        if origin is NotRequired:
+            continue
+        if k not in kwargs:
+            print(f"A required keyword argument '{k}' is missing in {caller}().")
 
 
 # --- private functions
@@ -168,8 +174,8 @@ def check(value: Any, expected: type) -> bool:
                 bytes,
                 bytearray,
                 memoryview,
-                range,  # these are consumable iterators
-                iter,  # these are consumable iterators
+                range,
+                iter,
             ):
                 good = check_sequence(value, expected)
             case _ if origin in (Mapping, dict):
@@ -179,7 +185,7 @@ def check(value: Any, expected: type) -> bool:
             case _ if origin in (UnionType, Union):
                 good = check_union(value, expected)
             case _:
-                good = True
+                good = isinstance(value, expected) if hasattr(expected, "__origin__") else True
                 print(f"Keyword checking: {value} not checked against {expected}")
     else:
         # simple types, and parameterisable types without parameters
@@ -236,8 +242,8 @@ def check_sequence(value: Any, expected: type) -> bool:
         # Handle tuple types separately
         return check_tuple(value, expected)
 
-    if value and not isinstance(value, (Sequence)):
-        # If value is not empty, it must be a sequence
+    if not isinstance(value, Sequence):
+        # Value must be a sequence (including strings, but they're handled separately)
         return False
 
     expected_args = get_args(expected)
@@ -272,7 +278,7 @@ def check_tuple(value: Any, expected: type) -> bool:
 
     # --- Fixed length tuple ==> e.g. tuple[int, str]
     elif len(expected_args) == len(value):
-        good = all(check(item, arg) for item, arg in zip(value, expected_args, strict=False))
+        good = all(check(item, arg) for item, arg in zip(value, expected_args, strict=True))
 
     return good
 
@@ -333,12 +339,22 @@ def check_set(value: Any, expected: type) -> bool:
 
 
 # --- debug print function
-def dprint(*args, **kwargs) -> None:
+def dprint(*args: Any, **kwargs: Any) -> None:
     """Output debugging information.
 
     A temporary function to print debug information.
     """
-    active = True  # Set to False to disable debug printing
-    if not active or __name__ != "__main__":
+    if not _DEBUG_ENABLED:
         return
     print(*args, **kwargs)
+
+
+def set_debug_enabled(*, enabled: bool) -> None:
+    """Enable or disable debug printing.
+
+    Args:
+        enabled: Whether to enable debug printing.
+
+    """
+    global _DEBUG_ENABLED
+    _DEBUG_ENABLED = enabled

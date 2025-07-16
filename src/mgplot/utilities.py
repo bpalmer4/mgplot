@@ -1,4 +1,4 @@
-"""Ancillary suppoprt for the package.
+"""Ancillary support for the package.
 
 Functions:
 - check_clean_timeseries()
@@ -11,15 +11,20 @@ Functions:
 """
 
 import math
-from typing import Any
+from typing import Any, Final
 
 import numpy as np
 from matplotlib import cm
-from matplotlib.pyplot import Axes, subplots
+from matplotlib.axes import Axes
+from matplotlib.pyplot import subplots
 from pandas import DataFrame, Period, PeriodIndex, RangeIndex, Series
 from pandas.api.types import is_integer_dtype
 
 from mgplot.settings import DataT, get_setting
+
+# --- Constants
+DEFAULT_ROUNDING_VALUE: Final[int] = 10
+DEFAULT_SIGNIFICANT_DIGITS: Final[int] = 3
 
 
 # --- functions
@@ -76,9 +81,9 @@ def check_clean_timeseries(data: DataT, caller: str = "") -> DataT:
         return data  # no valid index, return original data
     if not isinstance(start, (Period | int)):  # syntactic sugar for type hinting
         raise TypeError("First valid index must be a Period or an int.")
-    if isinstance(data.index, PeriodIndex) and isinstance(start, Period):
-        data = data.loc[data.index >= start]
-    if isinstance(data.index, RangeIndex) and isinstance(start, int):
+    if (isinstance(data.index, PeriodIndex) and isinstance(start, Period)) or (
+        isinstance(data.index, RangeIndex) and isinstance(start, int)
+    ):
         data = data.loc[data.index >= start]
 
     # --- report and missing periods (ie. potentially incomplete data)
@@ -88,7 +93,7 @@ def check_clean_timeseries(data: DataT, caller: str = "") -> DataT:
     return data
 
 
-def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
+def constrain_data(data: DataT, **kwargs: Any) -> tuple[DataT, dict[str, Any]]:
     """Constrain the data to start after a certain point - kwargs["plot_from"].
 
     Args:
@@ -98,7 +103,7 @@ def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
     Assume:
     - that the data is a Series or DataFrame with a PeriodIndex or an integer index
       and that if it is an integer index, these are ordinal values from a PeriodIndex
-      [or possibly ordinatl values for a small number of strings].
+      [or possibly ordinal values for a small number of strings].
     - that the index is unique and monotonic increasing
 
     Returns:
@@ -110,13 +115,13 @@ def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
     if isinstance(plot_from, Period):
         if isinstance(data.index, PeriodIndex):
             data = data.loc[data.index >= plot_from]
-        if is_integer_dtype(data.index):
+        elif is_integer_dtype(data.index):
             data = data.loc[data.index >= plot_from.ordinal]
 
     elif isinstance(plot_from, int):
         if isinstance(data.index, PeriodIndex):
             data = data.iloc[plot_from:]
-        if is_integer_dtype(data.index):
+        elif is_integer_dtype(data.index):
             # this is the messy case: to use loc or iloc?
             if plot_from <= 0 or plot_from < data.index.min():
                 # assume negative and small positive integers are iloc
@@ -129,7 +134,7 @@ def constrain_data(data: DataT, **kwargs) -> tuple[DataT, dict[str, Any]]:
             "Warning: 'plot_from' must be a Period or an integer. "
             f"Found {type(plot_from)}. No data constrained.",
         )
-    return data, kwargs
+    return data, kwargs  # type: ignore[return-value]
 
 
 def apply_defaults(
@@ -139,7 +144,7 @@ def apply_defaults(
 ) -> tuple[dict[str, Any], dict[str, list[Any] | tuple[Any]]]:
     """Apply default arguments where necessary.
 
-    Agumenets:
+    Arguments:
         series_count: the number of lines to be plotted
         defaults: a dictionary of default values
         kwargs_d: a dictionary of keyword arguments
@@ -150,6 +155,7 @@ def apply_defaults(
           are placed in lists or tuples if not already in that format
         - the second is a modified kwargs_d dictionary, with the default
           keys removed.
+
     """
     returnable = {}  # return vehicle
 
@@ -191,18 +197,18 @@ def get_color_list(count: int) -> list[str]:
     return [f"#{int(x * 255):02x}{int(y * 255):02x}{int(z * 255):02x}" for x, y, z, _ in c]
 
 
-def get_axes(**kwargs) -> tuple[Axes, dict[str, Any]]:
+def get_axes(**kwargs: Any) -> tuple[Axes, dict[str, Any]]:
     """Get the axes to plot on."""
-    axes: Axes = kwargs.pop("ax", None)
+    axes: Axes | None = kwargs.pop("ax", None)
     if axes and isinstance(axes, Axes):
-        return axes, kwargs
+        return axes, kwargs  # type: ignore[return-value]
 
     if axes is not None:
         raise TypeError(f"ax must be a matplotlib Axes object, not {type(axes)}")
 
     figsize = kwargs.get("figsize", get_setting("figsize"))
     _fig, axes = subplots(figsize=figsize)
-    return axes, kwargs
+    return axes, kwargs  # type: ignore[return-value]
 
 
 def default_rounding(
@@ -218,10 +224,10 @@ def default_rounding(
         provided: int | None - return this rounding-value if it is not None.
 
     """
-    if provided is not None and not isinstance(provided, bool) and isinstance(provided, int):
+    if isinstance(provided, int) and not isinstance(provided, bool):
         return provided  # use the provided rounding when it is good
 
-    default_value = 10  # implied a round to one decimal place
+    default_value = DEFAULT_ROUNDING_VALUE  # implied a round to one decimal place
     if series is not None and not series.dropna().empty:
         value = series.abs().max()  # series over-writes value if both are provided
     elif value is not None:
@@ -229,7 +235,7 @@ def default_rounding(
     else:
         value = default_value
 
-    significant_digits = 3  # default significant digits
+    significant_digits = DEFAULT_SIGNIFICANT_DIGITS  # default significant digits
     n = 0
     while n < significant_digits:
         if value < 10**n:

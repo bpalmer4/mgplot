@@ -2,14 +2,19 @@
 
 from dataclasses import dataclass, fields
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, Final, TypeVar
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from pandas import DataFrame, Series
 
 # --- default types
-DataT = TypeVar("DataT", Series, DataFrame)  # python 3.11+
+DataT = TypeVar("DataT", Series, DataFrame)
+
+# --- constants
+DEFAULT_CHART_DIR: Final[str] = "."
+IMAGE_EXTENSIONS: Final[tuple[str, ...]] = ("png", "svg", "jpg", "jpeg")
+DEFAULT_MAX_TICKS: Final[int] = 13  # Reasonable default for x-axis ticks
 
 
 # --- global plot settings
@@ -20,7 +25,7 @@ mpl.rcParams["font.size"] = 11
 # --- default settings
 @dataclass
 class DefaultTypes:
-    """Types for the global global settings of the mgplot module."""
+    """Types for the global settings of the mgplot module."""
 
     file_type: str
     figsize: tuple[float, float]
@@ -56,7 +61,7 @@ mgplot_defaults = DefaultTypes(
     },
     colors={
         1: ["#dd0000"],
-        5: ["darkblue", "darkorange", "mediumseagreen", "#dd0000", "gray"],
+        5: ["darkblue", "darkorange", "seagreen", "#dd0000", "gray"],
         9: [
             "darkblue",
             "darkorange",
@@ -69,12 +74,15 @@ mgplot_defaults = DefaultTypes(
             "gray",
         ],
     },
-    chart_dir=".",
-    max_ticks=13,
+    chart_dir=DEFAULT_CHART_DIR,
+    max_ticks=DEFAULT_MAX_TICKS,
 )
 
 
 # --- get/change settings
+
+# Cache field names for performance
+_cached_fields: list[str] | None = None
 
 
 def get_fields() -> list[str]:
@@ -84,7 +92,10 @@ def get_fields() -> list[str]:
         list[str] - a list of field names in the global settings
 
     """
-    return [a.name for a in fields(mgplot_defaults)]
+    global _cached_fields
+    if _cached_fields is None:
+        _cached_fields = [a.name for a in fields(mgplot_defaults)]
+    return _cached_fields
 
 
 def get_setting(setting: str) -> Any:
@@ -112,9 +123,22 @@ def set_setting(setting: str, value: Any) -> None:
         setting: str - name of the setting to set (see get_setting())
         value: Any - the value to set the setting to
 
+    Raises:
+        KeyError: if the setting is not found
+        ValueError: if the value is invalid for the setting
+
     """
     if setting not in get_fields():
         raise KeyError(f"Setting '{setting}' not found in mgplot_defaults.")
+
+    # Basic validation for some settings
+    if setting == "chart_dir" and not isinstance(value, str):
+        raise ValueError(f"chart_dir must be a string, got {type(value)}")
+    if setting == "dpi" and (not isinstance(value, int) or value <= 0):
+        raise ValueError(f"dpi must be a positive integer, got {value}")
+    if setting == "max_ticks" and (not isinstance(value, int) or value <= 0):
+        raise ValueError(f"max_ticks must be a positive integer, got {value}")
+
     setattr(mgplot_defaults, setting, value)
 
 
@@ -122,7 +146,7 @@ def clear_chart_dir() -> None:
     """Remove all graph-image files from the global chart_dir."""
     chart_dir = get_setting("chart_dir")
     Path(chart_dir).mkdir(parents=True, exist_ok=True)
-    for ext in ("png", "svg", "jpg", "jpeg"):
+    for ext in IMAGE_EXTENSIONS:
         for fs_object in Path(chart_dir).glob(f"*.{ext}"):
             if fs_object.is_file():
                 fs_object.unlink()
@@ -139,11 +163,8 @@ def set_chart_dir(chart_dir: str) -> None:
     Note: This is a wrapper for set_setting() to set the chart_dir setting, and
     create the directory if it does not exist.
 
-    Arguments:
-        - chart_dir: str - the directory to set as the chart directory
-
     """
-    if not chart_dir:
-        chart_dir = "."  # avoid the empty string
+    if not chart_dir or chart_dir.isspace():
+        chart_dir = DEFAULT_CHART_DIR  # avoid empty/whitespace strings
     Path(chart_dir).mkdir(parents=True, exist_ok=True)
     set_setting("chart_dir", chart_dir)
