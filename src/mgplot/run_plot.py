@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from typing import NotRequired, Unpack
 
 from matplotlib import patheffects as pe
-from matplotlib.pyplot import Axes
+from matplotlib.axes import Axes
 from pandas import Series, concat
 
 from mgplot.axis_utils import map_periodindex, set_labels
@@ -19,15 +19,22 @@ from mgplot.utilities import check_clean_timeseries, constrain_data
 
 # --- constants
 ME = "run_plot"
+STROKE_LINEWIDTH = 5
+DEFAULT_THRESHOLD = 0.1
+DEFAULT_ROUNDING = 2
+UP_COLOR = "gold"
+DOWN_COLOR = "skyblue"
+UNKNOWN_COLOR = "gray"  # should never be needed
+LINE_COLOR = "darkblue"
 
 
 class RunKwargs(LineKwargs):
     """Keyword arguments for the run_plot function."""
 
     threshold: NotRequired[float]
-    highlight: NotRequired[str | Sequence[str]]
     direction: NotRequired[str]
-    label: NotRequired[str | Sequence[str]]
+    highlight_color: NotRequired[str | Sequence[str]]
+    highlight_label: NotRequired[str | Sequence[str]]
 
 
 # --- functions
@@ -40,6 +47,9 @@ def _identify_runs(
     up: bool,  # False means down
 ) -> tuple[Series, Series]:
     """Identify monotonic increasing/decreasing runs."""
+    if threshold <= 0:
+        raise ValueError("Threshold must be positive")
+
     diffed = series.diff()
     change_points = concat([diffed[diffed.gt(threshold)], diffed[diffed.lt(-threshold)]]).sort_index()
     if series.index[0] not in change_points.index:
@@ -50,51 +60,101 @@ def _identify_runs(
     return cycles[facing], change_points
 
 
+def _get_highlight_color(highlight_config: str | Sequence[str], *, up: bool) -> str:
+    """Extract highlight color based on direction."""
+    match highlight_config:
+        case str():
+            return highlight_config
+        case Sequence():
+            return highlight_config[0] if up else highlight_config[1]
+        case _:
+            raise ValueError(
+                f"Invalid type for highlight: {type(highlight_config)}. Expected str or Sequence.",
+            )
+
+
+def _resolve_labels(label: str | Sequence[str] | None, direction: str) -> tuple[str | None, str | None]:
+    """Resolve labels for up and down directions."""
+    if direction == "both":
+        if isinstance(label, Sequence) and not isinstance(label, str):
+            return label[0], label[1]
+        return label, label
+    if direction == "up":
+        single_label = label[0] if isinstance(label, Sequence) and not isinstance(label, str) else label
+        return single_label, None
+    if direction == "down":
+        single_label = label[1] if isinstance(label, Sequence) and not isinstance(label, str) else label
+        return None, single_label
+    return None, None
+
+
+def _configure_defaults(kwargs_d: dict, direction: str) -> None:
+    """Set default values for run plot configuration."""
+    kwargs_d.setdefault("threshold", DEFAULT_THRESHOLD)
+    kwargs_d.setdefault("direction", "both")
+    kwargs_d.setdefault("rounding", DEFAULT_ROUNDING)
+    kwargs_d.setdefault("color", LINE_COLOR)
+    kwargs_d.setdefault("drawstyle", "steps-post")
+    kwargs_d.setdefault("label_series", True)
+
+    # Set default highlight colors based on direction
+    if "highlight_color" not in kwargs_d:
+        if direction == "both":
+            kwargs_d["highlight_color"] = (UP_COLOR, DOWN_COLOR)
+        elif direction == "up":
+            kwargs_d["highlight_color"] = UP_COLOR
+        else:  # direction == "down"
+            kwargs_d["highlight_color"] = DOWN_COLOR
+
+
 def _plot_runs(
     axes: Axes,
     series: Series,
     *,
-    label: str | None,
+    run_label: str | None,
     up: bool,
-    **kwargs,
+    **kwargs: Unpack[RunKwargs],
 ) -> None:
     """Highlight the runs of a series."""
-    threshold = kwargs["threshold"]
-    match kwargs.get("highlight"):  # make sure highlight is a color string
-        case str():
-            highlight = kwargs.get("highlight")
-        case Sequence():
-            highlight = kwargs["highlight"][0] if up else kwargs["highlight"][1]
-        case _:
-            raise ValueError(
-                f"Invalid type for highlight: {type(kwargs.get('highlight'))}. Expected str or Sequence.",
-            )
+    threshold = kwargs.get("threshold", 0)
+    high_color = _get_highlight_color(kwargs.get("highlight_color", UNKNOWN_COLOR), up=up)
 
-    # highlight the runs
     stretches, change_points = _identify_runs(series, threshold, up=up)
-    for k in range(1, stretches.max() + 1):
+    if stretches.empty:
+        return
+
+    max_stretch = int(stretches.max())
+    for k in range(1, max_stretch + 1):
         stretch = stretches[stretches == k]
         axes.axvspan(
             stretch.index.min(),
             stretch.index.max(),
-            color=highlight,
+            color=high_color,
             zorder=-1,
-            label=label,
+            label=run_label,
         )
-        label = "_"  # only label the first run
+        run_label = "_"  # only label the first run
+
+        # Calculate text position
         space_above = series.max() - series[stretch.index].max()
         space_below = series[stretch.index].min() - series.min()
         y_pos, vert_align = (series.max(), "top") if space_above > space_below else (series.min(), "bottom")
+
+        # Create annotation text
+        rounding = kwargs.get("rounding", DEFAULT_ROUNDING)
+        total_change = change_points[stretch.index].sum()
+        annotation_text = f"{total_change.round(rounding)} pp"
+
         text = axes.text(
             x=stretch.index.min(),
             y=y_pos,
-            s=(change_points[stretch.index].sum().round(kwargs["rounding"]).astype(str) + " pp"),
+            s=annotation_text,
             va=vert_align,
             ha="left",
             fontsize="x-small",
             rotation=90,
         )
-        text.set_path_effects([pe.withStroke(linewidth=5, foreground="w")])
+        text.set_path_effects([pe.withStroke(linewidth=STROKE_LINEWIDTH, foreground="w")])
 
 
 def run_plot(data: DataT, **kwargs: Unpack[RunKwargs]) -> Axes:
@@ -108,67 +168,45 @@ def run_plot(data: DataT, **kwargs: Unpack[RunKwargs]) -> Axes:
      - matplotlib Axes object
 
     """
-    # --- check the kwargs
-    report_kwargs(caller="run_plot", **kwargs)
+    # --- validate inputs
+    report_kwargs(caller=ME, **kwargs)
     validate_kwargs(schema=RunKwargs, caller=ME, **kwargs)
 
-    # --- check the data
     series = check_clean_timeseries(data, ME)
     if not isinstance(series, Series):
         raise TypeError("series must be a pandas Series for run_plot()")
     series, kwargs_d = constrain_data(series, **kwargs)
 
-    # --- convert PeriodIndex if needed
+    # --- configure defaults and validate
+    direction = kwargs_d.get("direction", "both")
+    _configure_defaults(kwargs_d, direction)
+
+    threshold = kwargs_d["threshold"]
+    if threshold <= 0:
+        raise ValueError("Threshold must be positive")
+
+    # --- handle PeriodIndex conversion
     saved_pi = map_periodindex(series)
     if saved_pi is not None:
         series = saved_pi[0]
 
-    # --- default arguments - in **kwargs_d
-    kwargs_d["threshold"] = kwargs_d.get("threshold", 0.1)
-    kwargs_d["direction"] = kwargs_d.get("direction", "both")
-    kwargs_d["rounding"] = kwargs_d.get("rounding", 2)
-    kwargs_d["highlight"] = kwargs_d.get(
-        "highlight",
-        (
-            ("gold", "skyblue")
-            if kwargs_d["direction"] == "both"
-            else "gold"
-            if kwargs_d["direction"] == "up"
-            else "skyblue"
-        ),
-    )
-    kwargs_d["color"] = kwargs_d.get("color", "darkblue")
-
     # --- plot the line
-    kwargs_d["drawstyle"] = kwargs_d.get("drawstyle", "steps-post")
     lp_kwargs = limit_kwargs(LineKwargs, **kwargs_d)
     axes = line_plot(series, **lp_kwargs)
 
-    # plot the runs
-    direct = kwargs_d["direction"]
-    label: Sequence[str] | str | None = kwargs_d.pop("label", None)
-    up_label: str | None = None
-    down_label: str | None = None
-    if direct == "both":
-        up_label = label[0] if isinstance(label, Sequence) else label
-        down_label = label[1] if isinstance(label, Sequence) else label
-    if isinstance(label, Sequence) and not isinstance(label, str):
-        label = label[0] if direct == "up" else label[1] if direct == "down" else "?"
+    # --- plot runs based on direction
+    run_label = kwargs_d.pop("highlight_label", None)
+    up_label, down_label = _resolve_labels(run_label, direction)
 
-    match direct:
-        case "up":
-            _plot_runs(axes, series, label=label, up=True, **kwargs_d)
-        case "down":
-            _plot_runs(axes, series, label=label, up=False, **kwargs_d)
-        case "both":
-            _plot_runs(axes, series, label=up_label, up=True, **kwargs_d)
-            _plot_runs(axes, series, label=down_label, up=False, **kwargs_d)
-        case _:
-            raise ValueError(
-                f"Invalid value for direction: {direct}. Expected 'up', 'down', or 'both'.",
-            )
+    if direction in ("up", "both"):
+        _plot_runs(axes, series, run_label=up_label, up=True, **kwargs_d)
+    if direction in ("down", "both"):
+        _plot_runs(axes, series, run_label=down_label, up=False, **kwargs_d)
 
-    # --- set the labels
+    if direction not in ("up", "down", "both"):
+        raise ValueError(f"Invalid direction: {direction}. Expected 'up', 'down', or 'both'.")
+
+    # --- set axis labels
     if saved_pi is not None:
         set_labels(axes, saved_pi[1], kwargs.get("max_ticks", get_setting("max_ticks")))
 

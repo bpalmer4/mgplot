@@ -8,7 +8,7 @@ Key functions:
 
 from typing import NotRequired, Unpack, cast
 
-from matplotlib.pyplot import Axes
+from matplotlib.axes import Axes
 from numpy import nan
 from pandas import DataFrame, Period, PeriodIndex, Series, period_range
 
@@ -26,6 +26,11 @@ from mgplot.settings import DataT
 from mgplot.utilities import check_clean_timeseries, constrain_data
 
 # --- constants
+
+# - frequency mappings
+FREQUENCY_TO_PERIODS = {"Q": 4, "M": 12, "D": 365}
+FREQUENCY_TO_NAME = {"Q": "Quarterly", "M": "Monthly", "D": "Daily"}
+TWO_COLUMNS = 2
 
 
 # - overarching constants
@@ -108,7 +113,8 @@ def calc_growth(series: Series) -> DataFrame:
     Args:
         series: Series - a pandas series with a date-like PeriodIndex.
 
-    Returns a two column DataFrame:
+    Returns:
+        DataFrame: A two column DataFrame with annual and periodic growth rates.
 
     Raises:
         TypeError if the series is not a pandas Series.
@@ -125,7 +131,8 @@ def calc_growth(series: Series) -> DataFrame:
         raise TypeError("The series index must be a pandas PeriodIndex")
     if series.empty:
         raise ValueError("The series argument must not be empty")
-    if series.index.freqstr[0] not in ("Q", "M", "D"):
+    freq = series.index.freqstr
+    if not freq or freq[0] not in FREQUENCY_TO_PERIODS:
         raise ValueError("The series index must have a frequency of Q, M, or D")
     if series.index.has_duplicates:
         raise ValueError("The series index must not have duplicate values")
@@ -136,10 +143,15 @@ def calc_growth(series: Series) -> DataFrame:
     series = series.sort_index(ascending=True)
 
     # --- calculate annual and periodic growth
-    ppy = {"Q": 4, "M": 12, "D": 365}[PeriodIndex(series.index).freqstr[:1]]
+    freq = PeriodIndex(series.index).freqstr
+    if not freq or freq[0] not in FREQUENCY_TO_PERIODS:
+        raise ValueError("The series index must have a frequency of Q, M, or D")
+
+    freq_key = freq[0]
+    ppy = FREQUENCY_TO_PERIODS[freq_key]
     annual = series.pct_change(periods=ppy) * 100
     periodic = series.pct_change(periods=1) * 100
-    periodic_name = {4: "Quarterly", 12: "Monthly", 365: "Daily"}[ppy] + " Growth"
+    periodic_name = FREQUENCY_TO_NAME[freq_key] + " Growth"
     return DataFrame(
         {
             "Annual Growth": annual,
@@ -174,8 +186,7 @@ def growth_plot(
 
     # --- data checks
     data = check_clean_timeseries(data, me)
-    two_columns = 2
-    if len(data.columns) != two_columns:
+    if len(data.columns) != TWO_COLUMNS:
         raise TypeError("The data argument must be a pandas DataFrame with two columns")
     data, kwargsd = constrain_data(data, **kwargs)
 
@@ -185,9 +196,11 @@ def growth_plot(
 
     # --- series names
     annual.name = "Annual Growth"
-    periodic.name = {"M": "Monthly", "Q": "Quarterly", "D": "Daily"}[
-        PeriodIndex(periodic.index).freqstr[:1]
-    ] + " Growth"
+    freq = PeriodIndex(periodic.index).freqstr
+    if freq and freq[0] in FREQUENCY_TO_NAME:
+        periodic.name = FREQUENCY_TO_NAME[freq[0]] + " Growth"
+    else:
+        periodic.name = "Periodic Growth"
 
     # --- convert PeriodIndex periodic growth data to integer indexed data.
     saved_pi = map_periodindex(periodic)

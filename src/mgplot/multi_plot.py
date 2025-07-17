@@ -78,6 +78,34 @@ EXPECTED_CALLABLES: dict[Callable, type[Any]] = {
     growth_plot: GrowthKwargs,
 }
 
+# Multi-function exclusions
+FORBIDDEN_FIRST_FUNCTIONS = ("multi_start", "multi_column")
+DEFAULT_TAG_SEPARATOR = "_"
+EMPTY_TAG_REPLACEMENT = "__"
+
+
+# --- helper functions
+def _generate_tag(base_tag: str, index: int) -> str:
+    """Generate a unique tag by combining base tag with index.
+
+    Args:
+        base_tag: The base tag string.
+        index: The index to append.
+
+    Returns:
+        str: A properly formatted tag string.
+
+    """
+    if not base_tag:
+        return str(index)
+
+    tag = f"{base_tag}{DEFAULT_TAG_SEPARATOR}{index}"
+    # Clean up any double separators
+    while EMPTY_TAG_REPLACEMENT in tag:
+        tag = tag.replace(EMPTY_TAG_REPLACEMENT, DEFAULT_TAG_SEPARATOR)
+
+    return tag.strip(DEFAULT_TAG_SEPARATOR)
+
 
 # --- private functions
 def first_unchain(
@@ -88,15 +116,16 @@ def first_unchain(
     Args:
         function: Callable | list[Callable] - a Callable or a non-empty list of Callables
 
-    Returns a tuple containing:
-        first: Callable - the first function, and
-        rest: list[Callable] a list of the remaining functions.
+    Returns:
+        tuple[Callable, list[Callable]]: A tuple containing the first function and
+        a list of the remaining functions.
 
     Raises:
-        ValueError if function is an empty list.
-        TypeError if function not a Callable or a non-empty list of Callables.
+        ValueError: If function is an empty list.
+        TypeError: If function is not a Callable or a non-empty list of Callables.
 
-    Not intended for direct use by the user.
+    Note:
+        Not intended for direct use by the user.
 
     """
     error_msg = "function must be a Callable or a non-empty list of Callables"
@@ -105,6 +134,9 @@ def first_unchain(
         if len(function) == 0:
             raise ValueError(error_msg)
         first, *rest = function
+        # Validate all functions in the list are callable
+        if not all(callable(f) for f in [first, *rest]):
+            raise TypeError("All items in function list must be callable")
     elif callable(function):
         first, rest = function, []
     else:
@@ -117,7 +149,7 @@ def first_unchain(
 def plot_then_finalise(
     data: DataT,
     function: Callable | list[Callable],
-    **kwargs,
+    **kwargs: Any,
 ) -> None:
     """Chain a plotting function with the finalise_plot() function.
 
@@ -141,13 +173,10 @@ def plot_then_finalise(
     if not kwargs["function"]:
         del kwargs["function"]  # remove the function key if it is empty
 
-    # --- TO DO: check that the first function is one of the
-    bad_next = (multi_start, multi_column)
-    if first in bad_next:
-        # these functions should not be called by plot_then_finalise()
+    # Check that forbidden functions are not called first
+    if hasattr(first, "__name__") and first.__name__ in FORBIDDEN_FIRST_FUNCTIONS:
         raise ValueError(
-            f"[{', '.join(k.__name__ for k in bad_next)}] should not be called by {me}. "
-            "Call them before calling {me}. ",
+            f"Function '{first.__name__}' should not be called by {me}. Call it before calling {me}."
         )
 
     if first in EXPECTED_CALLABLES:
@@ -170,9 +199,11 @@ def plot_then_finalise(
     # --- call the first function with the data and selected plot kwargs
     axes = first(data, **plot_kwargs)
 
-    # --- remove potentially overlapping kwargs
+    # --- prepare finalise kwargs (remove overlapping arguments)
     fp_kwargs = limit_kwargs(FinaliseKwargs, **kwargs)
-    # To do: remove any duplicate argument passes
+    # Remove any arguments that were already used in the plot function
+    used_plot_args = set(plot_kwargs.keys())
+    fp_kwargs = {k: v for k, v in fp_kwargs.items() if k not in used_plot_args}
 
     # --- finalise the plot
     finalise_plot(axes, **fp_kwargs)
@@ -182,22 +213,25 @@ def multi_start(
     data: DataT,
     function: Callable | list[Callable],
     starts: Iterable[None | Period | int],
-    **kwargs,
+    **kwargs: Any,
 ) -> None:
     """Create multiple plots with different starting points.
 
     Args:
         data: Series | DataFrame - The data to be plotted.
-        function: Callable | list[Callable] - desierd plotting function(s).
-        starts: Iterable[Period | int | None] - The starting points.
-        kwargs: Any - the other arguments.
+        function: Callable | list[Callable] - desired plotting function(s).
+        starts: Iterable[Period | int | None] - The starting points for each plot.
+        kwargs: Any - Additional keyword arguments passed to plotting functions.
 
-    Returns None.
+    Returns:
+        None
 
     Raises:
-        TypeError if the starts is not an iterable of None, Period or int.
+        TypeError: If starts is not an iterable of None, Period or int.
+        ValueError: If starts contains invalid values or is empty.
 
-    Note: kwargs['tag'] is used to create a unique tag for each plot.
+    Note:
+        kwargs['tag'] is used to create a unique tag for each plot.
 
     """
     # --- sanity checks
@@ -205,8 +239,18 @@ def multi_start(
     report_kwargs(caller=me, **kwargs)
     if not isinstance(starts, Iterable):
         raise TypeError("starts must be an iterable of None, Period or int")
-    # data not checked here, assume it is checked by the called
-    # plot function.
+
+    # Convert to list to validate contents and check if empty
+    starts_list = list(starts)
+    if not starts_list:
+        raise ValueError("starts cannot be empty")
+
+    # Validate each start value
+    for i, start in enumerate(starts_list):
+        if start is not None and not isinstance(start, (Period, int)):
+            raise TypeError(
+                f"Start value at index {i} must be None, Period, or int, got {type(start).__name__}"
+            )
 
     # --- check the function argument
     original_tag: Final[str] = kwargs.get("tag", "")
@@ -215,9 +259,9 @@ def multi_start(
         del kwargs["function"]  # remove the function key if it is empty
 
     # --- iterate over the starts
-    for i, start in enumerate(starts):
+    for i, start in enumerate(starts_list):
         kw = kwargs.copy()  # copy to avoid modifying the original kwargs
-        this_tag = f"{original_tag}_{i}"
+        this_tag = _generate_tag(original_tag, i)
         kw["tag"] = this_tag
         kw["plot_from"] = start  # rely on plotting function to constrain the data
         first(data, **kw)
@@ -226,18 +270,24 @@ def multi_start(
 def multi_column(
     data: DataFrame,
     function: Callable | list[Callable],
-    **kwargs,
+    **kwargs: Any,
 ) -> None:
     """Create multiple plots, one for each column in a DataFrame.
 
-    Note: The plot title will be kwargs["title"] plus the column name.
-
     Args:
-        data: DataFrame - The data to be plotted
-        function: Callable - The plotting function to be used.
-        kwargs: Any - Additional keyword arguments.
+        data: DataFrame - The data to be plotted.
+        function: Callable | list[Callable] - The plotting function(s) to be used.
+        kwargs: Any - Additional keyword arguments passed to plotting functions.
 
-    Returns None.
+    Returns:
+        None
+
+    Raises:
+        TypeError: If data is not a DataFrame.
+        ValueError: If DataFrame is empty or has no columns.
+
+    Note:
+        The plot title will be kwargs["title"] plus the column name.
 
     """
     # --- sanity checks
@@ -245,8 +295,10 @@ def multi_column(
     report_kwargs(caller=me, **kwargs)
     if not isinstance(data, DataFrame):
         raise TypeError("data must be a pandas DataFrame for multi_column()")
-    # Otherwise, the data is assumed to be checked by the called
-    # plot function, so we do not check it here.
+    if data.empty:
+        raise ValueError("DataFrame cannot be empty")
+    if len(data.columns) == 0:
+        raise ValueError("DataFrame must have at least one column")
 
     # --- check the function argument
     title_stem = kwargs.get("title", "")
@@ -257,10 +309,7 @@ def multi_column(
 
     # --- iterate over the columns
     for i, col in enumerate(data.columns):
-        series = data[[col]]
-        kwargs["title"] = f"{title_stem}{col}" if title_stem else col
-
-        this_tag = f"_{tag}_{i}".replace("__", "_")
-        kwargs["tag"] = this_tag
-
+        series = data[col]  # Extract as Series, not single-column DataFrame
+        kwargs["title"] = f"{title_stem}{col}" if title_stem else str(col)
+        kwargs["tag"] = _generate_tag(tag, i)
         first(series, **kwargs)

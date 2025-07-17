@@ -65,10 +65,11 @@ def annotate_series(
 ) -> None:
     """Annotate the right-hand end-point of a line-plotted series."""
     # --- check the series has a value to annotate
-    latest = series.dropna()
+    latest: Series = series.dropna()
     if latest.empty:
         return
-    x, y = latest.index[-1], latest.iloc[-1]
+    x: int | float = latest.index[-1]
+    y: int | float = latest.iloc[-1]
     if y is None or math.isnan(y):
         return
 
@@ -168,11 +169,6 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
 
     if isinstance(df.index, PeriodIndex):
         print("Internal error: data is still a PeriodIndex - come back here and fix it")
-
-    # --- some special defaults
-    kwargs_d["label_series"] = (
-        kwargs_d.get("label_series", True) if len(df.columns) > 1 else kwargs_d.get("label_series", False)
-    )
 
     # --- Let's plot
     axes, kwargs_d = get_axes(**kwargs_d)  # get the axes to plot on

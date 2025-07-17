@@ -519,7 +519,7 @@ wheels = [
 
 [[package]]
 name = "mgplot"
-version = "0.2.7a5"
+version = "0.2.7"
 source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },

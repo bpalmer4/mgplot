@@ -25,6 +25,17 @@ ME = "summary_plot"
 ZSCORES = "zscores"
 ZSCALED = "zscaled"
 
+# Plot layout constants
+SPAN_LIMIT = 1.15
+SPACE_MARGIN = 0.2
+DEFAULT_FONT_SIZE = 10
+SMALL_FONT_SIZE = "x-small"
+SMALL_MARKER_SIZE = 5
+REFERENCE_LINE_WIDTH = 0.5
+DEFAULT_MIDDLE = 0.8
+DEFAULT_PLOT_FROM = 0
+HIGH_PRECISION_THRESHOLD = 1
+
 
 class SummaryKwargs(BaseKwargs):
     """Keyword arguments for the summary_plot function."""
@@ -57,19 +68,40 @@ def calculate_z(
         middle: float, the proportion of data to highlight in the middle (eg. 0.8 for 80%).
         verbose: bool, whether to print the summary data.
 
-    Return z_scores, z_scaled, q (which are the quantiles for the
-    start/end of the middle proportion of data to highlight).
+    Returns:
+        tuple[DataFrame, DataFrame]: z_scores and z_scaled DataFrames.
+
+    Raises:
+        ValueError: If original DataFrame is empty or has zero variance.
 
     """
-    # calculate z-scores, scaled scores and middle quantiles
-    z_scores: DataFrame = (original - original.mean()) / original.std()
-    z_scaled: DataFrame = (
-        # scale z-scores between -1 and +1
-        (((z_scores - z_scores.min()) / (z_scores.max() - z_scores.min())) - 0.5) * 2
-    )
-    q_middle = calc_quantiles(middle)
+    if original.empty:
+        raise ValueError("Cannot calculate z-scores for empty DataFrame")
+
+    # Check for zero variance
+    std_dev = original.std()
+    if (std_dev == 0).any():
+        raise ValueError("Cannot calculate z-scores when standard deviation is zero")
+
+    # Calculate z-scores
+    z_scores: DataFrame = (original - original.mean()) / std_dev
+
+    # Scale z-scores between -1 and +1
+    z_min = z_scores.min()
+    z_max = z_scores.max()
+    z_range = z_max - z_min
+
+    # Avoid division by zero in scaling
+    if (z_range == 0).any():
+        z_scaled: DataFrame = z_scores.copy() * 0  # All zeros if no variance
+    else:
+        z_scaled = (((z_scores - z_min) / z_range) - 0.5) * 2
 
     if verbose:
+        if original.index.empty:
+            raise ValueError("Cannot display statistics for empty DataFrame")
+
+        q_middle = calc_quantiles(middle)
         frame = DataFrame(
             {
                 "count": original.count(),
@@ -83,7 +115,7 @@ def calculate_z(
         )
         print(frame)
 
-    return DataFrame(z_scores), DataFrame(z_scaled)  # syntactic sugar for type hinting
+    return z_scores, z_scaled
 
 
 def plot_middle_bars(
@@ -92,12 +124,14 @@ def plot_middle_bars(
     kwargs: dict[str, Any],
 ) -> Axes:
     """Plot the middle (typically 80%) of the data as a bar."""
+    if adjusted.empty:
+        raise ValueError("Cannot plot bars for empty DataFrame")
+
     q = calc_quantiles(middle)
     lo_hi: DataFrame = adjusted.quantile(q=q).T  # get the middle section of data
-    span = 1.15
-    space = 0.2
-    low = min(adjusted.iloc[-1].min(), lo_hi.min().min(), -span) - space
-    high = max(adjusted.iloc[-1].max(), lo_hi.max().max(), span) + space
+
+    low = min(adjusted.iloc[-1].min(), lo_hi.min().min(), -SPAN_LIMIT) - SPACE_MARGIN
+    high = max(adjusted.iloc[-1].max(), lo_hi.max().max(), SPAN_LIMIT) + SPACE_MARGIN
     kwargs["xlim"] = (low, high)  # update the kwargs with the xlim
     ax, _ = get_axes(**kwargs)
     ax.barh(
@@ -114,22 +148,25 @@ def plot_latest_datapoint(
     ax: Axes,
     original: DataFrame,
     adjusted: DataFrame,
-    f_size: int | str,
+    font_size: int | str,
 ) -> None:
     """Add the latest datapoints to the summary plot."""
+    if adjusted.empty or original.empty:
+        raise ValueError("Cannot plot datapoints for empty DataFrame")
+
     ax.scatter(adjusted.iloc[-1], adjusted.columns, color="darkorange", label="Latest")
-    f_size = 10
     row = adjusted.index[-1]
     for col_num, col_name in enumerate(original.columns):
         x_adj = float(adjusted.at[row, col_name])
         x_orig = float(original.at[row, col_name])
+        precision = 2 if abs(x_orig) < HIGH_PRECISION_THRESHOLD else 1
         ax.text(
             x=x_adj,
             y=col_num,
-            s=f"{x_orig:.{2 if abs(x_orig) < 1 else 1}f}",
+            s=f"{x_orig:.{precision}f}",
             ha="center",
             va="center",
-            size=f_size,
+            size=font_size,
         )
 
 
@@ -137,7 +174,7 @@ def label_extremes(
     ax: Axes,
     data: tuple[DataFrame, DataFrame],
     plot_type: str,
-    f_size: int | str,
+    font_size: int | str,
     kwargs: dict[str, Any],  # must be a dictionary, not a splat
 ) -> None:
     """Label the extremes in the scaled plots."""
@@ -150,26 +187,28 @@ def label_extremes(
             adjusted.columns,
             color="darkorchid",
             marker="x",
-            s=5,
+            s=SMALL_MARKER_SIZE,
             label="Median",
         )
         for col_num, col_name in enumerate(original.columns):
             minima, maxima = original[col_name].min(), original[col_name].max()
+            min_precision = 2 if abs(minima) < HIGH_PRECISION_THRESHOLD else 1
+            max_precision = 2 if abs(maxima) < HIGH_PRECISION_THRESHOLD else 1
             ax.text(
                 low,
                 col_num,
-                f" {minima:.{2 if abs(minima) < 1 else 1}f}",
+                f" {minima:.{min_precision}f}",
                 ha="left",
                 va="center",
-                size=f_size,
+                size=font_size,
             )
             ax.text(
                 high,
                 col_num,
-                f"{maxima:.{2 if abs(maxima) < 1 else 1}f} ",
+                f"{maxima:.{max_precision}f} ",
                 ha="right",
                 va="center",
-                size=f_size,
+                size=font_size,
             )
 
 
@@ -181,14 +220,10 @@ def horizontal_bar_plot(
     kwargs: dict[str, Any],  # must be a dictionary, not a splat
 ) -> Axes:
     """Plot horizontal bars for the middle of the data."""
-    # kwargs is a dictionary, not a splat
-    # so that we can pass it to the Axes object and
-    # set the x-axis limits.
-
     ax = plot_middle_bars(adjusted, middle, kwargs)
-    f_size = "x-small"
-    plot_latest_datapoint(ax, original, adjusted, f_size)
-    label_extremes(ax, data=(original, adjusted), plot_type=plot_type, f_size=f_size, kwargs=kwargs)
+    font_size = SMALL_FONT_SIZE
+    plot_latest_datapoint(ax, original, adjusted, font_size)
+    label_extremes(ax, data=(original, adjusted), plot_type=plot_type, font_size=font_size, kwargs=kwargs)
 
     return ax
 
@@ -207,11 +242,14 @@ def label_x_axis(plot_from: int | Period, label: str | None, plot_type: str, ax:
 
 def mark_reference_lines(plot_type: str, ax: Axes) -> None:
     """Mark the reference lines for the plot."""
+    line_color = "#555555"
+    line_style = "--"
+
     if plot_type == ZSCALED:
-        ax.axvline(-1, color="#555555", linewidth=0.5, linestyle="--", label="-1")
-        ax.axvline(1, color="#555555", linewidth=0.5, linestyle="--", label="+1")
+        ax.axvline(-1, color=line_color, linewidth=REFERENCE_LINE_WIDTH, linestyle=line_style, label="-1")
+        ax.axvline(1, color=line_color, linewidth=REFERENCE_LINE_WIDTH, linestyle=line_style, label="+1")
     elif plot_type == ZSCORES:
-        ax.axvline(0, color="#555555", linewidth=0.5, linestyle="--", label="0")
+        ax.axvline(0, color=line_color, linewidth=REFERENCE_LINE_WIDTH, linestyle=line_style, label="0")
 
 
 def plot_the_data(df: DataFrame, **kwargs: Unpack[SummaryKwargs]) -> tuple[Axes, str]:
@@ -219,17 +257,25 @@ def plot_the_data(df: DataFrame, **kwargs: Unpack[SummaryKwargs]) -> tuple[Axes,
 
     Args:
         df: DataFrame - the data to plot.
-        kwargs: SummaryKwargs, additional keyword arguments for the plot, including:
+        kwargs: SummaryKwargs, additional keyword arguments for the plot.
 
-    Returns a tuple comprising:
-    - ax: Axes object containing the plot.
-    - plot_type: type of plot, either 'zscores' or 'zscaled'.
+    Returns:
+        tuple[Axes, str]: A tuple comprising the Axes object and plot type ('zscores' or 'zscaled').
+
+    Raises:
+        ValueError: If middle value is not between 0 and 1, or if plot_type is invalid.
 
     """
-    # get the data, calculate z-scores and scaled scores based on the start period
     verbose = kwargs.pop("verbose", False)
-    middle = float(kwargs.pop("middle", 0.8))
+    middle = float(kwargs.pop("middle", DEFAULT_MIDDLE))
     plot_type = kwargs.pop("plot_type", ZSCORES)
+
+    # Validate inputs
+    if not 0 < middle < 1:
+        raise ValueError(f"Middle value must be between 0 and 1, got {middle}")
+    if plot_type not in (ZSCORES, ZSCALED):
+        raise ValueError(f"plot_type must be '{ZSCORES}' or '{ZSCALED}', got '{plot_type}'")
+
     subset, kwargsd = constrain_data(df, **kwargs)
     z_scores, z_scaled = calculate_z(subset, middle, verbose=verbose)
 
@@ -247,12 +293,18 @@ def plot_the_data(df: DataFrame, **kwargs: Unpack[SummaryKwargs]) -> tuple[Axes,
 def summary_plot(data: DataT, **kwargs: Unpack[SummaryKwargs]) -> Axes:
     """Plot a summary of historical data for a given DataFrame.
 
-    Args:x
-    - summary: DataFrame containing the summary data. The column names are
-      used as labels for the plot.
-    - kwargs: additional arguments for the plot, including:
+    Args:
+        data: DataFrame containing the summary data. The column names are
+              used as labels for the plot.
+        kwargs: Additional arguments for the plot, including middle (float),
+               plot_type (str), verbose (bool), and standard plotting options.
 
-    Returns Axes.
+    Returns:
+        Axes: A matplotlib Axes object containing the summary plot.
+
+    Raises:
+        TypeError: If data is not a DataFrame.
+
     """
     # --- check the kwargs
     report_kwargs(caller=ME, **kwargs)
@@ -262,7 +314,6 @@ def summary_plot(data: DataT, **kwargs: Unpack[SummaryKwargs]) -> Axes:
     data = check_clean_timeseries(data, ME)
     if not isinstance(data, DataFrame):
         raise TypeError("data must be a pandas DataFrame for summary_plot()")
-    df = DataFrame(data)  # syntactic sugar for type hinting
 
     # --- legend
     kwargs["legend"] = kwargs.get(
@@ -277,13 +328,13 @@ def summary_plot(data: DataT, **kwargs: Unpack[SummaryKwargs]) -> Axes:
     )
 
     # --- and plot it ...
-    ax, plot_type = plot_the_data(df, **kwargs)
+    ax, plot_type = plot_the_data(data, **kwargs)
     label_x_axis(
-        kwargs.get("plot_from", 0),
+        kwargs.get("plot_from", DEFAULT_PLOT_FROM),
         label=kwargs.get("xlabel", ""),
         plot_type=plot_type,
         ax=ax,
-        df=df,
+        df=data,
     )
     mark_reference_lines(plot_type, ax)
 

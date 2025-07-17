@@ -1,6 +1,6 @@
 [project]
 name = "mgplot"
-version = "0.2.7a5"
+version = "0.2.7"
 description = "mgplot is a time-series/PeriodIndex frontend for matplotlib"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -62,11 +62,11 @@ lint.ignore = [
 # --- File-specific rule exclusions
 [tool.ruff.lint.per-file-ignores]
     # --- specific files to ignore
-
     "src/mgplot/keyword_checking.py" = [
         "ANN401",   # We use Any quite a bit here/in this file
         "PLW0603",  # use of global
     ]
     "src/mgplot/settings.py" = ["ANN401", "PLW0603"]  # as above
     "src/mgplot/utilities.py" = ["ANN401"]  # as above
+    "src/mgplot/multi_plot.py" = ["ANN401"]  # as above
 

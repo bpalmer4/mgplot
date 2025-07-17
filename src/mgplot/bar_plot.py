@@ -158,6 +158,7 @@ def grouped(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[G
             width=adjusted_width,
             label=col if kwargs["label_series"][i] else f"_{col}_",
         )
+        anno_args["foreground"] = foreground
         annotate_bars(
             series=series,
             offset=offset,
@@ -192,6 +193,7 @@ def stacked(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[S
             width=kwargs["width"][i],
             label=col if kwargs["label_series"][i] else f"_{col}_",
         )
+        anno_args["foreground"] = foreground
         annotate_bars(
             series=series,
             offset=0,
