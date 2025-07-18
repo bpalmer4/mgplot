@@ -151,7 +151,7 @@
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="c1"># system imports</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">NotRequired</span><span class="p">,</span> <span class="n">Unpack</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.axes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="c1"># analytic third-party imports</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">ndarray</span>
@@ -193,7 +193,7 @@
 </span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>    <span class="n">middle</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
 </span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>    <span class="n">plot_type</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 </span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>    <span class="n">plot_from</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="n">Period</span><span class="p">]</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="n">legend</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="n">legend</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">bool</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
 </span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>    <span class="n">xlabel</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
 </span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
@@ -654,7 +654,7 @@
 </span><span id="SummaryKwargs-46"><a href="#SummaryKwargs-46"><span class="linenos">46</span></a>    <span class="n">middle</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
 </span><span id="SummaryKwargs-47"><a href="#SummaryKwargs-47"><span class="linenos">47</span></a>    <span class="n">plot_type</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 </span><span id="SummaryKwargs-48"><a href="#SummaryKwargs-48"><span class="linenos">48</span></a>    <span class="n">plot_from</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="n">Period</span><span class="p">]</span>
-</span><span id="SummaryKwargs-49"><a href="#SummaryKwargs-49"><span class="linenos">49</span></a>    <span class="n">legend</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+</span><span id="SummaryKwargs-49"><a href="#SummaryKwargs-49"><span class="linenos">49</span></a>    <span class="n">legend</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">bool</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
 </span><span id="SummaryKwargs-50"><a href="#SummaryKwargs-50"><span class="linenos">50</span></a>    <span class="n">xlabel</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
 </span></pre></div>
 
@@ -720,7 +720,7 @@
                             </div>
                             <div id="SummaryKwargs.legend" class="classattr">
                                 <div class="attr variable">
-            <span class="name">legend</span><span class="annotation">: NotRequired[dict[str, Any]]</span>
+            <span class="name">legend</span><span class="annotation">: NotRequired[bool | dict[str, Any] | None]</span>
 
         
     </div>

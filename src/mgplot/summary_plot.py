@@ -3,7 +3,7 @@
 # system imports
 from typing import Any, NotRequired, Unpack
 
-from matplotlib.pyplot import Axes
+from matplotlib.axes import Axes
 
 # analytic third-party imports
 from numpy import array, ndarray
@@ -45,7 +45,7 @@ class SummaryKwargs(BaseKwargs):
     middle: NotRequired[float]
     plot_type: NotRequired[str]
     plot_from: NotRequired[int | Period]
-    legend: NotRequired[dict[str, Any]]
+    legend: NotRequired[bool | dict[str, Any] | None]
     xlabel: NotRequired[str | None]
 
 

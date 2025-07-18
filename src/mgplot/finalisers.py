@@ -21,7 +21,7 @@ Note: these functions are in a separate module to stop circular imports
 
 from typing import Unpack
 
-from pandas import DataFrame, Period, PeriodIndex
+from pandas import DataFrame, Period, PeriodIndex, Series
 
 from mgplot.bar_plot import BarKwargs, bar_plot
 from mgplot.finalise_plot import FinaliseKwargs
@@ -53,7 +53,7 @@ class BPFKwargs(BarKwargs, FinaliseKwargs):
     """Combined kwargs TypedDict for bar_plot_finalise()."""
 
 
-class GrowthPFKwargs(GrowthKwargs, FinaliseKwargs):
+class GrowthPFKwargs(GrowthKwargs, FinaliseKwargs):  # type ignore[misc]
     """Combined kwargs for growth_plot_finalise()."""
 
 
@@ -81,7 +81,7 @@ class SGFPKwargs(SeriesGrowthKwargs, FinaliseKwargs):
     """Combined kwargs for series_growth_plot_finalise()."""
 
 
-class SumPFKwargs(SummaryKwargs, FinaliseKwargs):
+class SumPFKwargs(SummaryKwargs, FinaliseKwargs):  # type ignore[misc]
     """Combined kwargs for summary_plot_finalise()."""
 
 
@@ -100,10 +100,9 @@ def impose_legend[
         | SGFPKwargs
         | SumPFKwargs
     ),
-    DataT,
 ](
     kwargs: T,
-    data: DataT | None = None,
+    data: DataFrame | Series | None = None,
     *,
     force: bool = False,
 ) -> T:
@@ -226,7 +225,7 @@ def run_plot_finalise(
 
     """
     validate_kwargs(schema=RunPFKwargs, caller="run_plot_finalise", **kwargs)
-    kwargs = impose_legend(kwargs=kwargs, force=("highlight_label" in kwargs))
+    kwargs = impose_legend(kwargs=kwargs, force="highlight_label" in kwargs)
     plot_then_finalise(data=data, function=run_plot, **kwargs)
 
 

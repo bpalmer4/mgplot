@@ -1,5 +1,6 @@
 echo "------------------------"
 echo "ruff check --fix and format ..."
+ruff format *.py
 ruff check --fix *.py
 ruff format *.py
 
@@ -7,6 +8,11 @@ echo " "
 echo "------------------------"
 echo "mypy ..."
 mypy *.py
+
+echo " "
+echo "------------------------"
+echo "pyright ..."
+pyright *.py
 
 # report any lint overrides
 echo " "

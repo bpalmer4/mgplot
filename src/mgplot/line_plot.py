@@ -6,6 +6,7 @@ from typing import Any, Final, NotRequired, TypedDict, Unpack
 
 from matplotlib.axes import Axes
 from pandas import DataFrame, Period, PeriodIndex, Series
+from pandas.api.types import is_numeric_dtype
 
 from mgplot.axis_utils import map_periodindex, set_labels
 from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
@@ -66,9 +67,9 @@ def annotate_series(
     """Annotate the right-hand end-point of a line-plotted series."""
     # --- check the series has a value to annotate
     latest: Series = series.dropna()
-    if latest.empty:
+    if latest.empty or not is_numeric_dtype(latest):
         return
-    x: int | float = latest.index[-1]
+    x: int | float = latest.index[-1]  # type: ignore[assignment]
     y: int | float = latest.iloc[-1]
     if y is None or math.isnan(y):
         return

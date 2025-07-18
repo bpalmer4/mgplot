@@ -27,14 +27,14 @@ DEFAULT_ROUNDING_VALUE: Final[int] = 10
 DEFAULT_SIGNIFICANT_DIGITS: Final[int] = 3
 
 
-# --- functions
+# --- private functions
 def missing(data: DataT, caller: str) -> None:
-    """Check for missing values in the data index."""
+    """Check for missing values in the data index and alert the user."""
     length = len(data.index)
     missing_count = 0
     if isinstance(data.index, PeriodIndex):
         missing_count = (data.index.max().ordinal - data.index.min().ordinal + 1) - length
-    if isinstance(data.index, RangeIndex):
+    elif isinstance(data.index, RangeIndex) or is_integer_dtype(data.index):
         missing_count = (data.index.max() - data.index.min() + 1) - length
     if missing_count:
         print(
@@ -43,6 +43,7 @@ def missing(data: DataT, caller: str) -> None:
         )
 
 
+# --- public functions
 def check_clean_timeseries(data: DataT, caller: str = "") -> DataT:
     """Check the coherence of timeseries data.
 
@@ -76,20 +77,12 @@ def check_clean_timeseries(data: DataT, caller: str = "") -> DataT:
         raise ValueError("Data index must be monotonic increasing.")
 
     # --- remove any leading NaNs
-    start = data.first_valid_index()
+    start = data.first_valid_index()  # start must be of the same type as the index
     if start is None:
         return data  # no valid index, return original data
-    if not isinstance(start, (Period | int)):  # syntactic sugar for type hinting
-        raise TypeError("First valid index must be a Period or an int.")
-    if (isinstance(data.index, PeriodIndex) and isinstance(start, Period)) or (
-        isinstance(data.index, RangeIndex) and isinstance(start, int)
-    ):
-        data = data.loc[data.index >= start]
 
-    # --- report and missing periods (ie. potentially incomplete data)
+    data = data.loc[data.index >= start]  # type: ignore[operator]
     missing(data, caller=caller)
-
-    # --- return the final data
     return data
 
 

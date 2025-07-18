@@ -12,7 +12,7 @@ from typing import Any, Final, NotRequired, TypedDict, Unpack
 import matplotlib.patheffects as pe
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.pyplot import Axes
+from matplotlib.axes import Axes
 from pandas import DataFrame, Period, Series
 
 from mgplot.axis_utils import map_periodindex, set_labels
@@ -127,7 +127,7 @@ def annotate_bars(
             text.set_path_effects([pe.withStroke(linewidth=2, foreground=anno_kwargs.get("foreground"))])
 
 
-class GroupedKwargs(TypedDict, total=False):
+class GroupedKwargs(TypedDict):
     """TypedDict for the kwargs used in grouped."""
 
     color: Sequence[str]
@@ -168,7 +168,7 @@ def grouped(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[G
         )
 
 
-class StackedKwargs(TypedDict, total=False):
+class StackedKwargs(TypedDict):
     """TypedDict for the kwargs used in stacked."""
 
     color: Sequence[str]
