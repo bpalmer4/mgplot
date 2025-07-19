@@ -3,8 +3,8 @@
 from typing import NotRequired, Unpack, cast
 
 from matplotlib.axes import Axes
-from numpy import arange, polyfit
-from pandas import DataFrame, Period, PeriodIndex, Series
+from numpy import array, polyfit
+from pandas import DataFrame, Period, PeriodIndex, Series, period_range
 
 from mgplot.keyword_checking import (
     report_kwargs,
@@ -39,7 +39,10 @@ def get_projection(original: Series, to_period: Period) -> Series:
     Assumes the start of the data has been trimmed to the period before COVID.
 
     Args:
-        original: Series - the original series with a PeriodIndex.
+        original: Series - the original series with a PeriodIndex, which has
+            been trimmed to commence at the start of the pre-COVID period
+            being analysed. Assume the index is a PeriodIndex, that is
+            unique and monotonic increasing
         to_period: Period - the period to which the projection should extend.
 
     Returns:
@@ -49,14 +52,18 @@ def get_projection(original: Series, to_period: Period) -> Series:
         ValueError: If to_period is not within the original series index range.
 
     """
-    if to_period not in original.index:
-        raise ValueError(f"Regression end period {to_period} not found in series index")
-    y_regress = original[original.index <= to_period].copy()
-    x_regress = arange(len(y_regress))
+    # --- using ordinals to manage gaps during the regression period (eg in Job Vacancy data)
+    op_index = cast("PeriodIndex", original.index)
+    y_regress = original[original.index <= to_period].to_numpy()
+    x_regress = array([p.ordinal for p in op_index if p <= to_period])
+    x_complete = array([p.ordinal for p in op_index])
     m, b = polyfit(x_regress, y_regress, 1)
-
-    x_complete = arange(len(original))
-    return Series((x_complete * m) + b, index=original.index)
+    regression = Series((x_complete * m) + b, index=original.index)
+    regression = regression.reindex(period_range(start=op_index[0], end=op_index[-1])).interpolate(
+        method="linear"
+    )
+    regression.index.name = original.index.name
+    return regression
 
 
 def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
@@ -108,14 +115,20 @@ def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
     if user_end is not None:
         end_regression = Period(user_end, freq=freq_str)
 
-    # Validate regression period
-    if start_regression >= end_regression:
-        raise ValueError("Start period must be before end period")
-
-    if start_regression not in data.index:
-        raise ValueError(f"Regression start period {start_regression} not found in series")
-    if end_regression not in data.index:
-        raise ValueError(f"Regression end period {end_regression} not found in series")
+    # --- Validate regression period - just plot raw data if this fails
+    make_projection = True
+    if start_regression is None or end_regression is None or start_regression >= end_regression:
+        print(f"Invalid regression period: {start_regression=}, {end_regression=}")
+        make_projection = False
+    if start_regression < data.dropna().index.min() or end_regression > data.dropna().index.max():
+        print(f"Regression period not found in series index: {start_regression=}, {end_regression=}")
+        make_projection = False
+    if not make_projection:
+        print("No valid regression period found; plotting raw data only.")
+        return line_plot(
+            data,
+            **cast("LineKwargs", kwargs),
+        )
 
     # --- combine data and projection
     recent_data = data[data.index >= start_regression].copy()
@@ -123,7 +136,7 @@ def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
     projection_data = get_projection(recent_data, end_regression)
     projection_data.name = "Pre-COVID projection"
 
-    # Create DataFrame with proper column alignment
+    # --- Create DataFrame with proper column alignment
     combined_data = DataFrame(
         {
             projection_data.name: projection_data,
@@ -140,6 +153,7 @@ def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
     kwargs["label_series"] = kwargs.pop("label_series", True)
     kwargs["annotate"] = kwargs.pop("annotate", (False, True))  # annotate series only
     kwargs["color"] = kwargs.pop("color", ("darkblue", "#dd0000"))
+    kwargs["dropna"] = kwargs.pop("dropna", False)  # drop NaN values
 
     return line_plot(
         combined_data,

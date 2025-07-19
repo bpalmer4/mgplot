@@ -1,3 +1,12 @@
+Version 0.2.9 - released 19-Jul-2025 (Canberra, Australia)
+
+* minor changes
+    - renamed build-test.sh to build-all.sh
+    - version bump to 0.2.9
+    - minor code refactoring in postcovid_plot.py
+
+---
+
 Version 0.2.6 - released 95-Jul-2025 (Canberra, Australia)
 
 * minor changes
