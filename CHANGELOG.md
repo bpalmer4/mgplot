@@ -1,3 +1,10 @@
+Version 0.2.11 - released 20-Jul-2025 (Canberra, Australia)
+
+* minor changes
+    - version bump to 0.2.101
+    - updates to postcovid_plot.py (further gnarly edge cases fixed)
+
+---
 Version 0.2.10 - released 20-Jul-2025 (Canberra, Australia)
 
 * minor changes
