@@ -1,3 +1,12 @@
+Version 0.2.10 - released 20-Jul-2025 (Canberra, Australia)
+
+* minor changes
+    - version bump to 0.2.10
+    - updates to postcovid_plot.py
+    - documentation updates
+
+---
+
 Version 0.2.9 - released 19-Jul-2025 (Canberra, Australia)
 
 * minor changes
@@ -7,7 +16,27 @@ Version 0.2.9 - released 19-Jul-2025 (Canberra, Australia)
 
 ---
 
-Version 0.2.6 - released 95-Jul-2025 (Canberra, Australia)
+Version 0.2.8 - released 18-Jul-2025 (Canberra, Australia)
+
+* minor changes
+    - added lint-all.sh script
+    - refinements to utilities.py
+    - minor code improvements in bar_plot.py, line_plot.py, and finalisers.py
+    - documentation updates
+
+---
+
+Version 0.2.7 - released 17-Jul-2025 (Canberra, Australia)
+
+* major changes
+    - intensive code linting across all modules
+    - significant refactoring in finalisers.py, multi_plot.py, and other core modules
+    - improved code quality and consistency
+    - documentation regenerated
+
+---
+
+Version 0.2.6 - released 15-Jul-2025 (Canberra, Australia)
 
 * minor changes
     - fixed a glitch where an axhspan was not appearing
