@@ -1,3 +1,12 @@
+Version 0.2.12 - released 26-Jul-2025 (Canberra, Australia)
+
+* minor changes
+    - version bump to 0.2.12
+    - added label_rotation parameter to BarKwargs for controlling x-axis label rotation
+    - documentation updates
+
+---
+
 Version 0.2.11 - released 20-Jul-2025 (Canberra, Australia)
 
 * minor changes

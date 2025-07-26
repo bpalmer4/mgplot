@@ -45,6 +45,7 @@ class BarKwargs(BaseKwargs):
     stacked: NotRequired[bool]
     max_ticks: NotRequired[int]
     plot_from: NotRequired[int | Period]
+    label_rotation: NotRequired[int | float]
     # --- options for each bar ...
     color: NotRequired[str | Sequence[str]]
     label_series: NotRequired[bool | Sequence[bool]]
@@ -244,6 +245,7 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
         "stacked": False,
         "max_ticks": DEFAULT_MAX_TICKS,
         "label_series": item_count > 1,
+        "xlabel_rotation": 0,
     }
     chart_args = {k: kwargs_d.get(k, v) for k, v in chart_defaults.items()}
 
@@ -274,7 +276,6 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     # --- handle complete periodIndex data and label rotation
     if saved_pi is not None:
         set_labels(axes, saved_pi[1], chart_args["max_ticks"])
-    else:
-        plt.xticks(rotation=90)
+    plt.xticks(rotation=chart_args["xlabel_rotation"])
 
     return axes
