@@ -1,3 +1,12 @@
+Version 0.2.13 - released 06-Dec-2025 (Canberra, Australia)
+
+* minor changes
+    - added fill_between_plot() function wrapping matplotlib's fill_between
+    - added fill_between_plot_finalise() convenience function
+    - added FillBetweenKwargs TypedDict
+
+---
+
 Version 0.2.12 - released 26-Jul-2025 (Canberra, Australia)
 
 * minor changes

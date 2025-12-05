@@ -1,6 +1,6 @@
 [project]
 name = "mgplot"
-version = "0.2.12"
+version = "0.2.13"
 description = "mgplot is a time-series/PeriodIndex frontend for matplotlib"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -24,16 +24,15 @@ dev = [
     "mypy",
     "ruff",
     "pyright",
-    
     # - typing
     "pandas-stubs",
     "numpy-typing",
     "types-tabulate",
-
     # --- testing
     "ipython",
     "ipykernel",
     "watermark",
+    "nbconvert>=7.16.6",
 ]
 
 [project.urls]

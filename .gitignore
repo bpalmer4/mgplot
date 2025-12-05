@@ -12,6 +12,9 @@ __pycache__/
 # MacOS stuff to be ignored
 .DS_Store
 
+# Claude
+,claude
+CLAUDE.md
 
 # build files
 build/

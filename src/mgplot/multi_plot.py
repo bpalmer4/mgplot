@@ -44,6 +44,7 @@ from typing import Any, Final, cast
 from pandas import DataFrame, Period
 
 from mgplot.bar_plot import BarKwargs, bar_plot
+from mgplot.fill_between_plot import FillBetweenKwargs, fill_between_plot
 from mgplot.finalise_plot import FinaliseKwargs, finalise_plot
 from mgplot.growth_plot import (
     GrowthKwargs,
@@ -69,6 +70,7 @@ from mgplot.summary_plot import SummaryKwargs, summary_plot
 EXPECTED_CALLABLES: dict[Callable, type[Any]] = {
     line_plot: LineKwargs,
     bar_plot: BarKwargs,
+    fill_between_plot: FillBetweenKwargs,
     seastrend_plot: LineKwargs,
     postcovid_plot: PostcovidKwargs,
     revision_plot: LineKwargs,

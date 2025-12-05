@@ -20,9 +20,11 @@ from mgplot.colors import (
     state_abbrs,
     state_names,
 )
+from mgplot.fill_between_plot import FillBetweenKwargs, fill_between_plot
 from mgplot.finalise_plot import FinaliseKwargs, finalise_plot
 from mgplot.finalisers import (
     bar_plot_finalise,
+    fill_between_plot_finalise,
     growth_plot_finalise,
     line_plot_finalise,
     postcovid_plot_finalise,
@@ -64,6 +66,7 @@ __author__ = "Bryan Palmer"
 # --- public API
 __all__ = (
     "BarKwargs",
+    "FillBetweenKwargs",
     "FinaliseKwargs",
     "GrowthKwargs",
     "LineKwargs",
@@ -76,6 +79,8 @@ __all__ = (
     "abbreviate_state",
     "bar_plot",
     "bar_plot_finalise",
+    "fill_between_plot",
+    "fill_between_plot_finalise",
     "calc_growth",
     "clear_chart_dir",
     "colorise_list",

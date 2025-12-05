@@ -24,6 +24,7 @@ from typing import Unpack
 from pandas import DataFrame, Period, PeriodIndex, Series
 
 from mgplot.bar_plot import BarKwargs, bar_plot
+from mgplot.fill_between_plot import FillBetweenKwargs, fill_between_plot
 from mgplot.finalise_plot import FinaliseKwargs
 from mgplot.growth_plot import (
     GrowthKwargs,
@@ -51,6 +52,10 @@ SUMMARY_PLOT_TYPES = (PLOT_TYPE_ZSCORES, PLOT_TYPE_ZSCALED)
 # --- argument types
 class BPFKwargs(BarKwargs, FinaliseKwargs):
     """Combined kwargs TypedDict for bar_plot_finalise()."""
+
+
+class FBPFKwargs(FillBetweenKwargs, FinaliseKwargs):
+    """Combined kwargs TypedDict for fill_between_plot_finalise()."""
 
 
 class GrowthPFKwargs(GrowthKwargs, FinaliseKwargs):  # type ignore[misc]
@@ -92,6 +97,7 @@ def impose_legend[
     T: (
         LPFKwargs
         | BPFKwargs
+        | FBPFKwargs
         | GrowthPFKwargs
         | PCFKwargs
         | RevPFKwargs
@@ -144,6 +150,26 @@ def bar_plot_finalise(
     plot_then_finalise(
         data,
         function=bar_plot,
+        **kwargs,
+    )
+
+
+def fill_between_plot_finalise(
+    data: DataFrame,
+    **kwargs: Unpack[FBPFKwargs],
+) -> None:
+    """Call fill_between_plot() and finalise_plot().
+
+    Args:
+        data: DataFrame with two columns (lower bound, upper bound).
+        kwargs: Combined fill_between plot and finalise plot keyword arguments.
+
+    """
+    validate_kwargs(schema=FBPFKwargs, caller="fill_between_plot_finalise", **kwargs)
+    kwargs = impose_legend(kwargs=kwargs, data=data)
+    plot_then_finalise(
+        data,
+        function=fill_between_plot,
         **kwargs,
     )
 
