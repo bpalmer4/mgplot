@@ -324,12 +324,28 @@ def make_ilabels(p: PeriodIndex, max_ticks: int) -> tuple[list[int], list[str]]:
 def set_labels(axes: Axes, p: PeriodIndex, max_ticks: int = 10) -> None:
     """Set the x-axis labels for a date-like PeriodIndex.
 
+    When multiple series with different time spans are plotted on the same axes,
+    this function uses the current x-axis limits to ensure ticks span the full
+    extent of all plotted data, not just the most recent series.
+
     Args:
         axes: Axes - the axes to set the labels on
-        p: PeriodIndex - the PeriodIndex
+        p: PeriodIndex - the PeriodIndex (used for frequency information)
         max_ticks: int - the maximum number of ticks [suggestive]
 
     """
-    ticks, ticklabels = make_ilabels(p, max_ticks)
+    # Get the current x-axis limits to handle multiple series with different spans
+    xlim = axes.get_xlim()
+    x_min, x_max = int(xlim[0]), int(xlim[1])
+
+    # Extend to cover the full axis extent using the frequency from p
+    freq = p.freqstr
+    full_range = period_range(
+        start=Period(ordinal=x_min, freq=freq),
+        end=Period(ordinal=x_max, freq=freq),
+        freq=freq,
+    )
+
+    ticks, ticklabels = make_ilabels(full_range, max_ticks)
     axes.set_xticks(ticks)
     axes.set_xticklabels(ticklabels, rotation=0, ha="center")

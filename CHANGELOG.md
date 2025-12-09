@@ -1,3 +1,12 @@
+Version 0.2.14 - released 10-Dec-2025 (Canberra, Australia)
+
+* bug fix
+    - fixed x-axis ticks not spanning full data range when plotting multiple
+      series with different time spans on the same axes
+    - added test/test_multi_series_ticks.py
+
+---
+
 Version 0.2.13 - released 06-Dec-2025 (Canberra, Australia)
 
 * minor changes
