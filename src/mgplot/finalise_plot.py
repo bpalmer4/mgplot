@@ -31,6 +31,7 @@ class FinaliseKwargs(BaseKwargs):
     """Keyword arguments for the finalise_plot function."""
 
     # --- value options
+    suptitle: NotRequired[str | None]
     title: NotRequired[str | None]
     xlabel: NotRequired[str | None]
     ylabel: NotRequired[str | None]
@@ -298,10 +299,12 @@ def save_to_file(fig: Figure, **kwargs: Unpack[FinaliseKwargs]) -> None:
         # Ensure directory exists
         chart_dir.mkdir(parents=True, exist_ok=True)
 
+        suptitle = kwargs.get("suptitle", "")
         title = kwargs.get("title", "")
         pre_tag = kwargs.get("pre_tag", "")
         tag = kwargs.get("tag", "")
-        file_title = sanitize_filename(title if title else DEFAULT_FILE_TITLE_NAME)
+        name_title = suptitle if suptitle else title
+        file_title = sanitize_filename(name_title if name_title else DEFAULT_FILE_TITLE_NAME)
         file_type = kwargs.get("file_type", get_setting("file_type")).lower()
         dpi = kwargs.get("dpi", get_setting("dpi"))
 
@@ -366,6 +369,8 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
 
     # tight layout and save the figure
     fig = axes.figure
+    if suptitle := kwargs.get("suptitle"):
+        fig.suptitle(suptitle)
     if kwargs.get("preserve_lims"):
         # restore the original limits of the axes
         axes.set_xlim(xlim)

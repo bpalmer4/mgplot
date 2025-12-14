@@ -1,3 +1,11 @@
+Version 0.2.15 - released 15-Dec-2025 (Canberra, Australia)
+
+* minor changes
+    - added suptitle kwarg to finalise_plot() for setting fig.suptitle()
+    - suptitle takes priority over title for save-to filename if present
+
+---
+
 Version 0.2.14 - released 10-Dec-2025 (Canberra, Australia)
 
 * bug fix
