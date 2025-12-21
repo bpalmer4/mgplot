@@ -26,6 +26,7 @@ class FillBetweenKwargs(BaseKwargs):
     label: NotRequired[str | None]
     linewidth: NotRequired[float]
     edgecolor: NotRequired[str | None]
+    zorder: NotRequired[int | float]
     plot_from: NotRequired[int | None]
     max_ticks: NotRequired[int]
 
@@ -82,6 +83,7 @@ def fill_between_plot(data: DataFrame, **kwargs: Unpack[FillBetweenKwargs]) -> A
     label = kwargs_d.get("label", None)
     linewidth = kwargs_d.get("linewidth", 0)
     edgecolor = kwargs_d.get("edgecolor", None)
+    zorder = kwargs_d.get("zorder", None)
 
     # --- plot
     axes.fill_between(
@@ -93,6 +95,7 @@ def fill_between_plot(data: DataFrame, **kwargs: Unpack[FillBetweenKwargs]) -> A
         label=label,
         linewidth=linewidth,
         edgecolor=edgecolor,
+        zorder=zorder,
     )
 
     # --- set axis labels

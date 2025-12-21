@@ -1,3 +1,12 @@
+Version 0.2.16 - released 22-Dec-2025 (Canberra, Australia)
+
+* minor changes
+    - added zorder kwarg to line_plot(), bar_plot(), and fill_between_plot()
+    - zorder supports sequences for per-series values in multi-series plots
+    - added test/test_zorder.py
+
+---
+
 Version 0.2.15 - released 15-Dec-2025 (Canberra, Australia)
 
 * minor changes

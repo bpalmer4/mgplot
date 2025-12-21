@@ -50,6 +50,7 @@ class BarKwargs(BaseKwargs):
     color: NotRequired[str | Sequence[str]]
     label_series: NotRequired[bool | Sequence[bool]]
     width: NotRequired[float | int | Sequence[float | int]]
+    zorder: NotRequired[int | float | Sequence[int | float]]
     # --- options for bar annotations
     annotate: NotRequired[bool]
     fontsize: NotRequired[int | float | str]
@@ -134,6 +135,7 @@ class GroupedKwargs(TypedDict):
     color: Sequence[str]
     width: Sequence[float | int]
     label_series: Sequence[bool]
+    zorder: Sequence[int | float | None]
 
 
 def grouped(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[GroupedKwargs]) -> None:
@@ -157,6 +159,7 @@ def grouped(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[G
             height=series,
             color=foreground,
             width=adjusted_width,
+            zorder=kwargs["zorder"][i],
             label=col if kwargs["label_series"][i] else f"_{col}_",
         )
         anno_args["foreground"] = foreground
@@ -175,6 +178,7 @@ class StackedKwargs(TypedDict):
     color: Sequence[str]
     width: Sequence[float | int]
     label_series: Sequence[bool]
+    zorder: Sequence[int | float | None]
 
 
 def stacked(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[StackedKwargs]) -> None:
@@ -192,6 +196,7 @@ def stacked(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[S
             bottom=base,
             color=foreground,
             width=kwargs["width"][i],
+            zorder=kwargs["zorder"][i],
             label=col if kwargs["label_series"][i] else f"_{col}_",
         )
         anno_args["foreground"] = foreground
@@ -253,6 +258,7 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
         "color": get_color_list(item_count),
         "width": get_setting("bar_width"),
         "label_series": item_count > 1,
+        "zorder": None,
     }
     above = kwargs_d.get("above", False)
     anno_args: AnnoKwargs = {

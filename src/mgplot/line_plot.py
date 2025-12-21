@@ -36,6 +36,7 @@ class LineKwargs(BaseKwargs):
     drawstyle: NotRequired[str | Sequence[str] | None]
     marker: NotRequired[str | Sequence[str] | None]
     markersize: NotRequired[float | Sequence[float] | int | None]
+    zorder: NotRequired[int | float | Sequence[int | float]]
     dropna: NotRequired[bool | Sequence[bool]]
     annotate: NotRequired[bool | Sequence[bool]]
     rounding: NotRequired[Sequence[int | bool] | int | bool | None]
@@ -130,6 +131,7 @@ def get_style_width_color_etc(
         "drawstyle": None,
         "marker": None,
         "markersize": 10,
+        "zorder": None,
         "dropna": True,
         "annotate": False,
         "rounding": True,
@@ -201,6 +203,7 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
             marker=swce["marker"][i],
             ms=swce["markersize"][i],
             drawstyle=swce["drawstyle"][i],
+            zorder=swce["zorder"][i],
             label=(column if "label_series" in swce and swce["label_series"][i] else f"_{column}_"),
         )
 
