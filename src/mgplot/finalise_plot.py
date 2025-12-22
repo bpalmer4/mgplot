@@ -66,6 +66,7 @@ class FinaliseKwargs(BaseKwargs):
     zero_y: NotRequired[bool]
     y0: NotRequired[bool]
     x0: NotRequired[bool]
+    axisbelow: NotRequired[bool]
     dont_save: NotRequired[bool]
     dont_close: NotRequired[bool]
 
@@ -285,6 +286,9 @@ def apply_kwargs(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
         low, high = axes.get_xlim()
         if low < 0 < high:
             axes.axvline(x=0, lw=ZERO_LINE_WIDTH, c=ZERO_LINE_COLOR)
+
+    if check_kwargs("axisbelow"):
+        axes.set_axisbelow(True)
 
 
 def save_to_file(fig: Figure, **kwargs: Unpack[FinaliseKwargs]) -> None:

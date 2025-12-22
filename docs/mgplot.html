@@ -222,6 +222,9 @@
                                 <a class="variable" href="#FinaliseKwargs.x0">x0</a>
                         </li>
                         <li>
+                                <a class="variable" href="#FinaliseKwargs.axisbelow">axisbelow</a>
+                        </li>
+                        <li>
                                 <a class="variable" href="#FinaliseKwargs.dont_save">dont_save</a>
                         </li>
                         <li>
@@ -1083,8 +1086,9 @@ for color management and finalising plots with consistent styling.</p>
 </span><span id="FinaliseKwargs-67"><a href="#FinaliseKwargs-67"><span class="linenos">67</span></a>    <span class="n">zero_y</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span>
 </span><span id="FinaliseKwargs-68"><a href="#FinaliseKwargs-68"><span class="linenos">68</span></a>    <span class="n">y0</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span>
 </span><span id="FinaliseKwargs-69"><a href="#FinaliseKwargs-69"><span class="linenos">69</span></a>    <span class="n">x0</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span>
-</span><span id="FinaliseKwargs-70"><a href="#FinaliseKwargs-70"><span class="linenos">70</span></a>    <span class="n">dont_save</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span>
-</span><span id="FinaliseKwargs-71"><a href="#FinaliseKwargs-71"><span class="linenos">71</span></a>    <span class="n">dont_close</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span>
+</span><span id="FinaliseKwargs-70"><a href="#FinaliseKwargs-70"><span class="linenos">70</span></a>    <span class="n">axisbelow</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span>
+</span><span id="FinaliseKwargs-71"><a href="#FinaliseKwargs-71"><span class="linenos">71</span></a>    <span class="n">dont_save</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span>
+</span><span id="FinaliseKwargs-72"><a href="#FinaliseKwargs-72"><span class="linenos">72</span></a>    <span class="n">dont_close</span><span class="p">:</span> <span class="n">NotRequired</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span>
 </span></pre></div>
 
 
@@ -1429,6 +1433,17 @@ for color management and finalising plots with consistent styling.</p>
         
     </div>
     <a class="headerlink" href="#FinaliseKwargs.x0"></a>
+    
+    
+
+                            </div>
+                            <div id="FinaliseKwargs.axisbelow" class="classattr">
+                                <div class="attr variable">
+            <span class="name">axisbelow</span><span class="annotation">: NotRequired[bool]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#FinaliseKwargs.axisbelow"></a>
     
     
 
@@ -2325,7 +2340,7 @@ for color management and finalising plots with consistent styling.</p>
                 <section id="__version__">
                     <div class="attr variable">
             <span class="name">__version__</span>        =
-<span class="default_value">&#39;0.2.16&#39;</span>
+<span class="default_value">&#39;0.2.17&#39;</span>
 
         
     </div>
@@ -2842,60 +2857,60 @@ with positive values above zero and negative values below zero.</p>
 
     </div>
     <a class="headerlink" href="#finalise_plot"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="finalise_plot-341"><a href="#finalise_plot-341"><span class="linenos">341</span></a><span class="k">def</span><span class="w"> </span><span class="nf">finalise_plot</span><span class="p">(</span><span class="n">axes</span><span class="p">:</span> <span class="n">Axes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Unpack</span><span class="p">[</span><span class="n">FinaliseKwargs</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="finalise_plot-342"><a href="#finalise_plot-342"><span class="linenos">342</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Finalise and save plots to the file system.</span>
-</span><span id="finalise_plot-343"><a href="#finalise_plot-343"><span class="linenos">343</span></a>
-</span><span id="finalise_plot-344"><a href="#finalise_plot-344"><span class="linenos">344</span></a><span class="sd">    The filename for the saved plot is constructed from the global</span>
-</span><span id="finalise_plot-345"><a href="#finalise_plot-345"><span class="linenos">345</span></a><span class="sd">    chart_dir, the plot&#39;s title, any specified tag text, and the</span>
-</span><span id="finalise_plot-346"><a href="#finalise_plot-346"><span class="linenos">346</span></a><span class="sd">    file_type for the plot.</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="finalise_plot-345"><a href="#finalise_plot-345"><span class="linenos">345</span></a><span class="k">def</span><span class="w"> </span><span class="nf">finalise_plot</span><span class="p">(</span><span class="n">axes</span><span class="p">:</span> <span class="n">Axes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Unpack</span><span class="p">[</span><span class="n">FinaliseKwargs</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="finalise_plot-346"><a href="#finalise_plot-346"><span class="linenos">346</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Finalise and save plots to the file system.</span>
 </span><span id="finalise_plot-347"><a href="#finalise_plot-347"><span class="linenos">347</span></a>
-</span><span id="finalise_plot-348"><a href="#finalise_plot-348"><span class="linenos">348</span></a><span class="sd">    Args:</span>
-</span><span id="finalise_plot-349"><a href="#finalise_plot-349"><span class="linenos">349</span></a><span class="sd">        axes: Axes - matplotlib axes object - required</span>
-</span><span id="finalise_plot-350"><a href="#finalise_plot-350"><span class="linenos">350</span></a><span class="sd">        kwargs: FinaliseKwargs</span>
+</span><span id="finalise_plot-348"><a href="#finalise_plot-348"><span class="linenos">348</span></a><span class="sd">    The filename for the saved plot is constructed from the global</span>
+</span><span id="finalise_plot-349"><a href="#finalise_plot-349"><span class="linenos">349</span></a><span class="sd">    chart_dir, the plot&#39;s title, any specified tag text, and the</span>
+</span><span id="finalise_plot-350"><a href="#finalise_plot-350"><span class="linenos">350</span></a><span class="sd">    file_type for the plot.</span>
 </span><span id="finalise_plot-351"><a href="#finalise_plot-351"><span class="linenos">351</span></a>
-</span><span id="finalise_plot-352"><a href="#finalise_plot-352"><span class="linenos">352</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="finalise_plot-353"><a href="#finalise_plot-353"><span class="linenos">353</span></a>    <span class="c1"># --- check the kwargs</span>
-</span><span id="finalise_plot-354"><a href="#finalise_plot-354"><span class="linenos">354</span></a>    <span class="n">report_kwargs</span><span class="p">(</span><span class="n">caller</span><span class="o">=</span><span class="n">ME</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="finalise_plot-355"><a href="#finalise_plot-355"><span class="linenos">355</span></a>    <span class="n">validate_kwargs</span><span class="p">(</span><span class="n">schema</span><span class="o">=</span><span class="n">FinaliseKwargs</span><span class="p">,</span> <span class="n">caller</span><span class="o">=</span><span class="n">ME</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="finalise_plot-356"><a href="#finalise_plot-356"><span class="linenos">356</span></a>
-</span><span id="finalise_plot-357"><a href="#finalise_plot-357"><span class="linenos">357</span></a>    <span class="c1"># --- sanity checks</span>
-</span><span id="finalise_plot-358"><a href="#finalise_plot-358"><span class="linenos">358</span></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="o">.</span><span class="n">get_children</span><span class="p">())</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="finalise_plot-359"><a href="#finalise_plot-359"><span class="linenos">359</span></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: </span><span class="si">{</span><span class="n">ME</span><span class="si">}</span><span class="s2">() called with an empty axes, which was ignored.&quot;</span><span class="p">)</span>
-</span><span id="finalise_plot-360"><a href="#finalise_plot-360"><span class="linenos">360</span></a>        <span class="k">return</span>
-</span><span id="finalise_plot-361"><a href="#finalise_plot-361"><span class="linenos">361</span></a>
-</span><span id="finalise_plot-362"><a href="#finalise_plot-362"><span class="linenos">362</span></a>    <span class="c1"># --- remember axis-limits should we need to restore thems</span>
-</span><span id="finalise_plot-363"><a href="#finalise_plot-363"><span class="linenos">363</span></a>    <span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">(),</span> <span class="n">axes</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
-</span><span id="finalise_plot-364"><a href="#finalise_plot-364"><span class="linenos">364</span></a>
-</span><span id="finalise_plot-365"><a href="#finalise_plot-365"><span class="linenos">365</span></a>    <span class="c1"># margins</span>
-</span><span id="finalise_plot-366"><a href="#finalise_plot-366"><span class="linenos">366</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">margins</span><span class="p">(</span><span class="n">DEFAULT_MARGIN</span><span class="p">)</span>
-</span><span id="finalise_plot-367"><a href="#finalise_plot-367"><span class="linenos">367</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">autoscale</span><span class="p">(</span><span class="n">tight</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># This is problematic ...</span>
+</span><span id="finalise_plot-352"><a href="#finalise_plot-352"><span class="linenos">352</span></a><span class="sd">    Args:</span>
+</span><span id="finalise_plot-353"><a href="#finalise_plot-353"><span class="linenos">353</span></a><span class="sd">        axes: Axes - matplotlib axes object - required</span>
+</span><span id="finalise_plot-354"><a href="#finalise_plot-354"><span class="linenos">354</span></a><span class="sd">        kwargs: FinaliseKwargs</span>
+</span><span id="finalise_plot-355"><a href="#finalise_plot-355"><span class="linenos">355</span></a>
+</span><span id="finalise_plot-356"><a href="#finalise_plot-356"><span class="linenos">356</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="finalise_plot-357"><a href="#finalise_plot-357"><span class="linenos">357</span></a>    <span class="c1"># --- check the kwargs</span>
+</span><span id="finalise_plot-358"><a href="#finalise_plot-358"><span class="linenos">358</span></a>    <span class="n">report_kwargs</span><span class="p">(</span><span class="n">caller</span><span class="o">=</span><span class="n">ME</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="finalise_plot-359"><a href="#finalise_plot-359"><span class="linenos">359</span></a>    <span class="n">validate_kwargs</span><span class="p">(</span><span class="n">schema</span><span class="o">=</span><span class="n">FinaliseKwargs</span><span class="p">,</span> <span class="n">caller</span><span class="o">=</span><span class="n">ME</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="finalise_plot-360"><a href="#finalise_plot-360"><span class="linenos">360</span></a>
+</span><span id="finalise_plot-361"><a href="#finalise_plot-361"><span class="linenos">361</span></a>    <span class="c1"># --- sanity checks</span>
+</span><span id="finalise_plot-362"><a href="#finalise_plot-362"><span class="linenos">362</span></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="o">.</span><span class="n">get_children</span><span class="p">())</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="finalise_plot-363"><a href="#finalise_plot-363"><span class="linenos">363</span></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: </span><span class="si">{</span><span class="n">ME</span><span class="si">}</span><span class="s2">() called with an empty axes, which was ignored.&quot;</span><span class="p">)</span>
+</span><span id="finalise_plot-364"><a href="#finalise_plot-364"><span class="linenos">364</span></a>        <span class="k">return</span>
+</span><span id="finalise_plot-365"><a href="#finalise_plot-365"><span class="linenos">365</span></a>
+</span><span id="finalise_plot-366"><a href="#finalise_plot-366"><span class="linenos">366</span></a>    <span class="c1"># --- remember axis-limits should we need to restore thems</span>
+</span><span id="finalise_plot-367"><a href="#finalise_plot-367"><span class="linenos">367</span></a>    <span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">(),</span> <span class="n">axes</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
 </span><span id="finalise_plot-368"><a href="#finalise_plot-368"><span class="linenos">368</span></a>
-</span><span id="finalise_plot-369"><a href="#finalise_plot-369"><span class="linenos">369</span></a>    <span class="n">apply_kwargs</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="finalise_plot-370"><a href="#finalise_plot-370"><span class="linenos">370</span></a>
-</span><span id="finalise_plot-371"><a href="#finalise_plot-371"><span class="linenos">371</span></a>    <span class="c1"># tight layout and save the figure</span>
-</span><span id="finalise_plot-372"><a href="#finalise_plot-372"><span class="linenos">372</span></a>    <span class="n">fig</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">figure</span>
-</span><span id="finalise_plot-373"><a href="#finalise_plot-373"><span class="linenos">373</span></a>    <span class="k">if</span> <span class="n">suptitle</span> <span class="o">:=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;suptitle&quot;</span><span class="p">):</span>
-</span><span id="finalise_plot-374"><a href="#finalise_plot-374"><span class="linenos">374</span></a>        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">suptitle</span><span class="p">)</span>
-</span><span id="finalise_plot-375"><a href="#finalise_plot-375"><span class="linenos">375</span></a>    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;preserve_lims&quot;</span><span class="p">):</span>
-</span><span id="finalise_plot-376"><a href="#finalise_plot-376"><span class="linenos">376</span></a>        <span class="c1"># restore the original limits of the axes</span>
-</span><span id="finalise_plot-377"><a href="#finalise_plot-377"><span class="linenos">377</span></a>        <span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
-</span><span id="finalise_plot-378"><a href="#finalise_plot-378"><span class="linenos">378</span></a>        <span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span>
-</span><span id="finalise_plot-379"><a href="#finalise_plot-379"><span class="linenos">379</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">SubFigure</span><span class="p">):</span>
-</span><span id="finalise_plot-380"><a href="#finalise_plot-380"><span class="linenos">380</span></a>        <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="n">TIGHT_LAYOUT_PAD</span><span class="p">)</span>
-</span><span id="finalise_plot-381"><a href="#finalise_plot-381"><span class="linenos">381</span></a>    <span class="n">apply_late_kwargs</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="finalise_plot-382"><a href="#finalise_plot-382"><span class="linenos">382</span></a>    <span class="n">legend</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">get_legend</span><span class="p">()</span>
-</span><span id="finalise_plot-383"><a href="#finalise_plot-383"><span class="linenos">383</span></a>    <span class="k">if</span> <span class="n">legend</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;remove_legend&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-</span><span id="finalise_plot-384"><a href="#finalise_plot-384"><span class="linenos">384</span></a>        <span class="n">legend</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
-</span><span id="finalise_plot-385"><a href="#finalise_plot-385"><span class="linenos">385</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">SubFigure</span><span class="p">):</span>
-</span><span id="finalise_plot-386"><a href="#finalise_plot-386"><span class="linenos">386</span></a>        <span class="n">save_to_file</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="finalise_plot-387"><a href="#finalise_plot-387"><span class="linenos">387</span></a>
-</span><span id="finalise_plot-388"><a href="#finalise_plot-388"><span class="linenos">388</span></a>    <span class="c1"># show the plot in Jupyter Lab</span>
-</span><span id="finalise_plot-389"><a href="#finalise_plot-389"><span class="linenos">389</span></a>    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;show&quot;</span><span class="p">):</span>
-</span><span id="finalise_plot-390"><a href="#finalise_plot-390"><span class="linenos">390</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</span><span id="finalise_plot-369"><a href="#finalise_plot-369"><span class="linenos">369</span></a>    <span class="c1"># margins</span>
+</span><span id="finalise_plot-370"><a href="#finalise_plot-370"><span class="linenos">370</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">margins</span><span class="p">(</span><span class="n">DEFAULT_MARGIN</span><span class="p">)</span>
+</span><span id="finalise_plot-371"><a href="#finalise_plot-371"><span class="linenos">371</span></a>    <span class="n">axes</span><span class="o">.</span><span class="n">autoscale</span><span class="p">(</span><span class="n">tight</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># This is problematic ...</span>
+</span><span id="finalise_plot-372"><a href="#finalise_plot-372"><span class="linenos">372</span></a>
+</span><span id="finalise_plot-373"><a href="#finalise_plot-373"><span class="linenos">373</span></a>    <span class="n">apply_kwargs</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="finalise_plot-374"><a href="#finalise_plot-374"><span class="linenos">374</span></a>
+</span><span id="finalise_plot-375"><a href="#finalise_plot-375"><span class="linenos">375</span></a>    <span class="c1"># tight layout and save the figure</span>
+</span><span id="finalise_plot-376"><a href="#finalise_plot-376"><span class="linenos">376</span></a>    <span class="n">fig</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">figure</span>
+</span><span id="finalise_plot-377"><a href="#finalise_plot-377"><span class="linenos">377</span></a>    <span class="k">if</span> <span class="n">suptitle</span> <span class="o">:=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;suptitle&quot;</span><span class="p">):</span>
+</span><span id="finalise_plot-378"><a href="#finalise_plot-378"><span class="linenos">378</span></a>        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">suptitle</span><span class="p">)</span>
+</span><span id="finalise_plot-379"><a href="#finalise_plot-379"><span class="linenos">379</span></a>    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;preserve_lims&quot;</span><span class="p">):</span>
+</span><span id="finalise_plot-380"><a href="#finalise_plot-380"><span class="linenos">380</span></a>        <span class="c1"># restore the original limits of the axes</span>
+</span><span id="finalise_plot-381"><a href="#finalise_plot-381"><span class="linenos">381</span></a>        <span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
+</span><span id="finalise_plot-382"><a href="#finalise_plot-382"><span class="linenos">382</span></a>        <span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span>
+</span><span id="finalise_plot-383"><a href="#finalise_plot-383"><span class="linenos">383</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">SubFigure</span><span class="p">):</span>
+</span><span id="finalise_plot-384"><a href="#finalise_plot-384"><span class="linenos">384</span></a>        <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="n">TIGHT_LAYOUT_PAD</span><span class="p">)</span>
+</span><span id="finalise_plot-385"><a href="#finalise_plot-385"><span class="linenos">385</span></a>    <span class="n">apply_late_kwargs</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="finalise_plot-386"><a href="#finalise_plot-386"><span class="linenos">386</span></a>    <span class="n">legend</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">get_legend</span><span class="p">()</span>
+</span><span id="finalise_plot-387"><a href="#finalise_plot-387"><span class="linenos">387</span></a>    <span class="k">if</span> <span class="n">legend</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;remove_legend&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+</span><span id="finalise_plot-388"><a href="#finalise_plot-388"><span class="linenos">388</span></a>        <span class="n">legend</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+</span><span id="finalise_plot-389"><a href="#finalise_plot-389"><span class="linenos">389</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">SubFigure</span><span class="p">):</span>
+</span><span id="finalise_plot-390"><a href="#finalise_plot-390"><span class="linenos">390</span></a>        <span class="n">save_to_file</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </span><span id="finalise_plot-391"><a href="#finalise_plot-391"><span class="linenos">391</span></a>
-</span><span id="finalise_plot-392"><a href="#finalise_plot-392"><span class="linenos">392</span></a>    <span class="c1"># And close</span>
-</span><span id="finalise_plot-393"><a href="#finalise_plot-393"><span class="linenos">393</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dont_close&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-</span><span id="finalise_plot-394"><a href="#finalise_plot-394"><span class="linenos">394</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="finalise_plot-392"><a href="#finalise_plot-392"><span class="linenos">392</span></a>    <span class="c1"># show the plot in Jupyter Lab</span>
+</span><span id="finalise_plot-393"><a href="#finalise_plot-393"><span class="linenos">393</span></a>    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;show&quot;</span><span class="p">):</span>
+</span><span id="finalise_plot-394"><a href="#finalise_plot-394"><span class="linenos">394</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</span><span id="finalise_plot-395"><a href="#finalise_plot-395"><span class="linenos">395</span></a>
+</span><span id="finalise_plot-396"><a href="#finalise_plot-396"><span class="linenos">396</span></a>    <span class="c1"># And close</span>
+</span><span id="finalise_plot-397"><a href="#finalise_plot-397"><span class="linenos">397</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dont_close&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+</span><span id="finalise_plot-398"><a href="#finalise_plot-398"><span class="linenos">398</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span></pre></div>
 
 

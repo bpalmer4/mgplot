@@ -1,3 +1,10 @@
+Version 0.2.17 - released 22-Dec-2025 (Canberra, Australia)
+
+* minor changes
+    - added axisbelow kwarg to finalise_plot() for setting ax.set_axisbelow(True)
+
+---
+
 Version 0.2.16 - released 22-Dec-2025 (Canberra, Australia)
 
 * minor changes

@@ -729,7 +729,7 @@ wheels = [
 
 [[package]]
 name = "mgplot"
-version = "0.2.16"
+version = "0.2.17"
 source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },
@@ -1602,17 +1602,16 @@ wheels = [
 
 [[package]]
 name = "watermark"
-version = "2.5.1"
+version = "2.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "importlib-metadata" },
     { name = "ipython" },
     { name = "setuptools" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/68/21/07feaf12db051aaa3e795adf7738c7358f5cabcf09f48d3921699a0ee06e/watermark-2.5.1.tar.gz", hash = "sha256:19a807f504ce02b791a7ce8950df85515ffc876cacd37a84130ea23a0e1a783a", size = 11282, upload-time = "2025-12-14T18:09:29.902Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d2/f4/a1e4c497be237e19eb2da3417e7e48973e0f59413d262d1440e769fe0e2b/watermark-2.6.0.tar.gz", hash = "sha256:ee4fadccbebe855a23ae48bb8a20c1da6ddb9d81f53b6c30c77de767c7161930", size = 17144, upload-time = "2025-12-21T23:42:14.73Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a0/30/b4550fc7c426a27585744930b348044bad98d6e8b4ace91afe427a5abad7/watermark-2.5.1-py2.py3-none-any.whl", hash = "sha256:8d3f70c243afed8e10a2cf258c8744e61ef1215caa8d7862bc985e443219509d", size = 8205, upload-time = "2025-12-14T18:09:28.441Z" },
-    { url = "https://files.pythonhosted.org/packages/d1/26/d010a3229e936372b01b30f55c740fb4ca5afebedf2c8377381d4029aba0/watermark-2.5.1-py3-none-any.whl", hash = "sha256:c20c998eb09b2a97723644ec438aa3fb25d2a3fb5cee4b5453d2a012d6d2818b", size = 7846, upload-time = "2025-12-14T18:09:29.247Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/bd/5e98be0ff12e580985ad647f2c33be97abde81fccbfd1655fc7536043c0f/watermark-2.6.0-py3-none-any.whl", hash = "sha256:c925daf1c3f7db9aa5fe25aff3a5fd07df0619ff0bd271bf809bfd6b0c628332", size = 13569, upload-time = "2025-12-21T23:42:13.46Z" },
 ]
 
 [[package]]
