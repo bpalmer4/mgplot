@@ -43,10 +43,10 @@ class FinaliseKwargs(BaseKwargs):
     yscale: NotRequired[str | None]
     # --- splat options
     legend: NotRequired[bool | dict[str, Any] | None]
-    axhspan: NotRequired[dict[str, Any]]
-    axvspan: NotRequired[dict[str, Any]]
-    axhline: NotRequired[dict[str, Any]]
-    axvline: NotRequired[dict[str, Any]]
+    axhspan: NotRequired[dict[str, Any] | None]
+    axvspan: NotRequired[dict[str, Any] | None]
+    axhline: NotRequired[dict[str, Any] | None]
+    axvline: NotRequired[dict[str, Any] | None]
     # --- options for annotations
     lfooter: NotRequired[str]
     rfooter: NotRequired[str]
@@ -207,8 +207,6 @@ def apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs: Unpack[FinaliseKwa
                     print(f"Warning: expected bool, dict, or None for legend, but got {type(legend_value)}.")
                 continue
 
-            if method_name not in kwargs:
-                continue
             value = kwargs.get(method_name)
             if value is None or value is False:
                 continue

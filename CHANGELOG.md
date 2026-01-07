@@ -1,3 +1,12 @@
+Version 0.2.18 - released 08-Jan-2026 (Canberra, Australia)
+
+* bug fix
+    - fixed type specification for axhspan, axvspan, axhline, axvline kwargs
+      in FinaliseKwargs to allow None values
+    - removed dead code in apply_splat_kwargs()
+
+---
+
 Version 0.2.17 - released 22-Dec-2025 (Canberra, Australia)
 
 * minor changes
