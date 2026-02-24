@@ -17,6 +17,20 @@ from pandas import Index, Period, PeriodIndex, RangeIndex, period_range
 from mgplot.settings import DataT
 
 
+def map_stringindex(data: DataT) -> None | tuple[DataT, list[str]]:
+    """Map a string (object) index to an integer RangeIndex.
+
+    Returns None if the index is not a string/object type.
+    Otherwise, replaces the index with RangeIndex(0, 1, 2, ...)
+    and returns the reindexed data along with the original labels.
+    """
+    if not hasattr(data.index, "dtype") or data.index.dtype != "object":
+        return None
+    labels = [str(x) for x in data.index]
+    data.index = RangeIndex(start=0, stop=len(data))
+    return data, labels
+
+
 def map_periodindex(data: DataT) -> None | tuple[DataT, PeriodIndex]:
     """Map a PeriodIndex to an integer index."""
     if not isinstance(data.index, PeriodIndex):

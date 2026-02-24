@@ -764,7 +764,7 @@ for color management and finalising plots with consistent styling.</p>
                             </div>
                             <div id="BarKwargs.plot_from" class="classattr">
                                 <div class="attr variable">
-            <span class="name">plot_from</span><span class="annotation">: NotRequired[int | pandas._libs.tslibs.period.Period]</span>
+            <span class="name">plot_from</span><span class="annotation">: NotRequired[int | pandas.Period]</span>
 
         
     </div>
@@ -1528,7 +1528,7 @@ for color management and finalising plots with consistent styling.</p>
                             </div>
                             <div id="GrowthKwargs.plot_from" class="classattr">
                                 <div class="attr variable">
-            <span class="name">plot_from</span><span class="annotation">: NotRequired[int | pandas._libs.tslibs.period.Period]</span>
+            <span class="name">plot_from</span><span class="annotation">: NotRequired[int | pandas.Period]</span>
 
         
     </div>
@@ -1955,7 +1955,7 @@ for color management and finalising plots with consistent styling.</p>
                             </div>
                             <div id="LineKwargs.plot_from" class="classattr">
                                 <div class="attr variable">
-            <span class="name">plot_from</span><span class="annotation">: NotRequired[int | pandas._libs.tslibs.period.Period | None]</span>
+            <span class="name">plot_from</span><span class="annotation">: NotRequired[int | pandas.Period | None]</span>
 
         
     </div>
@@ -2012,7 +2012,7 @@ for color management and finalising plots with consistent styling.</p>
 
                             <div id="PostcovidKwargs.start_r" class="classattr">
                                 <div class="attr variable">
-            <span class="name">start_r</span><span class="annotation">: NotRequired[pandas._libs.tslibs.period.Period]</span>
+            <span class="name">start_r</span><span class="annotation">: NotRequired[pandas.Period]</span>
 
         
     </div>
@@ -2023,7 +2023,7 @@ for color management and finalising plots with consistent styling.</p>
                             </div>
                             <div id="PostcovidKwargs.end_r" class="classattr">
                                 <div class="attr variable">
-            <span class="name">end_r</span><span class="annotation">: NotRequired[pandas._libs.tslibs.period.Period]</span>
+            <span class="name">end_r</span><span class="annotation">: NotRequired[pandas.Period]</span>
 
         
     </div>
@@ -2293,7 +2293,7 @@ for color management and finalising plots with consistent styling.</p>
                             </div>
                             <div id="SummaryKwargs.plot_from" class="classattr">
                                 <div class="attr variable">
-            <span class="name">plot_from</span><span class="annotation">: NotRequired[int | pandas._libs.tslibs.period.Period]</span>
+            <span class="name">plot_from</span><span class="annotation">: NotRequired[int | pandas.Period]</span>
 
         
     </div>
@@ -2340,7 +2340,7 @@ for color management and finalising plots with consistent styling.</p>
                 <section id="__version__">
                     <div class="attr variable">
             <span class="name">__version__</span>        =
-<span class="default_value">&#39;0.2.18&#39;</span>
+<span class="default_value">&#39;0.2.19&#39;</span>
 
         
     </div>
@@ -2423,51 +2423,59 @@ for color management and finalising plots with consistent styling.</p>
 </span><span id="bar_plot-241"><a href="#bar_plot-241"><span class="linenos">241</span></a>    <span class="n">df</span><span class="p">,</span> <span class="n">kwargs_d</span> <span class="o">=</span> <span class="n">constrain_data</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </span><span id="bar_plot-242"><a href="#bar_plot-242"><span class="linenos">242</span></a>    <span class="n">item_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
 </span><span id="bar_plot-243"><a href="#bar_plot-243"><span class="linenos">243</span></a>
-</span><span id="bar_plot-244"><a href="#bar_plot-244"><span class="linenos">244</span></a>    <span class="c1"># --- deal with complete PeriodIndex indices</span>
-</span><span id="bar_plot-245"><a href="#bar_plot-245"><span class="linenos">245</span></a>    <span class="n">saved_pi</span> <span class="o">=</span> <span class="n">map_periodindex</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-</span><span id="bar_plot-246"><a href="#bar_plot-246"><span class="linenos">246</span></a>    <span class="k">if</span> <span class="n">saved_pi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="bar_plot-247"><a href="#bar_plot-247"><span class="linenos">247</span></a>        <span class="n">df</span> <span class="o">=</span> <span class="n">saved_pi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># extract the reindexed DataFrame from the PeriodIndex</span>
+</span><span id="bar_plot-244"><a href="#bar_plot-244"><span class="linenos">244</span></a>    <span class="c1"># --- deal with string indices</span>
+</span><span id="bar_plot-245"><a href="#bar_plot-245"><span class="linenos">245</span></a>    <span class="n">saved_strings</span> <span class="o">=</span> <span class="n">map_stringindex</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</span><span id="bar_plot-246"><a href="#bar_plot-246"><span class="linenos">246</span></a>    <span class="k">if</span> <span class="n">saved_strings</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="bar_plot-247"><a href="#bar_plot-247"><span class="linenos">247</span></a>        <span class="n">df</span> <span class="o">=</span> <span class="n">saved_strings</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </span><span id="bar_plot-248"><a href="#bar_plot-248"><span class="linenos">248</span></a>
-</span><span id="bar_plot-249"><a href="#bar_plot-249"><span class="linenos">249</span></a>    <span class="c1"># --- set up the default arguments</span>
-</span><span id="bar_plot-250"><a href="#bar_plot-250"><span class="linenos">250</span></a>    <span class="n">chart_defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="bar_plot-251"><a href="#bar_plot-251"><span class="linenos">251</span></a>        <span class="s2">&quot;stacked&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="bar_plot-252"><a href="#bar_plot-252"><span class="linenos">252</span></a>        <span class="s2">&quot;max_ticks&quot;</span><span class="p">:</span> <span class="n">DEFAULT_MAX_TICKS</span><span class="p">,</span>
-</span><span id="bar_plot-253"><a href="#bar_plot-253"><span class="linenos">253</span></a>        <span class="s2">&quot;label_series&quot;</span><span class="p">:</span> <span class="n">item_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span>
-</span><span id="bar_plot-254"><a href="#bar_plot-254"><span class="linenos">254</span></a>        <span class="s2">&quot;xlabel_rotation&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-</span><span id="bar_plot-255"><a href="#bar_plot-255"><span class="linenos">255</span></a>    <span class="p">}</span>
-</span><span id="bar_plot-256"><a href="#bar_plot-256"><span class="linenos">256</span></a>    <span class="n">chart_args</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">chart_defaults</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-</span><span id="bar_plot-257"><a href="#bar_plot-257"><span class="linenos">257</span></a>
-</span><span id="bar_plot-258"><a href="#bar_plot-258"><span class="linenos">258</span></a>    <span class="n">bar_defaults</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="bar_plot-259"><a href="#bar_plot-259"><span class="linenos">259</span></a>        <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">get_color_list</span><span class="p">(</span><span class="n">item_count</span><span class="p">),</span>
-</span><span id="bar_plot-260"><a href="#bar_plot-260"><span class="linenos">260</span></a>        <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;bar_width&quot;</span><span class="p">),</span>
-</span><span id="bar_plot-261"><a href="#bar_plot-261"><span class="linenos">261</span></a>        <span class="s2">&quot;label_series&quot;</span><span class="p">:</span> <span class="n">item_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span>
-</span><span id="bar_plot-262"><a href="#bar_plot-262"><span class="linenos">262</span></a>        <span class="s2">&quot;zorder&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="bar_plot-263"><a href="#bar_plot-263"><span class="linenos">263</span></a>    <span class="p">}</span>
-</span><span id="bar_plot-264"><a href="#bar_plot-264"><span class="linenos">264</span></a>    <span class="n">above</span> <span class="o">=</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;above&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-</span><span id="bar_plot-265"><a href="#bar_plot-265"><span class="linenos">265</span></a>    <span class="n">anno_args</span><span class="p">:</span> <span class="n">AnnoKwargs</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="bar_plot-266"><a href="#bar_plot-266"><span class="linenos">266</span></a>        <span class="s2">&quot;annotate&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;annotate&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-</span><span id="bar_plot-267"><a href="#bar_plot-267"><span class="linenos">267</span></a>        <span class="s2">&quot;fontsize&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fontsize&quot;</span><span class="p">,</span> <span class="s2">&quot;small&quot;</span><span class="p">),</span>
-</span><span id="bar_plot-268"><a href="#bar_plot-268"><span class="linenos">268</span></a>        <span class="s2">&quot;fontname&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fontname&quot;</span><span class="p">,</span> <span class="s2">&quot;Helvetica&quot;</span><span class="p">),</span>
-</span><span id="bar_plot-269"><a href="#bar_plot-269"><span class="linenos">269</span></a>        <span class="s2">&quot;rotation&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rotation&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
-</span><span id="bar_plot-270"><a href="#bar_plot-270"><span class="linenos">270</span></a>        <span class="s2">&quot;rounding&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rounding&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-</span><span id="bar_plot-271"><a href="#bar_plot-271"><span class="linenos">271</span></a>        <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;annotate_color&quot;</span><span class="p">,</span> <span class="s2">&quot;black&quot;</span> <span class="k">if</span> <span class="n">above</span> <span class="k">else</span> <span class="s2">&quot;white&quot;</span><span class="p">),</span>
-</span><span id="bar_plot-272"><a href="#bar_plot-272"><span class="linenos">272</span></a>        <span class="s2">&quot;above&quot;</span><span class="p">:</span> <span class="n">above</span><span class="p">,</span>
-</span><span id="bar_plot-273"><a href="#bar_plot-273"><span class="linenos">273</span></a>    <span class="p">}</span>
-</span><span id="bar_plot-274"><a href="#bar_plot-274"><span class="linenos">274</span></a>    <span class="n">bar_args</span><span class="p">,</span> <span class="n">remaining_kwargs</span> <span class="o">=</span> <span class="n">apply_defaults</span><span class="p">(</span><span class="n">item_count</span><span class="p">,</span> <span class="n">bar_defaults</span><span class="p">,</span> <span class="n">kwargs_d</span><span class="p">)</span>
-</span><span id="bar_plot-275"><a href="#bar_plot-275"><span class="linenos">275</span></a>
-</span><span id="bar_plot-276"><a href="#bar_plot-276"><span class="linenos">276</span></a>    <span class="c1"># --- plot the data</span>
-</span><span id="bar_plot-277"><a href="#bar_plot-277"><span class="linenos">277</span></a>    <span class="n">axes</span><span class="p">,</span> <span class="n">remaining_kwargs</span> <span class="o">=</span> <span class="n">get_axes</span><span class="p">(</span><span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">remaining_kwargs</span><span class="p">))</span>
-</span><span id="bar_plot-278"><a href="#bar_plot-278"><span class="linenos">278</span></a>    <span class="k">if</span> <span class="n">chart_args</span><span class="p">[</span><span class="s2">&quot;stacked&quot;</span><span class="p">]:</span>
-</span><span id="bar_plot-279"><a href="#bar_plot-279"><span class="linenos">279</span></a>        <span class="n">stacked</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">anno_args</span><span class="p">,</span> <span class="o">**</span><span class="n">bar_args</span><span class="p">)</span>
-</span><span id="bar_plot-280"><a href="#bar_plot-280"><span class="linenos">280</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="bar_plot-281"><a href="#bar_plot-281"><span class="linenos">281</span></a>        <span class="n">grouped</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">anno_args</span><span class="p">,</span> <span class="o">**</span><span class="n">bar_args</span><span class="p">)</span>
-</span><span id="bar_plot-282"><a href="#bar_plot-282"><span class="linenos">282</span></a>
-</span><span id="bar_plot-283"><a href="#bar_plot-283"><span class="linenos">283</span></a>    <span class="c1"># --- handle complete periodIndex data and label rotation</span>
-</span><span id="bar_plot-284"><a href="#bar_plot-284"><span class="linenos">284</span></a>    <span class="k">if</span> <span class="n">saved_pi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="bar_plot-285"><a href="#bar_plot-285"><span class="linenos">285</span></a>        <span class="n">set_labels</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">saved_pi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">chart_args</span><span class="p">[</span><span class="s2">&quot;max_ticks&quot;</span><span class="p">])</span>
-</span><span id="bar_plot-286"><a href="#bar_plot-286"><span class="linenos">286</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="n">chart_args</span><span class="p">[</span><span class="s2">&quot;xlabel_rotation&quot;</span><span class="p">])</span>
+</span><span id="bar_plot-249"><a href="#bar_plot-249"><span class="linenos">249</span></a>    <span class="c1"># --- deal with complete PeriodIndex indices</span>
+</span><span id="bar_plot-250"><a href="#bar_plot-250"><span class="linenos">250</span></a>    <span class="n">saved_pi</span> <span class="o">=</span> <span class="n">map_periodindex</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</span><span id="bar_plot-251"><a href="#bar_plot-251"><span class="linenos">251</span></a>    <span class="k">if</span> <span class="n">saved_pi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="bar_plot-252"><a href="#bar_plot-252"><span class="linenos">252</span></a>        <span class="n">df</span> <span class="o">=</span> <span class="n">saved_pi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># extract the reindexed DataFrame from the PeriodIndex</span>
+</span><span id="bar_plot-253"><a href="#bar_plot-253"><span class="linenos">253</span></a>
+</span><span id="bar_plot-254"><a href="#bar_plot-254"><span class="linenos">254</span></a>    <span class="c1"># --- set up the default arguments</span>
+</span><span id="bar_plot-255"><a href="#bar_plot-255"><span class="linenos">255</span></a>    <span class="n">chart_defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="bar_plot-256"><a href="#bar_plot-256"><span class="linenos">256</span></a>        <span class="s2">&quot;stacked&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="bar_plot-257"><a href="#bar_plot-257"><span class="linenos">257</span></a>        <span class="s2">&quot;max_ticks&quot;</span><span class="p">:</span> <span class="n">DEFAULT_MAX_TICKS</span><span class="p">,</span>
+</span><span id="bar_plot-258"><a href="#bar_plot-258"><span class="linenos">258</span></a>        <span class="s2">&quot;label_series&quot;</span><span class="p">:</span> <span class="n">item_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span>
+</span><span id="bar_plot-259"><a href="#bar_plot-259"><span class="linenos">259</span></a>        <span class="s2">&quot;label_rotation&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span id="bar_plot-260"><a href="#bar_plot-260"><span class="linenos">260</span></a>    <span class="p">}</span>
+</span><span id="bar_plot-261"><a href="#bar_plot-261"><span class="linenos">261</span></a>    <span class="n">chart_args</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">chart_defaults</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+</span><span id="bar_plot-262"><a href="#bar_plot-262"><span class="linenos">262</span></a>
+</span><span id="bar_plot-263"><a href="#bar_plot-263"><span class="linenos">263</span></a>    <span class="n">bar_defaults</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="bar_plot-264"><a href="#bar_plot-264"><span class="linenos">264</span></a>        <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">get_color_list</span><span class="p">(</span><span class="n">item_count</span><span class="p">),</span>
+</span><span id="bar_plot-265"><a href="#bar_plot-265"><span class="linenos">265</span></a>        <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;bar_width&quot;</span><span class="p">),</span>
+</span><span id="bar_plot-266"><a href="#bar_plot-266"><span class="linenos">266</span></a>        <span class="s2">&quot;label_series&quot;</span><span class="p">:</span> <span class="n">item_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span>
+</span><span id="bar_plot-267"><a href="#bar_plot-267"><span class="linenos">267</span></a>        <span class="s2">&quot;zorder&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="bar_plot-268"><a href="#bar_plot-268"><span class="linenos">268</span></a>    <span class="p">}</span>
+</span><span id="bar_plot-269"><a href="#bar_plot-269"><span class="linenos">269</span></a>    <span class="n">above</span> <span class="o">=</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;above&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</span><span id="bar_plot-270"><a href="#bar_plot-270"><span class="linenos">270</span></a>    <span class="n">anno_args</span><span class="p">:</span> <span class="n">AnnoKwargs</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="bar_plot-271"><a href="#bar_plot-271"><span class="linenos">271</span></a>        <span class="s2">&quot;annotate&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;annotate&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+</span><span id="bar_plot-272"><a href="#bar_plot-272"><span class="linenos">272</span></a>        <span class="s2">&quot;fontsize&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fontsize&quot;</span><span class="p">,</span> <span class="s2">&quot;small&quot;</span><span class="p">),</span>
+</span><span id="bar_plot-273"><a href="#bar_plot-273"><span class="linenos">273</span></a>        <span class="s2">&quot;fontname&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fontname&quot;</span><span class="p">,</span> <span class="s2">&quot;Helvetica&quot;</span><span class="p">),</span>
+</span><span id="bar_plot-274"><a href="#bar_plot-274"><span class="linenos">274</span></a>        <span class="s2">&quot;rotation&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rotation&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+</span><span id="bar_plot-275"><a href="#bar_plot-275"><span class="linenos">275</span></a>        <span class="s2">&quot;rounding&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rounding&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+</span><span id="bar_plot-276"><a href="#bar_plot-276"><span class="linenos">276</span></a>        <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">kwargs_d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;annotate_color&quot;</span><span class="p">,</span> <span class="s2">&quot;black&quot;</span> <span class="k">if</span> <span class="n">above</span> <span class="k">else</span> <span class="s2">&quot;white&quot;</span><span class="p">),</span>
+</span><span id="bar_plot-277"><a href="#bar_plot-277"><span class="linenos">277</span></a>        <span class="s2">&quot;above&quot;</span><span class="p">:</span> <span class="n">above</span><span class="p">,</span>
+</span><span id="bar_plot-278"><a href="#bar_plot-278"><span class="linenos">278</span></a>    <span class="p">}</span>
+</span><span id="bar_plot-279"><a href="#bar_plot-279"><span class="linenos">279</span></a>    <span class="n">bar_args</span><span class="p">,</span> <span class="n">remaining_kwargs</span> <span class="o">=</span> <span class="n">apply_defaults</span><span class="p">(</span><span class="n">item_count</span><span class="p">,</span> <span class="n">bar_defaults</span><span class="p">,</span> <span class="n">kwargs_d</span><span class="p">)</span>
+</span><span id="bar_plot-280"><a href="#bar_plot-280"><span class="linenos">280</span></a>
+</span><span id="bar_plot-281"><a href="#bar_plot-281"><span class="linenos">281</span></a>    <span class="c1"># --- plot the data</span>
+</span><span id="bar_plot-282"><a href="#bar_plot-282"><span class="linenos">282</span></a>    <span class="n">axes</span><span class="p">,</span> <span class="n">remaining_kwargs</span> <span class="o">=</span> <span class="n">get_axes</span><span class="p">(</span><span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">remaining_kwargs</span><span class="p">))</span>
+</span><span id="bar_plot-283"><a href="#bar_plot-283"><span class="linenos">283</span></a>    <span class="k">if</span> <span class="n">chart_args</span><span class="p">[</span><span class="s2">&quot;stacked&quot;</span><span class="p">]:</span>
+</span><span id="bar_plot-284"><a href="#bar_plot-284"><span class="linenos">284</span></a>        <span class="n">stacked</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">anno_args</span><span class="p">,</span> <span class="o">**</span><span class="n">bar_args</span><span class="p">)</span>
+</span><span id="bar_plot-285"><a href="#bar_plot-285"><span class="linenos">285</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="bar_plot-286"><a href="#bar_plot-286"><span class="linenos">286</span></a>        <span class="n">grouped</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">anno_args</span><span class="p">,</span> <span class="o">**</span><span class="n">bar_args</span><span class="p">)</span>
 </span><span id="bar_plot-287"><a href="#bar_plot-287"><span class="linenos">287</span></a>
-</span><span id="bar_plot-288"><a href="#bar_plot-288"><span class="linenos">288</span></a>    <span class="k">return</span> <span class="n">axes</span>
+</span><span id="bar_plot-288"><a href="#bar_plot-288"><span class="linenos">288</span></a>    <span class="c1"># --- handle index labels and rotation</span>
+</span><span id="bar_plot-289"><a href="#bar_plot-289"><span class="linenos">289</span></a>    <span class="k">if</span> <span class="n">saved_strings</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="bar_plot-290"><a href="#bar_plot-290"><span class="linenos">290</span></a>        <span class="n">axes</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">saved_strings</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+</span><span id="bar_plot-291"><a href="#bar_plot-291"><span class="linenos">291</span></a>        <span class="n">axes</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">saved_strings</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</span><span id="bar_plot-292"><a href="#bar_plot-292"><span class="linenos">292</span></a>    <span class="k">elif</span> <span class="n">saved_pi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="bar_plot-293"><a href="#bar_plot-293"><span class="linenos">293</span></a>        <span class="n">set_labels</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">saved_pi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">chart_args</span><span class="p">[</span><span class="s2">&quot;max_ticks&quot;</span><span class="p">])</span>
+</span><span id="bar_plot-294"><a href="#bar_plot-294"><span class="linenos">294</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="n">chart_args</span><span class="p">[</span><span class="s2">&quot;label_rotation&quot;</span><span class="p">])</span>
+</span><span id="bar_plot-295"><a href="#bar_plot-295"><span class="linenos">295</span></a>
+</span><span id="bar_plot-296"><a href="#bar_plot-296"><span class="linenos">296</span></a>    <span class="k">return</span> <span class="n">axes</span>
 </span></pre></div>
 
 
@@ -2535,7 +2543,7 @@ with positive values above zero and negative values below zero.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">fill_between_plot</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Unpack</span><span class="p">[</span><span class="n"><a href="#FillBetweenKwargs">FillBetweenKwargs</a></span><span class="p">]</span></span><span class="return-annotation">) -> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_axes</span><span class="o">.</span><span class="n">Axes</span>:</span></span>
+        <span class="name">fill_between_plot</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Unpack</span><span class="p">[</span><span class="n"><a href="#FillBetweenKwargs">FillBetweenKwargs</a></span><span class="p">]</span></span><span class="return-annotation">) -> <span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_axes</span><span class="o">.</span><span class="n">Axes</span>:</span></span>
 
                 <label class="view-source-button" for="fill_between_plot-view-source"><span>View Source</span></label>
 
@@ -2638,7 +2646,7 @@ with positive values above zero and negative values below zero.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">fill_between_plot_finalise</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Unpack</span><span class="p">[</span><span class="n">mgplot</span><span class="o">.</span><span class="n">finalisers</span><span class="o">.</span><span class="n">FBPFKwargs</span><span class="p">]</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+        <span class="name">fill_between_plot_finalise</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Unpack</span><span class="p">[</span><span class="n">mgplot</span><span class="o">.</span><span class="n">finalisers</span><span class="o">.</span><span class="n">FBPFKwargs</span><span class="p">]</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
 
                 <label class="view-source-button" for="fill_between_plot_finalise-view-source"><span>View Source</span></label>
 
@@ -2679,7 +2687,7 @@ with positive values above zero and negative values below zero.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">calc_growth</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">series</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span></span><span class="return-annotation">) -> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span>:</span></span>
+        <span class="name">calc_growth</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">series</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span></span><span class="return-annotation">) -> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span>:</span></span>
 
                 <label class="view-source-button" for="calc_growth-view-source"><span>View Source</span></label>
 
@@ -3385,7 +3393,7 @@ file_type for the plot.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">multi_column</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span>,</span><span class="param">	<span class="n">function</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+        <span class="name">multi_column</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span>,</span><span class="param">	<span class="n">function</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
 
                 <label class="view-source-button" for="multi_column-view-source"><span>View Source</span></label>
 
@@ -3465,7 +3473,7 @@ file_type for the plot.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">multi_start</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">data</span><span class="p">:</span> <span class="o">~</span><span class="n">DataT</span>,</span><span class="param">	<span class="n">function</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span>,</span><span class="param">	<span class="n">starts</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="kc">None</span> <span class="o">|</span> <span class="n">pandas</span><span class="o">.</span><span class="n">_libs</span><span class="o">.</span><span class="n">tslibs</span><span class="o">.</span><span class="n">period</span><span class="o">.</span><span class="n">Period</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+        <span class="name">multi_start</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">data</span><span class="p">:</span> <span class="o">~</span><span class="n">DataT</span>,</span><span class="param">	<span class="n">function</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span>,</span><span class="param">	<span class="n">starts</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="kc">None</span> <span class="o">|</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Period</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
 
                 <label class="view-source-button" for="multi_start-view-source"><span>View Source</span></label>
 

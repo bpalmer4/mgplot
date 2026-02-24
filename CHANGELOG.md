@@ -1,3 +1,15 @@
+Version 0.2.19 - released 25-Feb-2026 (Canberra, Australia)
+
+* bug fix
+    - fixed bar_plot() to handle string index values (e.g. country names)
+      by mapping to integer positions and restoring labels after plotting
+    - fixed label_rotation kwarg being silently ignored due to internal
+      key mismatch ("xlabel_rotation" vs "label_rotation")
+    - added map_stringindex() to axis_utils.py
+    - added test/test_bar_string_index.py
+
+---
+
 Version 0.2.18 - released 08-Jan-2026 (Canberra, Australia)
 
 * bug fix

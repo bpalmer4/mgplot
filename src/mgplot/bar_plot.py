@@ -15,7 +15,7 @@ import numpy as np
 from matplotlib.axes import Axes
 from pandas import DataFrame, Period, Series
 
-from mgplot.axis_utils import map_periodindex, set_labels
+from mgplot.axis_utils import map_periodindex, map_stringindex, set_labels
 from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import DataT, get_setting
 from mgplot.utilities import (
@@ -240,6 +240,11 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     df, kwargs_d = constrain_data(df, **kwargs)
     item_count = len(df.columns)
 
+    # --- deal with string indices
+    saved_strings = map_stringindex(df)
+    if saved_strings is not None:
+        df = saved_strings[0]
+
     # --- deal with complete PeriodIndex indices
     saved_pi = map_periodindex(df)
     if saved_pi is not None:
@@ -250,7 +255,7 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
         "stacked": False,
         "max_ticks": DEFAULT_MAX_TICKS,
         "label_series": item_count > 1,
-        "xlabel_rotation": 0,
+        "label_rotation": 0,
     }
     chart_args = {k: kwargs_d.get(k, v) for k, v in chart_defaults.items()}
 
@@ -279,9 +284,12 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     else:
         grouped(axes, df, anno_args, **bar_args)
 
-    # --- handle complete periodIndex data and label rotation
-    if saved_pi is not None:
+    # --- handle index labels and rotation
+    if saved_strings is not None:
+        axes.set_xticks(range(len(saved_strings[1])))
+        axes.set_xticklabels(saved_strings[1])
+    elif saved_pi is not None:
         set_labels(axes, saved_pi[1], chart_args["max_ticks"])
-    plt.xticks(rotation=chart_args["xlabel_rotation"])
+    plt.xticks(rotation=chart_args["label_rotation"])
 
     return axes
