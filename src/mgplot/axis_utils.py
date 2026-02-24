@@ -13,6 +13,7 @@ from typing import Final
 
 from matplotlib.axes import Axes
 from pandas import Index, Period, PeriodIndex, RangeIndex, period_range
+from pandas.api.types import is_string_dtype
 
 from mgplot.settings import DataT
 
@@ -24,7 +25,7 @@ def map_stringindex(data: DataT) -> None | tuple[DataT, list[str]]:
     Otherwise, replaces the index with RangeIndex(0, 1, 2, ...)
     and returns the reindexed data along with the original labels.
     """
-    if not hasattr(data.index, "dtype") or data.index.dtype != "object":
+    if not hasattr(data.index, "dtype") or not is_string_dtype(data.index.dtype):
         return None
     labels = [str(x) for x in data.index]
     data.index = RangeIndex(start=0, stop=len(data))

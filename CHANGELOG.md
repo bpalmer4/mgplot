@@ -1,3 +1,12 @@
+Version 0.2.20 - released 25-Feb-2026 (Canberra, Australia)
+
+* bug fix
+    - fixed map_stringindex() to detect PyArrow-backed string dtypes
+      (e.g. "string", "large_string[pyarrow]") in addition to legacy "object" dtype,
+      using pd.api.types.is_string_dtype() instead of direct dtype comparison
+
+---
+
 Version 0.2.19 - released 25-Feb-2026 (Canberra, Australia)
 
 * bug fix
