@@ -43,10 +43,10 @@ class FinaliseKwargs(BaseKwargs):
     yscale: NotRequired[str | None]
     # --- splat options
     legend: NotRequired[bool | dict[str, Any] | None]
-    axhspan: NotRequired[dict[str, Any] | None]
-    axvspan: NotRequired[dict[str, Any] | None]
-    axhline: NotRequired[dict[str, Any] | None]
-    axvline: NotRequired[dict[str, Any] | None]
+    axhspan: NotRequired[dict[str, Any] | Sequence[dict[str, Any]] | None]
+    axvspan: NotRequired[dict[str, Any] | Sequence[dict[str, Any]] | None]
+    axhline: NotRequired[dict[str, Any] | Sequence[dict[str, Any]] | None]
+    axvline: NotRequired[dict[str, Any] | Sequence[dict[str, Any]] | None]
     # --- options for annotations
     lfooter: NotRequired[str]
     rfooter: NotRequired[str]
@@ -135,7 +135,7 @@ def sanitize_filename(filename: str, max_length: int = MAX_FILENAME_LENGTH) -> s
         filename = filename[:max_length].rstrip("-")
 
     # Ensure we have a valid filename
-    return filename if filename else "untitled"
+    return filename or "untitled"
 
 
 def make_legend(axes: Axes, *, legend: None | bool | dict[str, Any]) -> None:
@@ -194,34 +194,47 @@ def apply_value_kwargs(axes: Axes, value_kwargs_: Sequence[str], **kwargs: Unpac
         axes.set(**{setting: value})
 
 
+_SplatValue = bool | dict[str, Any] | Sequence[dict[str, Any]] | None
+
+
+def _apply_splat(axes: Axes, method_name: str, value: _SplatValue) -> None:
+    """Apply a single splat kwarg, which may be a dict or sequence of dicts."""
+    if value is None or value is False:
+        return
+
+    if value is True:  # use the global default settings
+        value = get_setting(method_name)
+
+    # normalise to a list of dicts
+    if isinstance(value, dict):
+        value = [value]
+
+    if isinstance(value, Sequence):
+        method = getattr(axes, method_name)
+        for item in value:
+            if isinstance(item, dict):
+                method(**item)
+            else:
+                print(f"Warning: expected dict in {method_name} sequence, but got {type(item)}.")
+    else:
+        print(f"Warning: expected dict or sequence of dicts for {method_name}, but got {type(value)}.")
+
+
 def apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs: Unpack[FinaliseKwargs]) -> None:
     """Set matplotlib elements dynamically using setting_name and splat."""
     for method_name in settings:
-        if method_name in kwargs:
-            if method_name == "legend":
-                # special case for legend
-                legend_value = kwargs.get(method_name)
-                if isinstance(legend_value, (bool, dict, type(None))):
-                    make_legend(axes, legend=legend_value)
-                else:
-                    print(f"Warning: expected bool, dict, or None for legend, but got {type(legend_value)}.")
-                continue
+        if method_name not in kwargs:
+            continue
 
-            value = kwargs.get(method_name)
-            if value is None or value is False:
-                continue
-
-            if value is True:  # use the global default settings
-                value = get_setting(method_name)
-
-            # splat the kwargs to the method
-            if isinstance(value, dict):
-                method = getattr(axes, method_name)
-                method(**value)
+        if method_name == "legend":
+            legend_value = kwargs.get(method_name)
+            if isinstance(legend_value, (bool, dict, type(None))):
+                make_legend(axes, legend=legend_value)
             else:
-                print(
-                    f"Warning expected dict argument for {method_name} but got {type(value)}.",
-                )
+                print(f"Warning: expected bool, dict, or None for legend, but got {type(legend_value)}.")
+            continue
+
+        _apply_splat(axes, method_name, kwargs.get(method_name))
 
 
 def apply_annotations(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
@@ -305,8 +318,8 @@ def save_to_file(fig: Figure, **kwargs: Unpack[FinaliseKwargs]) -> None:
         title = kwargs.get("title", "")
         pre_tag = kwargs.get("pre_tag", "")
         tag = kwargs.get("tag", "")
-        name_title = suptitle if suptitle else title
-        file_title = sanitize_filename(name_title if name_title else DEFAULT_FILE_TITLE_NAME)
+        name_title = suptitle or title
+        file_title = sanitize_filename(name_title or DEFAULT_FILE_TITLE_NAME)
         file_type = kwargs.get("file_type", get_setting("file_type")).lower()
         dpi = kwargs.get("dpi", get_setting("dpi"))
 

@@ -1,3 +1,14 @@
+Version 0.2.21 - released 17-Mar-2026 (Canberra, Australia)
+
+* enhancement
+    - axhline, axvline, axhspan, axvspan in finalise_plot() now accept
+      a sequence of dicts to draw multiple lines/spans in a single call,
+      in addition to the existing single dict usage
+    - added test/test_splat_sequences.py
+    - fixed FURB110 ruff warnings (ternary if replaced with or operator)
+
+---
+
 Version 0.2.20 - released 25-Feb-2026 (Canberra, Australia)
 
 * bug fix
