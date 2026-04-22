@@ -1,3 +1,25 @@
+Version 0.2.22 - released 22-Apr-2026 (Canberra, Australia)
+
+* bug fix
+    - finalise_plot() now converts pandas Period values passed to axvline
+      (x) and axvspan (xmin, xmax) into their integer ordinals, matching
+      the ordinal-mapped x-axis used for PeriodIndex plots
+
+* enhancement
+    - axis_utils now stashes (freq, min_ordinal, max_ordinal) on any Axes
+      that mgplot period-maps, via register_period_axes() / get_period_axes()
+    - set_labels() registers the PeriodIndex and uses the union of the
+      stashed ordinal range and the current xlim when building tick labels
+    - plotting a second PeriodIndex with a different freq onto the same
+      axes now raises ValueError (ordinals live in different spaces)
+    - finalise_plot() raises ValueError when a Period passed to
+      axvline/axvspan has a freq that does not match the axes' stashed freq;
+      axes without a stash (e.g. external matplotlib axes) retain the
+      trust-the-programmer behaviour and just use Period.ordinal
+    - added freq-mismatch tests to test/test_splat_sequences.py
+
+---
+
 Version 0.2.21 - released 17-Mar-2026 (Canberra, Australia)
 
 * enhancement

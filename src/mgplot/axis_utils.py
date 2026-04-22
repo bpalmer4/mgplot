@@ -32,6 +32,45 @@ def map_stringindex(data: DataT) -> None | tuple[DataT, list[str]]:
     return data, labels
 
 
+_AXES_PERIOD_ATTR: Final[str] = "_mgplot_period"
+
+
+def register_period_axes(axes: Axes, p: PeriodIndex) -> None:
+    """Record the PeriodIndex freq+range on an Axes.
+
+    First call on an axes stashes (freq, min_ordinal, max_ordinal).
+    Later calls on the same axes must use the same freq — otherwise the ordinals
+    live in different spaces and any further plotting is meaningless. Ordinal
+    range is always widened (never shrunk) so labels keep spanning everything
+    ever plotted on the axes.
+
+    Raises ValueError if a later call's freq does not match the stashed freq.
+    """
+    freq = p.freqstr
+    new_min = int(p.min().ordinal)
+    new_max = int(p.max().ordinal)
+    existing = getattr(axes, _AXES_PERIOD_ATTR, None)
+    if existing is None:
+        setattr(axes, _AXES_PERIOD_ATTR, (freq, new_min, new_max))
+        return
+    exist_freq, exist_min, exist_max = existing
+    if exist_freq != freq:
+        raise ValueError(
+            f"Cannot mix PeriodIndex frequencies on one axes: "
+            f"existing {exist_freq!r}, new {freq!r}",
+        )
+    setattr(
+        axes,
+        _AXES_PERIOD_ATTR,
+        (exist_freq, min(exist_min, new_min), max(exist_max, new_max)),
+    )
+
+
+def get_period_axes(axes: Axes) -> None | tuple[str, int, int]:
+    """Return the stashed (freq, min_ordinal, max_ordinal) for an axes, or None."""
+    return getattr(axes, _AXES_PERIOD_ATTR, None)
+
+
 def map_periodindex(data: DataT) -> None | tuple[DataT, PeriodIndex]:
     """Map a PeriodIndex to an integer index."""
     if not isinstance(data.index, PeriodIndex):
@@ -339,22 +378,28 @@ def make_ilabels(p: PeriodIndex, max_ticks: int) -> tuple[list[int], list[str]]:
 def set_labels(axes: Axes, p: PeriodIndex, max_ticks: int = 10) -> None:
     """Set the x-axis labels for a date-like PeriodIndex.
 
-    When multiple series with different time spans are plotted on the same axes,
-    this function uses the current x-axis limits to ensure ticks span the full
-    extent of all plotted data, not just the most recent series.
+    Registers the PeriodIndex on the axes (see register_period_axes()). When
+    multiple series are plotted on the same axes, the stashed ordinal range is
+    the union of everything plotted so far, so ticks always span the full
+    extent of all plotted data.
 
     Args:
         axes: Axes - the axes to set the labels on
-        p: PeriodIndex - the PeriodIndex (used for frequency information)
+        p: PeriodIndex - the PeriodIndex (registers freq and ordinal range)
         max_ticks: int - the maximum number of ticks [suggestive]
 
     """
-    # Get the current x-axis limits to handle multiple series with different spans
-    xlim = axes.get_xlim()
-    x_min, x_max = int(xlim[0]), int(xlim[1])
+    register_period_axes(axes, p)
+    freq, stash_min, stash_max = get_period_axes(axes)  # type: ignore[misc]
 
-    # Extend to cover the full axis extent using the frequency from p
-    freq = p.freqstr
+    # Take the wider of the stashed ordinal range and the current xlim so that
+    # matplotlib's auto-scale padding still influences label anchoring (keeps
+    # tick choice stable for daily/weekly patterns) while the stash guarantees
+    # we never under-span data that has ever been plotted on this axes.
+    xlim = axes.get_xlim()
+    x_min = min(stash_min, int(xlim[0]))
+    x_max = max(stash_max, int(xlim[1]))
+
     full_range = period_range(
         start=Period(ordinal=x_min, freq=freq),
         end=Period(ordinal=x_max, freq=freq),

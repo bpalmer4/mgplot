@@ -9,7 +9,9 @@ from typing import Any, Final, NotRequired, Unpack
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure, SubFigure
+from pandas import Period
 
+from mgplot.axis_utils import get_period_axes
 from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import get_setting
 
@@ -196,6 +198,39 @@ def apply_value_kwargs(axes: Axes, value_kwargs_: Sequence[str], **kwargs: Unpac
 
 _SplatValue = bool | dict[str, Any] | Sequence[dict[str, Any]] | None
 
+# Keys in each splat-method's kwargs that are x-axis coordinates — when the
+# plot uses a PeriodIndex the axis is mapped to Period ordinals, so a Period
+# passed here must be converted to its ordinal for matplotlib.
+_PERIOD_COORD_KEYS: Final[dict[str, tuple[str, ...]]] = {
+    "axvline": ("x",),
+    "axvspan": ("xmin", "xmax"),
+}
+
+
+def _convert_period_coords(axes: Axes, method_name: str, item: dict[str, Any]) -> dict[str, Any]:
+    """Return a copy of item with any Period x-coordinates replaced by ordinals.
+
+    If the axes was period-mapped by mgplot, the Period's freq must match the
+    axes' stashed freq — otherwise the ordinals live in different spaces.
+    On an axes with no stash we trust the programmer and just take .ordinal.
+    """
+    keys = _PERIOD_COORD_KEYS.get(method_name)
+    if not keys:
+        return item
+    stash = get_period_axes(axes)
+    stashed_freq = stash[0] if stash is not None else None
+    converted = dict(item)
+    for key in keys:
+        val = converted.get(key)
+        if isinstance(val, Period):
+            if stashed_freq is not None and val.freqstr != stashed_freq:
+                raise ValueError(
+                    f"{method_name} Period freq {val.freqstr!r} does not match "
+                    f"axes freq {stashed_freq!r}",
+                )
+            converted[key] = val.ordinal
+    return converted
+
 
 def _apply_splat(axes: Axes, method_name: str, value: _SplatValue) -> None:
     """Apply a single splat kwarg, which may be a dict or sequence of dicts."""
@@ -213,7 +248,7 @@ def _apply_splat(axes: Axes, method_name: str, value: _SplatValue) -> None:
         method = getattr(axes, method_name)
         for item in value:
             if isinstance(item, dict):
-                method(**item)
+                method(**_convert_period_coords(axes, method_name, item))
             else:
                 print(f"Warning: expected dict in {method_name} sequence, but got {type(item)}.")
     else:

@@ -108,6 +108,55 @@ def test_axvspan_sequence() -> None:
     print("PASS: axvspan sequence")
 
 
+def test_axvline_period() -> None:
+    """A Period passed as axvline x should be converted to its ordinal."""
+    period = pd.Period("2020-05", freq="M")
+    ax = line_plot(_make_series())
+    finalise_plot(
+        ax,
+        axvline={"x": period, "color": "red"},
+        dont_save=True,
+        dont_close=True,
+    )
+
+    xs = {l.get_xdata()[0] for l in ax.get_lines() if len(l.get_ydata()) == 2}
+    assert period.ordinal in xs, f"Expected vline at x={period.ordinal}, got {xs}"
+
+    plt.close()
+    print("PASS: axvline with Period")
+
+
+def test_axvline_period_freq_mismatch() -> None:
+    """A Period with a different freq than the axes should raise."""
+    ax = line_plot(_make_series())  # monthly data
+    wrong = pd.Period("2020Q1", freq="Q")
+    try:
+        finalise_plot(ax, axvline={"x": wrong}, dont_save=True, dont_close=True)
+    except ValueError as e:
+        assert "freq" in str(e).lower(), f"Expected freq-mismatch message, got: {e}"
+        plt.close()
+        print("PASS: axvline Period freq mismatch raises")
+        return
+    plt.close()
+    raise AssertionError("Expected ValueError for mismatched Period freq")
+
+
+def test_plot_freq_mismatch() -> None:
+    """Plotting two series with different freqs on the same axes should raise."""
+    monthly = _make_series()
+    quarterly = pd.Series(range(1, 5), index=pd.period_range("2020Q1", periods=4, freq="Q"))
+    ax = line_plot(monthly)
+    try:
+        line_plot(quarterly, ax=ax)
+    except ValueError as e:
+        assert "freq" in str(e).lower(), f"Expected freq-mismatch message, got: {e}"
+        plt.close()
+        print("PASS: mixed-freq plots on one axes raises")
+        return
+    plt.close()
+    raise AssertionError("Expected ValueError for mixed freqs on one axes")
+
+
 if __name__ == "__main__":
     test_axhline_single_dict()
     test_axhline_sequence()
@@ -115,4 +164,7 @@ if __name__ == "__main__":
     test_axhspan_single_dict()
     test_axhspan_sequence()
     test_axvspan_sequence()
+    test_axvline_period()
+    test_axvline_period_freq_mismatch()
+    test_plot_freq_mismatch()
     print("\nAll splat sequence tests passed!")
