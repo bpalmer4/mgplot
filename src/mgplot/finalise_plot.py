@@ -9,9 +9,9 @@ from typing import Any, Final, NotRequired, Unpack
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure, SubFigure
-from pandas import Period
+from pandas import Period, PeriodIndex
 
-from mgplot.axis_utils import get_period_axes
+from mgplot.axis_utils import get_period_axes, refresh_period_labels, register_period_axes
 from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import get_setting
 
@@ -57,6 +57,7 @@ class FinaliseKwargs(BaseKwargs):
     # --- file/save options
     pre_tag: NotRequired[str]
     tag: NotRequired[str]
+    filename: NotRequired[str]
     chart_dir: NotRequired[str]
     file_type: NotRequired[str]
     dpi: NotRequired[int]
@@ -71,6 +72,7 @@ class FinaliseKwargs(BaseKwargs):
     axisbelow: NotRequired[bool]
     dont_save: NotRequired[bool]
     dont_close: NotRequired[bool]
+    axes_only: NotRequired[bool]
 
 
 VALUE_KWARGS = (
@@ -225,9 +227,12 @@ def _convert_period_coords(axes: Axes, method_name: str, item: dict[str, Any]) -
         if isinstance(val, Period):
             if stashed_freq is not None and val.freqstr != stashed_freq:
                 raise ValueError(
-                    f"{method_name} Period freq {val.freqstr!r} does not match "
-                    f"axes freq {stashed_freq!r}",
+                    f"{method_name} Period freq {val.freqstr!r} does not match axes freq {stashed_freq!r}",
                 )
+            if stashed_freq is not None:
+                # Widen the stash so later label refresh covers this coordinate,
+                # even if it falls outside the plotted data's ordinal range.
+                register_period_axes(axes, PeriodIndex([val]))
             converted[key] = val.ordinal
     return converted
 
@@ -273,7 +278,13 @@ def apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs: Unpack[FinaliseKwa
 
 
 def apply_annotations(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
-    """Set figure size and apply chart annotations."""
+    """Set figure size and apply chart annotations.
+
+    No-op when axes_only=True: the work here is all figure-level (resize,
+    corner text) and would stomp on other panels in a multi-axes figure.
+    """
+    if kwargs.get("axes_only"):
+        return
     fig = axes.figure
     fig_size = kwargs.get("figsize", get_setting("figsize"))
     if not isinstance(fig, SubFigure):
@@ -353,7 +364,8 @@ def save_to_file(fig: Figure, **kwargs: Unpack[FinaliseKwargs]) -> None:
         title = kwargs.get("title", "")
         pre_tag = kwargs.get("pre_tag", "")
         tag = kwargs.get("tag", "")
-        name_title = suptitle or title
+        name_override = kwargs.get("filename", "")
+        name_title = name_override or suptitle or title
         file_title = sanitize_filename(name_title or DEFAULT_FILE_TITLE_NAME)
         file_type = kwargs.get("file_type", get_setting("file_type")).lower()
         dpi = kwargs.get("dpi", get_setting("dpi"))
@@ -419,25 +431,29 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
 
     # tight layout and save the figure
     fig = axes.figure
-    if suptitle := kwargs.get("suptitle"):
+    axes_only = kwargs.get("axes_only", False)
+    if not axes_only and (suptitle := kwargs.get("suptitle")):
         fig.suptitle(suptitle)
     if kwargs.get("preserve_lims"):
         # restore the original limits of the axes
         axes.set_xlim(xlim)
         axes.set_ylim(ylim)
-    if not isinstance(fig, SubFigure):
+    if not axes_only and not isinstance(fig, SubFigure):
         fig.tight_layout(pad=TIGHT_LAYOUT_PAD)
     apply_late_kwargs(axes, **kwargs)
+    # axvspan/axvline in late_kwargs may have widened xlim beyond what
+    # set_labels() last saw; regenerate ticks from the updated view.
+    refresh_period_labels(axes)
     legend = axes.get_legend()
     if legend and kwargs.get("remove_legend", False):
         legend.remove()
-    if not isinstance(fig, SubFigure):
+    if not axes_only and not isinstance(fig, SubFigure):
         save_to_file(fig, **kwargs)
 
     # show the plot in Jupyter Lab
-    if kwargs.get("show"):
+    if not axes_only and kwargs.get("show"):
         plt.show()
 
     # And close
-    if not kwargs.get("dont_close", False):
+    if not axes_only and not kwargs.get("dont_close", False):
         plt.close()

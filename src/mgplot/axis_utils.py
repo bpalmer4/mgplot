@@ -56,8 +56,7 @@ def register_period_axes(axes: Axes, p: PeriodIndex) -> None:
     exist_freq, exist_min, exist_max = existing
     if exist_freq != freq:
         raise ValueError(
-            f"Cannot mix PeriodIndex frequencies on one axes: "
-            f"existing {exist_freq!r}, new {freq!r}",
+            f"Cannot mix PeriodIndex frequencies on one axes: existing {exist_freq!r}, new {freq!r}",
         )
     setattr(
         axes,
@@ -375,6 +374,32 @@ def make_ilabels(p: PeriodIndex, max_ticks: int) -> tuple[list[int], list[str]]:
     return ticks, ticklabels
 
 
+def refresh_period_labels(axes: Axes, max_ticks: int = 10) -> None:
+    """Regenerate x-axis tick labels from the stashed period range and current xlim.
+
+    No-op when the axes has no period stash. Uses the wider of the stash and
+    the current xlim so that artists added after the most recent set_labels()
+    call (e.g. axvspan/axvline in finalise_plot) still get covered by ticks.
+    """
+    stash = get_period_axes(axes)
+    if stash is None:
+        return
+    freq, stash_min, stash_max = stash
+    xlim = axes.get_xlim()
+    x_min = min(stash_min, int(xlim[0]))
+    x_max = max(stash_max, int(xlim[1]))
+
+    full_range = period_range(
+        start=Period(ordinal=x_min, freq=freq),
+        end=Period(ordinal=x_max, freq=freq),
+        freq=freq,
+    )
+
+    ticks, ticklabels = make_ilabels(full_range, max_ticks)
+    axes.set_xticks(ticks)
+    axes.set_xticklabels(ticklabels, rotation=0, ha="center")
+
+
 def set_labels(axes: Axes, p: PeriodIndex, max_ticks: int = 10) -> None:
     """Set the x-axis labels for a date-like PeriodIndex.
 
@@ -390,22 +415,4 @@ def set_labels(axes: Axes, p: PeriodIndex, max_ticks: int = 10) -> None:
 
     """
     register_period_axes(axes, p)
-    freq, stash_min, stash_max = get_period_axes(axes)  # type: ignore[misc]
-
-    # Take the wider of the stashed ordinal range and the current xlim so that
-    # matplotlib's auto-scale padding still influences label anchoring (keeps
-    # tick choice stable for daily/weekly patterns) while the stash guarantees
-    # we never under-span data that has ever been plotted on this axes.
-    xlim = axes.get_xlim()
-    x_min = min(stash_min, int(xlim[0]))
-    x_max = max(stash_max, int(xlim[1]))
-
-    full_range = period_range(
-        start=Period(ordinal=x_min, freq=freq),
-        end=Period(ordinal=x_max, freq=freq),
-        freq=freq,
-    )
-
-    ticks, ticklabels = make_ilabels(full_range, max_ticks)
-    axes.set_xticks(ticks)
-    axes.set_xticklabels(ticklabels, rotation=0, ha="center")
+    refresh_period_labels(axes, max_ticks)

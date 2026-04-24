@@ -141,6 +141,53 @@ def test_axvline_period_freq_mismatch() -> None:
     raise AssertionError("Expected ValueError for mismatched Period freq")
 
 
+def test_axvspan_period_widens_ticks() -> None:
+    """An axvspan Period before the data start should widen the x-axis tick range."""
+    data = pd.Series(range(48), index=pd.period_range("1984Q1", periods=48, freq="Q"))
+    ax = line_plot(data)
+    finalise_plot(
+        ax,
+        axvspan={
+            "xmin": pd.Period("1982Q1", freq="Q"),
+            "xmax": pd.Period("1982Q4", freq="Q"),
+        },
+        dont_save=True,
+        dont_close=True,
+    )
+
+    labels = [t.get_text() for t in ax.get_xticklabels()]
+    assert "1982" in labels, f"Expected '1982' tick after pre-data axvspan, got {labels}"
+
+    plt.close()
+    print("PASS: axvspan Period widens tick range")
+
+
+def test_axes_only_preserves_figure() -> None:
+    """axes_only=True should leave the parent figure untouched (size, texts)."""
+    fig, axs = plt.subplots(2, 2, figsize=(15.0, 10.0))
+    n_fig_texts_before = len(fig.texts)
+    s = _make_series()
+    for ax in axs.flat:
+        line_plot(s, ax=ax)
+        finalise_plot(
+            ax,
+            title="panel",
+            axvspan={"xmin": 1, "xmax": 2, "color": "grey"},
+            lfooter="should-not-appear",
+            axes_only=True,
+        )
+
+    size = tuple(fig.get_size_inches())
+    assert size == (15.0, 10.0), f"figure resized despite axes_only=True: {size}"
+    assert len(fig.texts) == n_fig_texts_before, "lfooter added fig.text despite axes_only=True"
+    for ax in axs.flat:
+        assert len(ax.patches) >= 1, "axvspan should still be applied per-panel"
+        assert ax.get_title() == "panel", "per-panel title should still be set"
+
+    plt.close("all")
+    print("PASS: axes_only preserves parent figure state")
+
+
 def test_plot_freq_mismatch() -> None:
     """Plotting two series with different freqs on the same axes should raise."""
     monthly = _make_series()
@@ -166,5 +213,7 @@ if __name__ == "__main__":
     test_axvspan_sequence()
     test_axvline_period()
     test_axvline_period_freq_mismatch()
+    test_axvspan_period_widens_ticks()
+    test_axes_only_preserves_figure()
     test_plot_freq_mismatch()
     print("\nAll splat sequence tests passed!")

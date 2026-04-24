@@ -1,3 +1,33 @@
+Version 0.2.23 - released 24-Apr-2026 (Canberra, Australia)
+
+* bug fix
+    - finalise_plot() now refreshes PeriodIndex x-axis ticks after applying
+      late-stage splat kwargs (axvspan, axvline). Previously, an axvspan or
+      axvline that extended the view beyond the plotted data (e.g. a
+      recession shade for dates before the series starts) would widen the
+      xlim but leave the tick labels frozen at the original data range
+    - a Period passed to axvspan/axvline now also widens the stashed period
+      range, so tick labels cover the span even when matplotlib's auto-scale
+      does not visibly extend the view
+
+* enhancement
+    - factored label regeneration out of set_labels() into the new
+      refresh_period_labels() helper in axis_utils
+    - added axes_only=True flag to finalise_plot() that suppresses all
+      figure-level side effects (fig.set_size_inches, fig.tight_layout,
+      fig.suptitle, header/footer fig.text, savefig, plt.show, plt.close).
+      Use when finalising individual axes inside a multi-panel figure
+      created with plt.subplots — the caller manages figure-level layout
+      and saving themselves
+    - added test_axvspan_period_widens_ticks and test_axes_only_preserves_figure
+      to test/test_splat_sequences.py
+    - added filename kwarg to finalise_plot() that overrides the title-derived
+      stem used in the saved file's name. The override is sanitized and still
+      composed with pre_tag/tag/file_type, so existing tagging behaviour is
+      preserved
+
+---
+
 Version 0.2.22 - released 22-Apr-2026 (Canberra, Australia)
 
 * bug fix
