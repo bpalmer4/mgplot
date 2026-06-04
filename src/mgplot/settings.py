@@ -1,5 +1,7 @@
 """Managing global default settings."""
 
+from collections.abc import Generator
+from contextlib import contextmanager
 from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any, Final, TypeVar
@@ -168,3 +170,32 @@ def set_chart_dir(chart_dir: str) -> None:
         chart_dir = DEFAULT_CHART_DIR  # avoid empty/whitespace strings
     Path(chart_dir).mkdir(parents=True, exist_ok=True)
     set_setting("chart_dir", chart_dir)
+
+
+@contextmanager
+def chart_subdir(name: str, *, clear: bool = False) -> Generator[str]:
+    """Temporarily redirect chart output to a subdirectory of the current chart_dir.
+
+    Args:
+        name: str - subdirectory name (relative to the current chart_dir).
+        clear: bool - if True, clear the subdirectory of graph-image files
+            on entry. Only set this on the first use of a subdirectory in a
+            notebook; later cells writing to the same subdirectory should
+            leave it False.
+
+    Yields:
+        str - the subdirectory path.
+
+    Note: The previous chart directory is restored on exit, even if an
+    exception is raised.
+
+    """
+    main_dir = get_setting("chart_dir")
+    sub_dir = str(Path(main_dir) / name)
+    set_chart_dir(sub_dir)
+    if clear:
+        clear_chart_dir()
+    try:
+        yield sub_dir
+    finally:
+        set_setting("chart_dir", main_dir)

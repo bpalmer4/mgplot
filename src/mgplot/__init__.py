@@ -48,6 +48,7 @@ from mgplot.revision_plot import revision_plot
 from mgplot.run_plot import RunKwargs, run_plot
 from mgplot.seastrend_plot import seastrend_plot
 from mgplot.settings import (
+    chart_subdir,
     clear_chart_dir,
     get_setting,
     set_chart_dir,
@@ -79,12 +80,13 @@ __all__ = (
     "abbreviate_state",
     "bar_plot",
     "bar_plot_finalise",
-    "fill_between_plot",
-    "fill_between_plot_finalise",
     "calc_growth",
+    "chart_subdir",
     "clear_chart_dir",
     "colorise_list",
     "contrast",
+    "fill_between_plot",
+    "fill_between_plot_finalise",
     "finalise_plot",
     "get_color",
     "get_party_palette",

@@ -1,7 +1,7 @@
 """Produce a summary plot for the data in a given DataFrame."""
 
 # system imports
-from typing import Any, NotRequired, Unpack
+from typing import Any, NotRequired, SupportsFloat, Unpack
 
 from matplotlib.axes import Axes
 
@@ -157,8 +157,12 @@ def plot_latest_datapoint(
     ax.scatter(adjusted.iloc[-1], adjusted.columns, color="darkorange", label="Latest")
     row = adjusted.index[-1]
     for col_num, col_name in enumerate(original.columns):
-        x_adj = float(adjusted.at[row, col_name])
-        x_orig = float(original.at[row, col_name])
+        raw_adj = adjusted.at[row, col_name]
+        raw_orig = original.at[row, col_name]
+        if not isinstance(raw_adj, SupportsFloat) or not isinstance(raw_orig, SupportsFloat):
+            raise TypeError(f"Expected numeric data for {col_name}, got {type(raw_orig).__name__}")
+        x_adj = float(raw_adj)
+        x_orig = float(raw_orig)
         precision = 2 if abs(x_orig) < HIGH_PRECISION_THRESHOLD else 1
         ax.text(
             x=x_adj,

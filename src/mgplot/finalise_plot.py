@@ -274,7 +274,11 @@ def apply_splat_kwargs(axes: Axes, settings: tuple, **kwargs: Unpack[FinaliseKwa
                 print(f"Warning: expected bool, dict, or None for legend, but got {type(legend_value)}.")
             continue
 
-        _apply_splat(axes, method_name, kwargs.get(method_name))
+        value = kwargs.get(method_name)
+        if value is None or isinstance(value, (bool, dict, Sequence)):
+            _apply_splat(axes, method_name, value)
+        else:
+            print(f"Warning: expected dict or sequence of dicts for {method_name}, but got {type(value)}.")
 
 
 def apply_annotations(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:

@@ -1,3 +1,26 @@
+Version 0.2.24 - released 4-Jun-2026 (Canberra, Australia)
+
+* enhancement
+    - added the chart_subdir() context manager to settings.py. It
+      temporarily redirects chart output to a subdirectory of the current
+      chart_dir, optionally clearing the subdirectory of image files on
+      entry (clear=True), and restores the previous chart directory on
+      exit, even if an exception is raised. Yields the subdirectory path.
+      Useful in notebooks that group saved charts into per-topic
+      subdirectories
+    - added test/test_chart_subdir.py covering redirect/restore,
+      exception safety, clear=True semantics and nested contexts
+    - sorted __all__ in __init__.py (removed a duplicate "run_plot"
+      entry), fixing a pre-existing RUF022 lint error
+    - resolved all remaining mypy/pyright errors with runtime type
+      narrowing (no casts): plot_latest_datapoint() in summary_plot.py
+      now verifies datapoints are numeric (raising TypeError otherwise)
+      before calling float(), and apply_splat_kwargs() in
+      finalise_plot.py narrows dynamically-fetched kwarg values before
+      passing them to _apply_splat()
+
+---
+
 Version 0.2.23 - released 24-Apr-2026 (Canberra, Australia)
 
 * bug fix
