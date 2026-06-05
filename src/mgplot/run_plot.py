@@ -208,6 +208,11 @@ def run_plot(data: DataT, **kwargs: Unpack[RunKwargs]) -> Axes:
 
     # --- set axis labels
     if saved_pi is not None:
-        set_labels(axes, saved_pi[1], kwargs.get("max_ticks", get_setting("max_ticks")))
+        set_labels(
+            axes,
+            saved_pi[1],
+            kwargs.get("max_ticks", get_setting("max_ticks")),
+            tick_relabel=kwargs.get("tick_relabel"),
+        )
 
     return axes

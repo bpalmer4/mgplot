@@ -6,6 +6,7 @@ Key functions:
 - series_growth_plot()
 """
 
+from collections.abc import Callable
 from typing import NotRequired, Unpack, cast
 
 from matplotlib.axes import Axes
@@ -42,6 +43,7 @@ class GrowthKwargs(BaseKwargs):
     plot_from: NotRequired[int | Period]
     label_series: NotRequired[bool]
     max_ticks: NotRequired[int]
+    tick_relabel: NotRequired[Callable[[str], str]]
     # --- options passed to the line plot
     line_width: NotRequired[float | int]
     line_color: NotRequired[str]
@@ -219,7 +221,12 @@ def growth_plot(
 
     # --- fix the x-axis labels
     if saved_pi is not None:
-        set_labels(axes, saved_pi[1], kwargsd.get("max_ticks", 10))
+        set_labels(
+            axes,
+            saved_pi[1],
+            kwargsd.get("max_ticks", 10),
+            tick_relabel=kwargsd.get("tick_relabel"),
+        )
 
     # --- and done ...
     return axes

@@ -308,9 +308,14 @@
 </span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>
 </span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>    <span class="c1"># --- set axis labels</span>
 </span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>    <span class="k">if</span> <span class="n">saved_pi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>        <span class="n">set_labels</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">saved_pi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_ticks&quot;</span><span class="p">,</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;max_ticks&quot;</span><span class="p">)))</span>
-</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>
-</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>    <span class="k">return</span> <span class="n">axes</span>
+</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>        <span class="n">set_labels</span><span class="p">(</span>
+</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>            <span class="n">axes</span><span class="p">,</span>
+</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>            <span class="n">saved_pi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a>            <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_ticks&quot;</span><span class="p">,</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;max_ticks&quot;</span><span class="p">)),</span>
+</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a>            <span class="n">tick_relabel</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tick_relabel&quot;</span><span class="p">),</span>
+</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>        <span class="p">)</span>
+</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>
+</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>    <span class="k">return</span> <span class="n">axes</span>
 </span></pre></div>
 
 
@@ -503,6 +508,7 @@
                 <dd id="RunKwargs.plot_from" class="variable"><a href="line_plot.html#LineKwargs.plot_from">plot_from</a></dd>
                 <dd id="RunKwargs.label_series" class="variable"><a href="line_plot.html#LineKwargs.label_series">label_series</a></dd>
                 <dd id="RunKwargs.max_ticks" class="variable"><a href="line_plot.html#LineKwargs.max_ticks">max_ticks</a></dd>
+                <dd id="RunKwargs.tick_relabel" class="variable"><a href="line_plot.html#LineKwargs.tick_relabel">tick_relabel</a></dd>
 
             </div>
                                 </dl>
@@ -570,9 +576,14 @@
 </span><span id="run_plot-209"><a href="#run_plot-209"><span class="linenos">209</span></a>
 </span><span id="run_plot-210"><a href="#run_plot-210"><span class="linenos">210</span></a>    <span class="c1"># --- set axis labels</span>
 </span><span id="run_plot-211"><a href="#run_plot-211"><span class="linenos">211</span></a>    <span class="k">if</span> <span class="n">saved_pi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="run_plot-212"><a href="#run_plot-212"><span class="linenos">212</span></a>        <span class="n">set_labels</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">saved_pi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_ticks&quot;</span><span class="p">,</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;max_ticks&quot;</span><span class="p">)))</span>
-</span><span id="run_plot-213"><a href="#run_plot-213"><span class="linenos">213</span></a>
-</span><span id="run_plot-214"><a href="#run_plot-214"><span class="linenos">214</span></a>    <span class="k">return</span> <span class="n">axes</span>
+</span><span id="run_plot-212"><a href="#run_plot-212"><span class="linenos">212</span></a>        <span class="n">set_labels</span><span class="p">(</span>
+</span><span id="run_plot-213"><a href="#run_plot-213"><span class="linenos">213</span></a>            <span class="n">axes</span><span class="p">,</span>
+</span><span id="run_plot-214"><a href="#run_plot-214"><span class="linenos">214</span></a>            <span class="n">saved_pi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+</span><span id="run_plot-215"><a href="#run_plot-215"><span class="linenos">215</span></a>            <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_ticks&quot;</span><span class="p">,</span> <span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;max_ticks&quot;</span><span class="p">)),</span>
+</span><span id="run_plot-216"><a href="#run_plot-216"><span class="linenos">216</span></a>            <span class="n">tick_relabel</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tick_relabel&quot;</span><span class="p">),</span>
+</span><span id="run_plot-217"><a href="#run_plot-217"><span class="linenos">217</span></a>        <span class="p">)</span>
+</span><span id="run_plot-218"><a href="#run_plot-218"><span class="linenos">218</span></a>
+</span><span id="run_plot-219"><a href="#run_plot-219"><span class="linenos">219</span></a>    <span class="k">return</span> <span class="n">axes</span>
 </span></pre></div>
 
 

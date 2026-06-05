@@ -6,11 +6,10 @@ rectangular bars. As a result, bar plots and line plots typically
 cannot be plotted on the same axes.
 """
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from typing import Any, Final, NotRequired, TypedDict, Unpack
 
 import matplotlib.patheffects as pe
-import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 from pandas import DataFrame, Period, Series
@@ -44,6 +43,7 @@ class BarKwargs(BaseKwargs):
     ax: NotRequired[Axes | None]
     stacked: NotRequired[bool]
     max_ticks: NotRequired[int]
+    tick_relabel: NotRequired[Callable[[str], str]]
     plot_from: NotRequired[int | Period]
     label_rotation: NotRequired[int | float]
     # --- options for each bar ...
@@ -287,9 +287,14 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     # --- handle index labels and rotation
     if saved_strings is not None:
         axes.set_xticks(range(len(saved_strings[1])))
-        axes.set_xticklabels(saved_strings[1])
+        axes.set_xticklabels(saved_strings[1], rotation=chart_args["label_rotation"])
     elif saved_pi is not None:
-        set_labels(axes, saved_pi[1], chart_args["max_ticks"])
-    plt.xticks(rotation=chart_args["label_rotation"])
+        set_labels(
+            axes,
+            saved_pi[1],
+            chart_args["max_ticks"],
+            rotation=chart_args["label_rotation"],
+            tick_relabel=kwargs_d.get("tick_relabel"),
+        )
 
     return axes

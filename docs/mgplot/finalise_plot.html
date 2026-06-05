@@ -696,9 +696,12 @@
 </span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">axes_only</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;show&quot;</span><span class="p">):</span>
 </span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a>
-</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>    <span class="c1"># And close</span>
+</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>    <span class="c1"># And close - the figure this axes belongs to, not pyplot&#39;s current figure</span>
 </span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">axes_only</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dont_close&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-</span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>        <span class="n">root</span> <span class="o">=</span> <span class="n">fig</span>
+</span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a>        <span class="k">while</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">SubFigure</span><span class="p">):</span>
+</span><span id="L-465"><a href="#L-465"><span class="linenos">465</span></a>            <span class="n">root</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">figure</span>
+</span><span id="L-466"><a href="#L-466"><span class="linenos">466</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1784,9 +1787,12 @@ corner text) and would stomp on other panels in a multi-axes figure.</p>
 </span><span id="finalise_plot-459"><a href="#finalise_plot-459"><span class="linenos">459</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">axes_only</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;show&quot;</span><span class="p">):</span>
 </span><span id="finalise_plot-460"><a href="#finalise_plot-460"><span class="linenos">460</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </span><span id="finalise_plot-461"><a href="#finalise_plot-461"><span class="linenos">461</span></a>
-</span><span id="finalise_plot-462"><a href="#finalise_plot-462"><span class="linenos">462</span></a>    <span class="c1"># And close</span>
+</span><span id="finalise_plot-462"><a href="#finalise_plot-462"><span class="linenos">462</span></a>    <span class="c1"># And close - the figure this axes belongs to, not pyplot&#39;s current figure</span>
 </span><span id="finalise_plot-463"><a href="#finalise_plot-463"><span class="linenos">463</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">axes_only</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dont_close&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-</span><span id="finalise_plot-464"><a href="#finalise_plot-464"><span class="linenos">464</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="finalise_plot-464"><a href="#finalise_plot-464"><span class="linenos">464</span></a>        <span class="n">root</span> <span class="o">=</span> <span class="n">fig</span>
+</span><span id="finalise_plot-465"><a href="#finalise_plot-465"><span class="linenos">465</span></a>        <span class="k">while</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">SubFigure</span><span class="p">):</span>
+</span><span id="finalise_plot-466"><a href="#finalise_plot-466"><span class="linenos">466</span></a>            <span class="n">root</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">figure</span>
+</span><span id="finalise_plot-467"><a href="#finalise_plot-467"><span class="linenos">467</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
 </span></pre></div>
 
 

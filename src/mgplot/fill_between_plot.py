@@ -1,5 +1,6 @@
 """Plot a filled region between two bounds."""
 
+from collections.abc import Callable
 from typing import Final, NotRequired, Unpack
 
 from matplotlib.axes import Axes
@@ -29,6 +30,7 @@ class FillBetweenKwargs(BaseKwargs):
     zorder: NotRequired[int | float]
     plot_from: NotRequired[int | None]
     max_ticks: NotRequired[int]
+    tick_relabel: NotRequired[Callable[[str], str]]
 
 
 def fill_between_plot(data: DataFrame, **kwargs: Unpack[FillBetweenKwargs]) -> Axes:
@@ -100,6 +102,11 @@ def fill_between_plot(data: DataFrame, **kwargs: Unpack[FillBetweenKwargs]) -> A
 
     # --- set axis labels
     if saved_pi is not None:
-        set_labels(axes, saved_pi[1], kwargs_d.get("max_ticks", get_setting("max_ticks")))
+        set_labels(
+            axes,
+            saved_pi[1],
+            kwargs_d.get("max_ticks", get_setting("max_ticks")),
+            tick_relabel=kwargs_d.get("tick_relabel"),
+        )
 
     return axes

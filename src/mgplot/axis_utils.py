@@ -8,8 +8,9 @@ such as days, months, quarters, and years.
 """
 
 import calendar
+from collections.abc import Callable
 from enum import Enum
-from typing import Final
+from typing import Any, Final
 
 from matplotlib.axes import Axes
 from pandas import Index, Period, PeriodIndex, RangeIndex, period_range
@@ -33,6 +34,32 @@ def map_stringindex(data: DataT) -> None | tuple[DataT, list[str]]:
 
 
 _AXES_PERIOD_ATTR: Final[str] = "_mgplot_period"
+_AXES_LABEL_OPTS_ATTR: Final[str] = "_mgplot_label_opts"
+DEFAULT_REFRESH_TICKS: Final[int] = 10
+
+
+def register_label_options(
+    axes: Axes,
+    *,
+    max_ticks: int | None = None,
+    rotation: float | None = None,
+    tick_relabel: Callable[[str], str] | None = None,
+) -> None:
+    """Merge non-None tick-label options into the options stashed on an Axes.
+
+    Stashed options (max_ticks, rotation, tick_relabel) are re-read by
+    refresh_period_labels(), so settings made at plot time survive the
+    label refresh that finalise_plot() performs just before saving.
+    """
+    options = {"max_ticks": max_ticks, "rotation": rotation, "tick_relabel": tick_relabel}
+    stash: dict[str, Any] = getattr(axes, _AXES_LABEL_OPTS_ATTR, {})
+    stash.update({k: v for k, v in options.items() if v is not None})
+    setattr(axes, _AXES_LABEL_OPTS_ATTR, stash)
+
+
+def get_label_options(axes: Axes) -> dict[str, Any]:
+    """Return the stashed tick-label options for an axes (empty dict if none)."""
+    return getattr(axes, _AXES_LABEL_OPTS_ATTR, {})
 
 
 def register_period_axes(axes: Axes, p: PeriodIndex) -> None:
@@ -355,12 +382,18 @@ def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
     return labels
 
 
-def make_ilabels(p: PeriodIndex, max_ticks: int) -> tuple[list[int], list[str]]:
+def make_ilabels(
+    p: PeriodIndex,
+    max_ticks: int,
+    tick_relabel: Callable[[str], str] | None = None,
+) -> tuple[list[int], list[str]]:
     """From a PeriodIndex, create a list of integer ticks and ticklabels.
 
     Args:
         p: PeriodIndex - the PeriodIndex
         max_ticks: int - the maximum number of ticks [suggestive]
+        tick_relabel: optional callable applied to each generated label
+            string (after the contextual labellers have run).
 
     Returns a tuple:
         list of integer ticks
@@ -370,21 +403,30 @@ def make_ilabels(p: PeriodIndex, max_ticks: int) -> tuple[list[int], list[str]]:
     labels = make_labels(p, max_ticks)
     ticks = [x.ordinal for x in sorted(labels.keys())]
     ticklabels = [labels[x] for x in sorted(labels.keys())]
+    if tick_relabel is not None:
+        ticklabels = [tick_relabel(label) for label in ticklabels]
 
     return ticks, ticklabels
 
 
-def refresh_period_labels(axes: Axes, max_ticks: int = 10) -> None:
+def refresh_period_labels(axes: Axes, max_ticks: int | None = None) -> None:
     """Regenerate x-axis tick labels from the stashed period range and current xlim.
 
     No-op when the axes has no period stash. Uses the wider of the stash and
     the current xlim so that artists added after the most recent set_labels()
     call (e.g. axvspan/axvline in finalise_plot) still get covered by ticks.
+
+    Label options (max_ticks, rotation, tick_relabel) stashed by set_labels()
+    are honoured, so a refresh reproduces what the plot function originally
+    built. An explicit max_ticks argument overrides the stashed value.
     """
     stash = get_period_axes(axes)
     if stash is None:
         return
     freq, stash_min, stash_max = stash
+    options = get_label_options(axes)
+    if max_ticks is None:
+        max_ticks = options.get("max_ticks", DEFAULT_REFRESH_TICKS)
     xlim = axes.get_xlim()
     x_min = min(stash_min, int(xlim[0]))
     x_max = max(stash_max, int(xlim[1]))
@@ -395,12 +437,19 @@ def refresh_period_labels(axes: Axes, max_ticks: int = 10) -> None:
         freq=freq,
     )
 
-    ticks, ticklabels = make_ilabels(full_range, max_ticks)
+    ticks, ticklabels = make_ilabels(full_range, max_ticks, options.get("tick_relabel"))
     axes.set_xticks(ticks)
-    axes.set_xticklabels(ticklabels, rotation=0, ha="center")
+    axes.set_xticklabels(ticklabels, rotation=options.get("rotation", 0), ha="center")
 
 
-def set_labels(axes: Axes, p: PeriodIndex, max_ticks: int = 10) -> None:
+def set_labels(
+    axes: Axes,
+    p: PeriodIndex,
+    max_ticks: int = 10,
+    *,
+    rotation: float | None = None,
+    tick_relabel: Callable[[str], str] | None = None,
+) -> None:
     """Set the x-axis labels for a date-like PeriodIndex.
 
     Registers the PeriodIndex on the axes (see register_period_axes()). When
@@ -408,11 +457,19 @@ def set_labels(axes: Axes, p: PeriodIndex, max_ticks: int = 10) -> None:
     the union of everything plotted so far, so ticks always span the full
     extent of all plotted data.
 
+    The label options are stashed on the axes so that later refreshes
+    (including the one in finalise_plot()) reproduce them.
+
     Args:
         axes: Axes - the axes to set the labels on
         p: PeriodIndex - the PeriodIndex (registers freq and ordinal range)
         max_ticks: int - the maximum number of ticks [suggestive]
+        rotation: optional rotation (degrees) for the tick labels
+        tick_relabel: optional callable applied to each label string after
+            the contextual labellers have run (e.g. shorten years to two
+            digits).
 
     """
     register_period_axes(axes, p)
-    refresh_period_labels(axes, max_ticks)
+    register_label_options(axes, max_ticks=max_ticks, rotation=rotation, tick_relabel=tick_relabel)
+    refresh_period_labels(axes)

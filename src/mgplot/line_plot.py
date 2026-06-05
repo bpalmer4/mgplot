@@ -1,7 +1,7 @@
 """Plot a series or a dataframe with lines."""
 
 import math
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from typing import Any, Final, NotRequired, TypedDict, Unpack
 
 from matplotlib.axes import Axes
@@ -47,6 +47,7 @@ class LineKwargs(BaseKwargs):
     plot_from: NotRequired[int | Period | None]
     label_series: NotRequired[bool | Sequence[bool] | None]
     max_ticks: NotRequired[int]
+    tick_relabel: NotRequired[Callable[[str], str]]
 
 
 class AnnotateKwargs(TypedDict):
@@ -223,6 +224,11 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
 
     # --- set the labels
     if saved_pi is not None:
-        set_labels(axes, saved_pi[1], kwargs_d.get("max_ticks", get_setting("max_ticks")))
+        set_labels(
+            axes,
+            saved_pi[1],
+            kwargs_d.get("max_ticks", get_setting("max_ticks")),
+            tick_relabel=kwargs_d.get("tick_relabel"),
+        )
 
     return axes

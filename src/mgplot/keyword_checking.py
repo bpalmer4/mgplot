@@ -11,7 +11,7 @@ It is designed to be used interactively and in scripts.
 """
 
 import textwrap
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from collections.abc import Set as AbstractSet
 from types import UnionType
 from typing import Any, Final, NotRequired, ReadOnly, TypedDict, Union, get_args, get_origin
@@ -184,6 +184,9 @@ def check(value: Any, expected: type) -> bool:
                 good = check_set(value, expected)
             case _ if origin in (UnionType, Union):
                 good = check_union(value, expected)
+            case _ if origin is Callable:
+                # signatures are not checked, only callability
+                good = callable(value)
             case _:
                 good = isinstance(value, expected) if hasattr(expected, "__origin__") else True
                 print(f"Keyword checking: {value} not checked against {expected}")

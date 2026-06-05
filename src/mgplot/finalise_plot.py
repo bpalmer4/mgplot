@@ -458,6 +458,9 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
     if not axes_only and kwargs.get("show"):
         plt.show()
 
-    # And close
+    # And close - the figure this axes belongs to, not pyplot's current figure
     if not axes_only and not kwargs.get("dont_close", False):
-        plt.close()
+        root = fig
+        while isinstance(root, SubFigure):
+            root = root.figure
+        plt.close(root)

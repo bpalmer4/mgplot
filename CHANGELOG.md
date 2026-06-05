@@ -1,3 +1,40 @@
+Version 0.2.25 - released 5-Jun-2026 (Canberra, Australia)
+
+* enhancement
+    - added tick_relabel keyword argument to line_plot(), bar_plot(),
+      growth_plot(), fill_between_plot() and run_plot() (and their
+      *_finalise variants): a callable applied to each generated x-axis
+      tick label after the contextual labellers have run (e.g. shorten
+      4-digit years to 2 digits)
+    - tick-label options (max_ticks, label rotation, tick_relabel) are
+      now stashed on the Axes by set_labels() and honoured when
+      finalise_plot() refreshes the labels before saving. Previously the
+      refresh regenerated labels with hard-coded defaults (max_ticks=10,
+      rotation=0), silently discarding per-plot settings
+    - added register_label_options() / get_label_options() to
+      axis_utils.py to support the above
+    - keyword checking now validates Callable annotations (checks
+      callability; previously a parameterized Callable would error)
+    - added test/test_tick_relabel.py covering tick_relabel, max_ticks
+      and label_rotation persistence through finalise_plot(), and
+      correct-figure close behaviour
+    - documented tick labelling and the multi-panel axes_only pattern
+      in README.md (new "Axis Tick Labels" and "Multi-Panel Figures"
+      sections)
+
+* bug fix
+    - bar_plot() applied label_rotation via plt.xticks(), which targets
+      pyplot's current axes rather than the axes being plotted (wrong
+      panel in multi-axes figures), and the rotation was then lost when
+      finalise_plot() refreshed PeriodIndex labels. Rotation now goes
+      via the stashed label options (PeriodIndex) or set_xticklabels()
+      (string index)
+    - finalise_plot() closed pyplot's current figure (plt.close()) rather
+      than the figure belonging to the axes being finalised; it now closes
+      the correct figure (walking up from a SubFigure if necessary)
+
+---
+
 Version 0.2.24 - released 4-Jun-2026 (Canberra, Australia)
 
 * enhancement

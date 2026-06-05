@@ -78,6 +78,74 @@ ax = mg.line_plot(data)
 mg.finalise_plot(ax, title="My Chart", ylabel="Units", tag="my_chart")
 ```
 
+Axis Tick Labels
+----------------
+For PeriodIndex data, x-axis tick labels are generated contextually:
+the tick density is chosen to fit within `max_ticks`, and labels show
+the period with years marked at transitions (e.g. a monthly axis shows
+`Feb Mar ... 2024 ... Feb`, a quarterly axis shows `Q2 Q3 2025 Q2`).
+
+Three keyword arguments control the labels on the period-indexed plot
+functions (`line_plot`, `bar_plot`, `growth_plot`, `fill_between_plot`,
+`run_plot`, and their `*_finalise` variants):
+
+- `max_ticks` -- the maximum number of ticks (suggestive, not exact).
+  The global default is `mg.get_setting("max_ticks")`.
+- `tick_relabel` -- a callable applied to each generated label string,
+  after the contextual labelling has run. Use it to restyle labels
+  without losing the transition logic.
+- `label_rotation` -- (`bar_plot` only) rotates the x-axis tick labels.
+
+For example, to convert 4-digit year labels to 2-digit years:
+
+```python
+import re
+
+def two_digit_years(label: str) -> str:
+    """Shorten 4-digit years to 2 digits (e.g. 2024 -> 24)."""
+    return re.sub(r"\b(?:19|20)(\d{2})\b", r"\1", label)
+
+# default labels:           2010  2012  2014  ...  2024  2026
+# with tick_relabel:          10    12    14  ...    24    26
+mg.line_plot_finalise(data, title="My Chart", tick_relabel=two_digit_years)
+```
+
+Because `tick_relabel` operates on the label strings, this works
+unchanged on quarterly or monthly axes too: a label such as `2024`
+marking a year transition becomes `24`, while the `Q2`/`Mar` labels
+between transitions pass through untouched.
+
+These options are stashed on the matplotlib Axes when the plot is drawn,
+and `finalise_plot()` honours them when it refreshes the tick labels
+just before saving. Editing tick labels directly on the Axes (e.g. with
+`set_xticklabels()`) does not survive that refresh -- use `tick_relabel`
+instead.
+
+Multi-Panel Figures
+-------------------
+`finalise_plot()` works on a single Axes. For a figure with several
+panels, finalise each panel with `axes_only=True` (axes-level styling
+only: titles, labels, legends), then make the last call a normal
+`finalise_plot()` carrying the figure-level arguments (`suptitle`,
+`lfooter`, `rfooter`, `figsize`, ...), which also saves and closes
+the figure:
+
+```python
+fig, (ax_left, ax_right) = plt.subplots(1, 2)
+mg.line_plot(left_data, ax=ax_left)
+mg.line_plot(right_data, ax=ax_right)
+mg.finalise_plot(ax_left, title="Left Panel", ylabel="Index", axes_only=True)
+mg.finalise_plot(
+    ax_right,
+    title="Right Panel",
+    ylabel="Index",
+    suptitle="Both Panels Together",  # also used for the filename
+    lfooter="Australia. Seasonally adjusted.",
+    rfooter="Source: ABS",
+    figsize=(9, 4.5),
+)
+```
+
 Convenience Finalisers
 ----------------------
 For every plot function, there is a `*_finalise()` variant that combines
