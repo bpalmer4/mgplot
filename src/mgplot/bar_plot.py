@@ -42,6 +42,7 @@ class BarKwargs(BaseKwargs):
     # --- options for the entire bar plot
     ax: NotRequired[Axes | None]
     stacked: NotRequired[bool]
+    horizontal: NotRequired[bool]
     max_ticks: NotRequired[int]
     tick_relabel: NotRequired[Callable[[str], str]]
     plot_from: NotRequired[int | Period]
@@ -70,7 +71,7 @@ class AnnoKwargs(TypedDict, total=False):
     fontname: str
     color: str
     rotation: int | float
-    foreground: str  # used for stroke effect on text
+    foreground: str | Sequence[str]  # used for stroke effect on text (per-bar if a sequence)
     above: bool
     rounding: bool | int  # if True, uses default rounding; if int, uses that value
 
@@ -80,9 +81,14 @@ def annotate_bars(
     offset: float,
     base: np.ndarray,
     axes: Axes,
+    *,
+    horizontal: bool = False,
     **anno_kwargs: Unpack[AnnoKwargs],
 ) -> None:
     """Bar plot annotations.
+
+    Annotations are placed along the value axis: the y-axis for vertical
+    bars, the x-axis when horizontal=True.
 
     Note: "annotate", "fontsize", "fontname", "color", and "rotation" are expected in anno_kwargs.
     """
@@ -115,18 +121,32 @@ def annotate_bars(
         position = base[index - zero_correction] + (adjustment if value >= 0 else -adjustment)
         if above:
             position += value
+        if horizontal:
+            placement: dict[str, Any] = {
+                "x": position,
+                "y": index + offset,
+                "ha": "left" if value >= 0 else "right",
+                "va": "center",
+            }
+        else:
+            placement = {
+                "x": index + offset,
+                "y": position,
+                "ha": "center",
+                "va": "bottom" if value >= 0 else "top",
+            }
         text = axes.text(
-            x=index + offset,
-            y=position,
             s=f"{value:.{rounding}f}",
-            ha="center",
-            va="bottom" if value >= 0 else "top",
+            **placement,
             **annotate_style,
         )
         if not above and "foreground" in anno_kwargs:
             # apply a stroke-effect to within bar annotations
             # to make them more readable with very small bars.
-            text.set_path_effects([pe.withStroke(linewidth=2, foreground=anno_kwargs.get("foreground"))])
+            foreground = anno_kwargs.get("foreground")
+            if isinstance(foreground, Sequence) and not isinstance(foreground, str):
+                foreground = foreground[index - zero_correction]  # per-bar colours
+            text.set_path_effects([pe.withStroke(linewidth=2, foreground=foreground)])
 
 
 class GroupedKwargs(TypedDict):
@@ -138,7 +158,14 @@ class GroupedKwargs(TypedDict):
     zorder: Sequence[int | float | None]
 
 
-def grouped(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[GroupedKwargs]) -> None:
+def grouped(
+    axes: Axes,
+    df: DataFrame,
+    anno_args: AnnoKwargs,
+    *,
+    horizontal: bool = False,
+    **kwargs: Unpack[GroupedKwargs],
+) -> None:
     """Plot a grouped bar plot."""
     series_count = len(df.columns)
 
@@ -154,20 +181,22 @@ def grouped(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[G
         left = -DEFAULT_BAR_OFFSET + ((1 - width) / 2.0) + (adjusted_width / 2.0)
         offset = left + (i * adjusted_width)
         foreground = kwargs["color"][i]
-        axes.bar(
-            x=series.index + offset,
-            height=series,
-            color=foreground,
-            width=adjusted_width,
-            zorder=kwargs["zorder"][i],
-            label=col if kwargs["label_series"][i] else f"_{col}_",
-        )
+        common: dict[str, Any] = {
+            "color": foreground,
+            "zorder": kwargs["zorder"][i],
+            "label": col if kwargs["label_series"][i] else f"_{col}_",
+        }
+        if horizontal:
+            axes.barh(y=series.index + offset, width=series, height=adjusted_width, **common)
+        else:
+            axes.bar(x=series.index + offset, height=series, width=adjusted_width, **common)
         anno_args["foreground"] = foreground
         annotate_bars(
             series=series,
             offset=offset,
             base=np.zeros(len(series)),
             axes=axes,
+            horizontal=horizontal,
             **anno_args,
         )
 
@@ -181,7 +210,14 @@ class StackedKwargs(TypedDict):
     zorder: Sequence[int | float | None]
 
 
-def stacked(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[StackedKwargs]) -> None:
+def stacked(
+    axes: Axes,
+    df: DataFrame,
+    anno_args: AnnoKwargs,
+    *,
+    horizontal: bool = False,
+    **kwargs: Unpack[StackedKwargs],
+) -> None:
     """Plot a stacked bar plot."""
     row_count = len(df)
     base_plus: np.ndarray = np.zeros(shape=row_count, dtype=np.float64)
@@ -190,21 +226,22 @@ def stacked(axes: Axes, df: DataFrame, anno_args: AnnoKwargs, **kwargs: Unpack[S
         series = df[col]
         base = np.where(series >= 0, base_plus, base_minus)
         foreground = kwargs["color"][i]
-        axes.bar(
-            x=series.index,
-            height=series,
-            bottom=base,
-            color=foreground,
-            width=kwargs["width"][i],
-            zorder=kwargs["zorder"][i],
-            label=col if kwargs["label_series"][i] else f"_{col}_",
-        )
+        common: dict[str, Any] = {
+            "color": foreground,
+            "zorder": kwargs["zorder"][i],
+            "label": col if kwargs["label_series"][i] else f"_{col}_",
+        }
+        if horizontal:
+            axes.barh(y=series.index, width=series, left=base, height=kwargs["width"][i], **common)
+        else:
+            axes.bar(x=series.index, height=series, bottom=base, width=kwargs["width"][i], **common)
         anno_args["foreground"] = foreground
         annotate_bars(
             series=series,
             offset=0,
             base=base,
             axes=axes,
+            horizontal=horizontal,
             **anno_args,
         )
         base_plus += np.where(series >= 0, series, 0)
@@ -253,11 +290,28 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     # --- set up the default arguments
     chart_defaults: dict[str, bool | int] = {
         "stacked": False,
+        "horizontal": False,
         "max_ticks": DEFAULT_MAX_TICKS,
         "label_series": item_count > 1,
         "label_rotation": 0,
     }
     chart_args = {k: kwargs_d.get(k, v) for k, v in chart_defaults.items()}
+
+    # --- horizontal bars are for categorical data, not PeriodIndex timeseries
+    horizontal = bool(chart_args["horizontal"])
+    if horizontal and saved_pi is not None:
+        print(f"Warning: horizontal=True is not supported with a PeriodIndex in {ME}(); plotting vertical.")
+        horizontal = False
+
+    # --- single series + one colour per bar => per-bar colours
+    user_color = kwargs_d.get("color")
+    if (
+        item_count == 1
+        and isinstance(user_color, Sequence)
+        and not isinstance(user_color, str)
+        and len(user_color) == len(df)
+    ):
+        kwargs_d["color"] = [list(user_color)]  # one series whose colour is a per-bar list
 
     bar_defaults = {
         "color": get_color_list(item_count),
@@ -280,14 +334,18 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     # --- plot the data
     axes, remaining_kwargs = get_axes(**dict(remaining_kwargs))
     if chart_args["stacked"]:
-        stacked(axes, df, anno_args, **bar_args)
+        stacked(axes, df, anno_args, horizontal=horizontal, **bar_args)
     else:
-        grouped(axes, df, anno_args, **bar_args)
+        grouped(axes, df, anno_args, horizontal=horizontal, **bar_args)
 
     # --- handle index labels and rotation
     if saved_strings is not None:
-        axes.set_xticks(range(len(saved_strings[1])))
-        axes.set_xticklabels(saved_strings[1], rotation=chart_args["label_rotation"])
+        if horizontal:
+            axes.set_yticks(range(len(saved_strings[1])))
+            axes.set_yticklabels(saved_strings[1], rotation=chart_args["label_rotation"])
+        else:
+            axes.set_xticks(range(len(saved_strings[1])))
+            axes.set_xticklabels(saved_strings[1], rotation=chart_args["label_rotation"])
     elif saved_pi is not None:
         set_labels(
             axes,

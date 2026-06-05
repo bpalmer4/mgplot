@@ -52,8 +52,9 @@ All plot functions take a pandas Series or DataFrame with a PeriodIndex
 as the first argument and return a matplotlib Axes object. Keyword
 arguments control styling and behavior:
 
-- `bar_plot()` -- vertical bar plot (grouped or stacked) with intelligent
-  PeriodIndex labeling
+- `bar_plot()` -- bar plot (grouped or stacked) with intelligent
+  PeriodIndex labeling; `horizontal=True` plots categorical data as
+  horizontal bars (categories on the y-axis, values along the x-axis)
 - `fill_between_plot()` -- shaded region between two bounds (requires
   2-column DataFrame)
 - `growth_plot()` -- plots annual and periodic growth rates (requires
@@ -68,6 +69,25 @@ arguments control styling and behavior:
   periodic (bars) growth from a single Series
 - `summary_plot()` -- latest data point against historical range with
   z-score visualization
+
+For ranked-category charts (states, industries, expenditure classes),
+use `horizontal=True` with a string-indexed Series or DataFrame:
+
+```python
+vacancies = vacancies.sort_values()  # smallest at the bottom
+mg.bar_plot_finalise(
+    vacancies,
+    horizontal=True,
+    annotate=True,     # value labels at the bar ends
+    above=True,
+    x0=True,           # zero line on the value axis
+    title="Job vacancies by industry",
+    xlabel="'000",
+)
+```
+
+`horizontal=True` is for categorical data: with a PeriodIndex it warns
+and falls back to a vertical plot.
 
 Finalising Plots
 ----------------

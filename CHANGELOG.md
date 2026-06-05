@@ -1,3 +1,27 @@
+Version 0.2.26 - released 5-Jun-2026 (Canberra, Australia)
+
+* enhancement
+    - added horizontal=True to bar_plot() (and bar_plot_finalise()):
+      plots grouped or stacked horizontal bars with category labels on
+      the y-axis and values along the x-axis. Designed for categorical
+      (string-indexed) data - ranked states, industries, expenditure
+      classes and the like. Bar annotations are placed at the bar ends
+      (or within bars), vertically centred. Sign-aware stacking
+      (negatives leftward, positives rightward) works as for vertical
+      stacked bars. horizontal=True with a PeriodIndex warns and falls
+      back to a vertical plot - period tick labelling is x-axis only
+    - bar_plot() with a single series now accepts one colour per bar:
+      if color is a sequence whose length matches the data, each bar is
+      painted individually (e.g. state colours on a ranked horizontal
+      bar chart). The in-bar annotation stroke effect picks the matching
+      per-bar colour. Multi-series colour semantics are unchanged
+    - added test/test_bar_horizontal.py covering string-index labels,
+      annotations, grouped/stacked, negative stacking, the PeriodIndex
+      fallback, per-bar colours, and label survival through
+      finalise_plot()
+
+---
+
 Version 0.2.25 - released 5-Jun-2026 (Canberra, Australia)
 
 * enhancement
