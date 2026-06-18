@@ -14,7 +14,7 @@ import math
 from typing import Any, Final
 
 import numpy as np
-from matplotlib import cm
+from matplotlib import colormaps
 from matplotlib.axes import Axes
 from matplotlib.pyplot import subplots
 from pandas import DataFrame, Period, PeriodIndex, RangeIndex, Series
@@ -186,7 +186,7 @@ def get_color_list(count: int) -> list[str]:
         options = [k for k in colors if k > count]
         return colors[min(options)][:count]
 
-    c = cm.get_cmap("nipy_spectral")(np.linspace(0, 1, count))
+    c = colormaps["nipy_spectral"](np.linspace(0, 1, count))
     return [f"#{int(x * 255):02x}{int(y * 255):02x}{int(z * 255):02x}" for x, y, z, _ in c]
 
 

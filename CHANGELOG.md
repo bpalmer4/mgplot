@@ -1,3 +1,15 @@
+Version 0.2.27 - released 19-Jun-2026 (Canberra, Australia)
+
+* bug fix
+    - get_color_list() in utilities.py now uses the matplotlib.colormaps
+      registry (colormaps["nipy_spectral"]) instead of the removed
+      matplotlib.cm.get_cmap(). cm.get_cmap was deprecated in matplotlib
+      3.7 and removed in 3.9; this restored colour generation for charts
+      with more series than the predefined palettes cover under
+      matplotlib >= 3.9 (tested against 3.11.0)
+
+---
+
 Version 0.2.26 - released 5-Jun-2026 (Canberra, Australia)
 
 * enhancement
