@@ -1,3 +1,38 @@
+Version 0.2.28 - released 20-Jun-2026 (Canberra, Australia)
+
+* enhancement
+    - end-of-line value annotations in line_plot() (and everything that
+      routes through it, including growth_plot() and seastrend_plot())
+      are now de-collided automatically. line_plot() registers the label
+      artists on the axes and finalise_plot() spreads them once the figure
+      layout is final, so the de-collision is measured against what is
+      actually saved. The algorithm works in display coordinates:
+        - a label that overlaps another label or a plotted line (over its
+          own horizontal span) is nudged vertically by at most its own
+          height to find a clear slot;
+        - if that fails and the line ends within near_end (default 0.1) of
+          the data width from the right edge, the label is snapped across
+          to the rightmost data point and stacked vertically with the other
+          end-of-axes labels;
+        - if that fails for an interior label, the position with the most
+          clearance is kept (overlap is accepted rather than moving the
+          label off its line end);
+        - line avoidance never applies to a label sitting at the last data
+          point, whose text extends into the right margin.
+      Added a near_end keyword to LineKwargs to tune the snap threshold.
+      New module annotation_utils.py implements the resolver; new tests in
+      test/test_annotation_collision.py.
+    - revision_plot() (and revision_plot_finalise()) now default near_end
+      to 0.0 instead of inheriting the 0.1 default, so the near-identical
+      vintage labels that bunch at the right edge are no longer snapped and
+      stacked against the right border. Callers can still pass near_end to
+      override.
+    - tweaked the default colour palettes in settings.py: the single-series
+      colour is now "blue" (was "#dd0000"), and the 5-series palette uses
+      "cornflowerblue" and "brown" in place of "seagreen" and "#dd0000".
+
+---
+
 Version 0.2.27 - released 19-Jun-2026 (Canberra, Australia)
 
 * bug fix

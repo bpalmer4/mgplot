@@ -14,6 +14,7 @@ from mgplot.utilities import check_clean_timeseries
 ME = "revision_plot"
 DEFAULT_PLOT_FROM = -15
 MIN_REVISION_COLUMNS = 2
+DEFAULT_NEAR_END = 0.0  # revision vintages bunch at the right edge; don't snap labels to the border
 
 
 # --- functions
@@ -54,6 +55,7 @@ def revision_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
     kwargs["annotate"] = kwargs.get("annotate", True)
     kwargs["annotate_color"] = kwargs.get("annotate_color", "black")
     kwargs["rounding"] = kwargs.get("rounding", 3)
+    kwargs["near_end"] = kwargs.get("near_end", DEFAULT_NEAR_END)
 
     # --- plot
     return line_plot(data, **kwargs)

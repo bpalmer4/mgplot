@@ -2,12 +2,14 @@
 
 import math
 from collections.abc import Callable, Sequence
-from typing import Any, Final, NotRequired, TypedDict, Unpack
+from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, Unpack
 
 from matplotlib.axes import Axes
+from matplotlib.text import Text
 from pandas import DataFrame, Period, PeriodIndex, Series
 from pandas.api.types import is_numeric_dtype
 
+from mgplot.annotation_utils import register_annotations
 from mgplot.axis_utils import map_periodindex, set_labels
 from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import DataT, get_setting
@@ -20,8 +22,12 @@ from mgplot.utilities import (
     get_color_list,
 )
 
+if TYPE_CHECKING:
+    from matplotlib.lines import Line2D
+
 # --- constants
 ME: Final[str] = "line_plot"
+DEFAULT_NEAR_END: Final[float] = 0.1  # fraction-of-width threshold for snapping labels to the edge
 
 
 class LineKwargs(BaseKwargs):
@@ -44,6 +50,7 @@ class LineKwargs(BaseKwargs):
     fontname: NotRequired[str | Sequence[str]]
     rotation: NotRequired[Sequence[int | float] | int | float]
     annotate_color: NotRequired[str | Sequence[str] | bool | Sequence[bool] | None]
+    near_end: NotRequired[float]
     plot_from: NotRequired[int | Period | None]
     label_series: NotRequired[bool | Sequence[bool] | None]
     max_ticks: NotRequired[int]
@@ -65,16 +72,20 @@ def annotate_series(
     series: Series,
     axes: Axes,
     **kwargs: Unpack[AnnotateKwargs],
-) -> None:
-    """Annotate the right-hand end-point of a line-plotted series."""
+) -> Text | None:
+    """Annotate the right-hand end-point of a line-plotted series.
+
+    Returns the created Text artist (or None if there was nothing to annotate)
+    so the caller can register it for end-of-line collision resolution.
+    """
     # --- check the series has a value to annotate
     latest: Series = series.dropna()
     if latest.empty or not is_numeric_dtype(latest):
-        return
+        return None
     x: int | float = latest.index[-1]  # type: ignore[assignment]
     y: int | float = latest.iloc[-1]
     if y is None or math.isnan(y):
-        return
+        return None
 
     # --- extract fontsize - could be None, bool, int or str.
     fontsize = kwargs.get("fontsize", "small")
@@ -89,7 +100,7 @@ def annotate_series(
         raise ValueError("color is required for annotation")
     rounding = default_rounding(value=y, provided=kwargs.get("rounding"))
     r_string = f"  {y:.{rounding}f}" if rounding > 0 else f"  {int(y)}"
-    axes.text(
+    return axes.text(
         x=x,
         y=y,
         s=r_string,
@@ -186,6 +197,8 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
     num_data_points = len(df)
     swce, kwargs_d = get_style_width_color_etc(item_count, num_data_points, **kwargs_d)
 
+    drawn_lines: list[Line2D] = []  # every data line - obstacles for label de-collision
+    annotations: list[tuple[Text, Line2D | None]] = []  # (label, the line it annotates)
     for i, column in enumerate(df.columns):
         series = df[column]
         series = series.dropna() if "dropna" in swce and swce["dropna"][i] else series
@@ -193,7 +206,7 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
             print(f"Warning: No data to plot for {column} in line_plot().")
             continue
 
-        axes.plot(
+        lines = axes.plot(
             # using matplotlib, as pandas can set xlabel/ylabel
             series.index,  # x
             series,  # y
@@ -207,12 +220,13 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
             zorder=swce["zorder"][i],
             label=(column if "label_series" in swce and swce["label_series"][i] else f"_{column}_"),
         )
+        drawn_lines.extend(lines)
 
         if swce["annotate"][i] is None or not swce["annotate"][i]:
             continue
 
         color = swce["color"][i] if swce["annotate_color"][i] is True else swce["annotate_color"][i]
-        annotate_series(
+        text = annotate_series(
             series,
             axes,
             color=color,
@@ -220,6 +234,17 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
             fontsize=swce["fontsize"][i],
             fontname=swce["fontname"][i],
             rotation=swce["rotation"][i],
+        )
+        if text is not None:
+            annotations.append((text, lines[0] if lines else None))
+
+    # --- register annotations so finalise_plot() can de-collide them
+    if annotations:
+        register_annotations(
+            axes,
+            annotations,
+            drawn_lines,
+            kwargs_d.get("near_end", DEFAULT_NEAR_END),
         )
 
     # --- set the labels

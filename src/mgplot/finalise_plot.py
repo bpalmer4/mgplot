@@ -11,6 +11,7 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure, SubFigure
 from pandas import Period, PeriodIndex
 
+from mgplot.annotation_utils import resolve_annotation_collisions
 from mgplot.axis_utils import get_period_axes, refresh_period_labels, register_period_axes
 from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import get_setting
@@ -448,6 +449,8 @@ def finalise_plot(axes: Axes, **kwargs: Unpack[FinaliseKwargs]) -> None:
     # axvspan/axvline in late_kwargs may have widened xlim beyond what
     # set_labels() last saw; regenerate ticks from the updated view.
     refresh_period_labels(axes)
+    # de-collide end-of-line annotations now that the layout/limits are final
+    resolve_annotation_collisions(axes)
     legend = axes.get_legend()
     if legend and kwargs.get("remove_legend", False):
         legend.remove()

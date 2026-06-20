@@ -62,8 +62,8 @@ mgplot_defaults = DefaultTypes(
         "fontsize": "x-small",
     },
     colors={
-        1: ["#dd0000"],
-        5: ["darkblue", "darkorange", "seagreen", "#dd0000", "gray"],
+        1: ["blue"],
+        5: ["darkblue", "darkorange", "cornflowerblue", "brown", "gray"],
         9: [
             "darkblue",
             "darkorange",

@@ -426,7 +426,8 @@ def refresh_period_labels(axes: Axes, max_ticks: int | None = None) -> None:
     freq, stash_min, stash_max = stash
     options = get_label_options(axes)
     if max_ticks is None:
-        max_ticks = options.get("max_ticks", DEFAULT_REFRESH_TICKS)
+        stashed = options.get("max_ticks", DEFAULT_REFRESH_TICKS)
+        max_ticks = stashed if isinstance(stashed, int) else DEFAULT_REFRESH_TICKS
     xlim = axes.get_xlim()
     x_min = min(stash_min, int(xlim[0]))
     x_max = max(stash_max, int(xlim[1]))
