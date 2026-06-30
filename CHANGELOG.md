@@ -1,3 +1,18 @@
+Version 0.2.29 - released 30-Jun-2026 (Canberra, Australia)
+
+* bug fix
+    - finalise_plot() now accepts pandas Period values in the xlim and
+      xticks keyword arguments. On a period-mapped axes (one built from a
+      PeriodIndex) each Period is converted to its ordinal before being
+      passed to matplotlib, mirroring the existing handling for axvline and
+      axvspan; the Period's freq must match the axes' stashed freq, otherwise
+      a clear ValueError is raised. Previously a Period in xlim/xticks reached
+      matplotlib untranslated and raised a cryptic "ufunc 'isfinite' not
+      supported" TypeError. The xlim/xticks type hints also accept int now,
+      alongside float and Period.
+
+---
+
 Version 0.2.28 - released 20-Jun-2026 (Canberra, Australia)
 
 * enhancement

@@ -38,9 +38,9 @@ class FinaliseKwargs(BaseKwargs):
     title: NotRequired[str | None]
     xlabel: NotRequired[str | None]
     ylabel: NotRequired[str | None]
-    xlim: NotRequired[tuple[float, float] | None]
+    xlim: NotRequired[tuple[float | int | Period, float | int | Period] | None]
     ylim: NotRequired[tuple[float, float] | None]
-    xticks: NotRequired[list[float] | None]
+    xticks: NotRequired[list[float | int | Period] | None]
     yticks: NotRequired[list[float] | None]
     xscale: NotRequired[str | None]
     yscale: NotRequired[str | None]
@@ -179,7 +179,7 @@ def apply_value_kwargs(axes: Axes, value_kwargs_: Sequence[str], **kwargs: Unpac
 
     # --- loop over potential value settings
     for setting in value_kwargs_:
-        value = kwargs.get(setting)
+        value = _convert_period_value(axes, setting, kwargs.get(setting))
         if setting in kwargs:
             # deliberately set, so we will action
             axes.set(**{setting: value})
@@ -236,6 +236,39 @@ def _convert_period_coords(axes: Axes, method_name: str, item: dict[str, Any]) -
                 register_period_axes(axes, PeriodIndex([val]))
             converted[key] = val.ordinal
     return converted
+
+
+# Value-kwargs whose entries are x-axis coordinates — like axvline/axvspan, a
+# Period passed here must be converted to its ordinal on a period-mapped axes.
+_PERIOD_X_VALUE_KWARGS: Final[tuple[str, ...]] = ("xlim", "xticks")
+
+
+def _convert_period_value(axes: Axes, setting: str, value: Any) -> Any:
+    """Return value with any Period x-coordinates replaced by ordinals.
+
+    xlim is a 2-tuple and xticks a list; either may contain Periods when the
+    caller describes the axis in calendar terms. On a period-mapped axes the
+    Period freq must match the axes' stashed freq (see register_period_axes).
+    Non-x settings, None, and non-Period entries pass through unchanged.
+    """
+    if setting not in _PERIOD_X_VALUE_KWARGS or not isinstance(value, (tuple, list)):
+        return value
+    stash = get_period_axes(axes)
+    stashed_freq = stash[0] if stash is not None else None
+    converted: list[Any] = []
+    for val in value:
+        if isinstance(val, Period):
+            if stashed_freq is not None and val.freqstr != stashed_freq:
+                raise ValueError(
+                    f"{setting} Period freq {val.freqstr!r} does not match axes freq {stashed_freq!r}",
+                )
+            if stashed_freq is not None:
+                # Widen the stash so the later label refresh covers this coordinate.
+                register_period_axes(axes, PeriodIndex([val]))
+            converted.append(val.ordinal)
+        else:
+            converted.append(val)
+    return tuple(converted) if isinstance(value, tuple) else converted
 
 
 def _apply_splat(axes: Axes, method_name: str, value: _SplatValue) -> None:
