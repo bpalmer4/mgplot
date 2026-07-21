@@ -7,8 +7,12 @@ from pathlib import Path
 from typing import Any, Final, NotRequired, Unpack
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure, SubFigure
+from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle
+from matplotlib.transforms import blended_transform_factory
 from pandas import Period, PeriodIndex
 
 from mgplot.annotation_utils import resolve_annotation_collisions
@@ -28,6 +32,12 @@ ZERO_LINE_WIDTH: Final[float] = 0.66
 ZERO_LINE_COLOR: Final[str] = "#555555"
 ZERO_AXIS_ADJUSTMENT: Final[float] = 0.02
 DEFAULT_FILE_TITLE_NAME: Final[str] = "plot"
+# --- annotated axvline text
+VLINE_TEXT_FONTSIZE: Final[str] = "xx-small"
+VLINE_TEXT_ROTATION: Final[int] = 90
+VLINE_TEXT_OFFSET: Final[float] = 3.0  # points, to the right of the line
+VLINE_TEXT_PAD: Final[float] = 0.01  # axes fraction, in from the top/bottom
+VLINE_AUTO_BAND: Final[float] = 0.02  # fraction of the x-span sampled either side
 
 
 class FinaliseKwargs(BaseKwargs):
@@ -243,7 +253,7 @@ def _convert_period_coords(axes: Axes, method_name: str, item: dict[str, Any]) -
 _PERIOD_X_VALUE_KWARGS: Final[tuple[str, ...]] = ("xlim", "xticks")
 
 
-def _convert_period_value(axes: Axes, setting: str, value: Any) -> Any:
+def _convert_period_value(axes: Axes, setting: str, value: object) -> object:
     """Return value with any Period x-coordinates replaced by ordinals.
 
     xlim is a 2-tuple and xticks a list; either may contain Periods when the
@@ -255,7 +265,7 @@ def _convert_period_value(axes: Axes, setting: str, value: Any) -> Any:
         return value
     stash = get_period_axes(axes)
     stashed_freq = stash[0] if stash is not None else None
-    converted: list[Any] = []
+    converted: list[object] = []
     for val in value:
         if isinstance(val, Period):
             if stashed_freq is not None and val.freqstr != stashed_freq:
@@ -269,6 +279,117 @@ def _convert_period_value(axes: Axes, setting: str, value: Any) -> Any:
         else:
             converted.append(val)
     return tuple(converted) if isinstance(value, tuple) else converted
+
+
+# --- annotated vertical lines
+# "text", "loc" and "text_kwargs" in an axvline dict describe its label rather
+# than the line, and are popped before the dict is splatted into ax.axvline().
+_VLINE_LOCATIONS: Final[tuple[str, ...]] = ("auto", "top", "bottom")
+
+
+def _pop_vline_text(item: dict[str, Any]) -> tuple[str, str, dict[str, Any]] | None:
+    """Remove the label keys from an axvline dict and return them, or None if unlabelled.
+
+    Raises on a bad loc, a non-dict text_kwargs, or label options given
+    without any text to place -- each of which is a typo, not a choice.
+    """
+    text = item.pop("text", None)
+    loc = item.pop("loc", "auto")
+    text_kwargs = item.pop("text_kwargs", {})
+
+    if text is None or not str(text).strip():
+        if loc != "auto" or text_kwargs:
+            raise ValueError("axvline 'loc'/'text_kwargs' given without any 'text' to place")
+        return None
+    if loc not in _VLINE_LOCATIONS:
+        raise ValueError(f"axvline 'loc' must be one of {_VLINE_LOCATIONS}, got {loc!r}")
+    if not isinstance(text_kwargs, dict):
+        raise TypeError(f"axvline 'text_kwargs' must be a dict, got {type(text_kwargs)}")
+    return str(text), loc, text_kwargs
+
+
+def _data_y_extent(axes: Axes, x: float) -> tuple[float, float] | None:
+    """Return the (min, max) y of plotted data in a narrow x-band around x.
+
+    A rotated label occupies only a sliver of the x-axis, so a narrow band is
+    what the eye actually judges. Lines are matched by transform identity:
+    axhline/axvline use blended transforms, so this skips them and measures
+    only real data. Rectangles cover bar plots; axvspan/axhspan patches are
+    likewise blended and skipped. Returns None when nothing is measurable.
+    """
+    left, right = axes.get_xlim()
+    half = abs(right - left) * VLINE_AUTO_BAND
+    low, high = x - half, x + half
+    found: list[float] = []
+
+    for line in axes.get_lines():
+        if not isinstance(line, Line2D) or line.get_transform() is not axes.transData:
+            continue
+        xdata = np.asarray(line.get_xdata(), dtype=float)
+        ydata = np.asarray(line.get_ydata(), dtype=float)
+        if xdata.size != ydata.size or xdata.size == 0:
+            continue
+        wanted = (xdata >= low) & (xdata <= high) & ~np.isnan(ydata)
+        if wanted.any():
+            found.extend((float(ydata[wanted].min()), float(ydata[wanted].max())))
+
+    for patch in axes.patches:
+        if not isinstance(patch, Rectangle) or patch.get_data_transform() is not axes.transData:
+            continue
+        x0, width = patch.get_x(), patch.get_width()
+        y0, height = patch.get_y(), patch.get_height()
+        if min(x0, x0 + width) > high or max(x0, x0 + width) < low:
+            continue
+        found.extend((min(y0, y0 + height), max(y0, y0 + height)))
+
+    if not found:
+        return None
+    return min(found), max(found)
+
+
+def _auto_vline_loc(axes: Axes, x: float) -> str:
+    """Pick the end of the axes with more room between the data and the limit."""
+    extent = _data_y_extent(axes, x)
+    if extent is None:
+        return "top"  # nothing measurable (empty band, or an unrecognised artist)
+    data_low, data_high = extent
+    bottom_lim, top_lim = axes.get_ylim()
+    if top_lim >= bottom_lim:
+        top_gap, bottom_gap = top_lim - data_high, data_low - bottom_lim
+    else:  # inverted y-axis: values decrease going up the display
+        top_gap, bottom_gap = data_low - top_lim, bottom_lim - data_high
+    return "top" if top_gap >= bottom_gap else "bottom"
+
+
+def _annotate_vline(axes: Axes, item: dict[str, Any], line: Line2D, spec: tuple[str, str, dict]) -> None:
+    """Place a rotated text label just to the right of a vertical line.
+
+    The label is anchored with x in data coordinates and y in axes
+    coordinates, so it stays pinned to the top/bottom of the plot regardless
+    of any later change to the y-limits.
+    """
+    text, loc, text_kwargs = spec
+    x = item.get("x", 0)  # matches the matplotlib default for axvline
+    if loc == "auto":
+        loc = _auto_vline_loc(axes, float(x))
+    y, valign = (1.0 - VLINE_TEXT_PAD, "top") if loc == "top" else (VLINE_TEXT_PAD, "bottom")
+
+    options: dict[str, Any] = {
+        "rotation": VLINE_TEXT_ROTATION,
+        "fontsize": VLINE_TEXT_FONTSIZE,
+        "color": line.get_color(),
+        "ha": "left",
+        "va": valign,
+    }
+    options.update(text_kwargs)
+    axes.annotate(
+        text,
+        xy=(x, y),
+        xycoords=blended_transform_factory(axes.transData, axes.transAxes),
+        xytext=(VLINE_TEXT_OFFSET, 0),
+        textcoords="offset points",
+        **options,
+    )
 
 
 def _apply_splat(axes: Axes, method_name: str, value: _SplatValue) -> None:
@@ -286,10 +407,15 @@ def _apply_splat(axes: Axes, method_name: str, value: _SplatValue) -> None:
     if isinstance(value, Sequence):
         method = getattr(axes, method_name)
         for item in value:
-            if isinstance(item, dict):
-                method(**_convert_period_coords(axes, method_name, item))
-            else:
+            if not isinstance(item, dict):
                 print(f"Warning: expected dict in {method_name} sequence, but got {type(item)}.")
+                continue
+            converted = _convert_period_coords(axes, method_name, item)
+            # _convert_period_coords always copies, so popping is safe here
+            spec = _pop_vline_text(converted) if method_name == "axvline" else None
+            artist = method(**converted)
+            if spec is not None and isinstance(artist, Line2D):
+                _annotate_vline(axes, converted, artist, spec)
     else:
         print(f"Warning: expected dict or sequence of dicts for {method_name}, but got {type(value)}.")
 

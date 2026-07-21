@@ -1,3 +1,32 @@
+Version 0.2.30 - released 21-Jul-2026 (Canberra, Australia)
+
+* enhancement
+    - vertical lines added through the axvline keyword argument to
+      finalise_plot() can now carry a text label, placed just to the right
+      of the line and rotated to read bottom-to-top. Three new keys are
+      recognised in an axvline dict, and are removed before the rest of the
+      dict is passed to matplotlib:
+        - text: the label itself. Without it, an axvline behaves exactly as
+          it did before.
+        - loc: where the label sits, one of "auto" (the default), "top" or
+          "bottom". "auto" samples the plotted data in a narrow band around
+          the line and anchors the label at whichever end has more room
+          between the data and the axis limit; lines (from line plots) and
+          rectangles (from bar plots) are both measured, and where nothing
+          is measurable it falls back to "top".
+        - text_kwargs: a dict merged into the underlying text call, which
+          overrides any of the defaults - xx-small, rotated 90 degrees, and
+          coloured to match the line.
+      The label is anchored with x in data coordinates and y in axes
+      coordinates, so it stays pinned to the top or bottom of the plot if
+      the y-limits change afterwards. As axvline already accepted a sequence
+      of dicts, several labelled lines can be placed in one call. Labels are
+      not de-collided against each other; use an explicit loc if they crowd.
+      A bad loc, a non-dict text_kwargs, or loc/text_kwargs given without any
+      text all raise, as each is a typo rather than a choice.
+
+---
+
 Version 0.2.29 - released 30-Jun-2026 (Canberra, Australia)
 
 * bug fix
