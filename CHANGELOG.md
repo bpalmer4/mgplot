@@ -1,3 +1,21 @@
+Version 0.2.31 - released 22-Jul-2026 (Canberra, Australia)
+
+* enhancement
+    - the loc key on an annotated axvline label now chooses which flank of the
+      line the label sits on, as well as which end of the plot. loc is a
+      space-separated string mixing a vertical word ("auto", the default, or
+      "top"/"bottom") with a side word ("left"/"right"); either may be omitted
+      and the order does not matter. The side places the rotated label on the
+      left or right of the line, VLINE_TEXT_OFFSET points away. An omitted side
+      defaults to "right", so a bare "auto"/"top"/"bottom" - and any code
+      written against 0.2.30 - behaves exactly as before. A loc naming two
+      vertical words, two side words, or an unrecognised word raises, as each
+      is a typo rather than a choice.
+    - the default gap between a label and its line (VLINE_TEXT_OFFSET) is now
+      2 points rather than 3, pulling the text in a little closer.
+
+---
+
 Version 0.2.30 - released 21-Jul-2026 (Canberra, Australia)
 
 * enhancement

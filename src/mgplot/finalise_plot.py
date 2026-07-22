@@ -35,7 +35,7 @@ DEFAULT_FILE_TITLE_NAME: Final[str] = "plot"
 # --- annotated axvline text
 VLINE_TEXT_FONTSIZE: Final[str] = "xx-small"
 VLINE_TEXT_ROTATION: Final[int] = 90
-VLINE_TEXT_OFFSET: Final[float] = 3.0  # points, to the right of the line
+VLINE_TEXT_OFFSET: Final[float] = 2.0  # points, to the right of the line
 VLINE_TEXT_PAD: Final[float] = 0.01  # axes fraction, in from the top/bottom
 VLINE_AUTO_BAND: Final[float] = 0.02  # fraction of the x-span sampled either side
 
@@ -284,7 +284,37 @@ def _convert_period_value(axes: Axes, setting: str, value: object) -> object:
 # --- annotated vertical lines
 # "text", "loc" and "text_kwargs" in an axvline dict describe its label rather
 # than the line, and are popped before the dict is splatted into ax.axvline().
-_VLINE_LOCATIONS: Final[tuple[str, ...]] = ("auto", "top", "bottom")
+# loc is a space-separated string mixing a vertical word ("auto"/"top"/"bottom")
+# with a side word ("left"/"right"); either may be omitted. The side picks which
+# flank of the line the rotated label sits on, VLINE_TEXT_OFFSET points away.
+_VLINE_EDGES: Final[tuple[str, ...]] = ("top", "bottom")
+_VLINE_SIDES: Final[tuple[str, ...]] = ("left", "right")
+
+
+def _parse_vline_loc(loc: object) -> tuple[str, str]:
+    """Split a loc string into (edge, side), order-free and each optional.
+
+    edge is "auto", "top" or "bottom"; side is "left" or "right". An omitted
+    edge falls back to "auto" (choose by the data) and an omitted side to
+    "right" (today's placement). Raises on an unrecognised or doubled word --
+    each is a typo, not a choice.
+    """
+    if not isinstance(loc, str):
+        raise TypeError(f"axvline 'loc' must be a string, got {type(loc)}")
+    edge: str | None = None
+    side: str | None = None
+    for tok in loc.split():
+        if tok == "auto" or tok in _VLINE_EDGES:
+            if edge is not None:
+                raise ValueError(f"axvline 'loc' names two vertical positions, got {loc!r}")
+            edge = tok
+        elif tok in _VLINE_SIDES:
+            if side is not None:
+                raise ValueError(f"axvline 'loc' names two sides, got {loc!r}")
+            side = tok
+        else:
+            raise ValueError(f"axvline 'loc' word {tok!r} not recognised in {loc!r}")
+    return edge or "auto", side or "right"
 
 
 def _pop_vline_text(item: dict[str, Any]) -> tuple[str, str, dict[str, Any]] | None:
@@ -301,8 +331,7 @@ def _pop_vline_text(item: dict[str, Any]) -> tuple[str, str, dict[str, Any]] | N
         if loc != "auto" or text_kwargs:
             raise ValueError("axvline 'loc'/'text_kwargs' given without any 'text' to place")
         return None
-    if loc not in _VLINE_LOCATIONS:
-        raise ValueError(f"axvline 'loc' must be one of {_VLINE_LOCATIONS}, got {loc!r}")
+    _parse_vline_loc(loc)  # validate now; raises on a bad loc string
     if not isinstance(text_kwargs, dict):
         raise TypeError(f"axvline 'text_kwargs' must be a dict, got {type(text_kwargs)}")
     return str(text), loc, text_kwargs
@@ -362,23 +391,26 @@ def _auto_vline_loc(axes: Axes, x: float) -> str:
 
 
 def _annotate_vline(axes: Axes, item: dict[str, Any], line: Line2D, spec: tuple[str, str, dict]) -> None:
-    """Place a rotated text label just to the right of a vertical line.
+    """Place a rotated text label just to one side of a vertical line.
 
-    The label is anchored with x in data coordinates and y in axes
-    coordinates, so it stays pinned to the top/bottom of the plot regardless
-    of any later change to the y-limits.
+    The side (left/right of the line) comes from loc; the label is anchored
+    with x in data coordinates and y in axes coordinates, so it stays pinned
+    to the top/bottom of the plot regardless of any later change to the
+    y-limits.
     """
     text, loc, text_kwargs = spec
     x = item.get("x", 0)  # matches the matplotlib default for axvline
-    if loc == "auto":
-        loc = _auto_vline_loc(axes, float(x))
-    y, valign = (1.0 - VLINE_TEXT_PAD, "top") if loc == "top" else (VLINE_TEXT_PAD, "bottom")
+    edge, side = _parse_vline_loc(loc)
+    if edge == "auto":
+        edge = _auto_vline_loc(axes, float(x))
+    y, valign = (1.0 - VLINE_TEXT_PAD, "top") if edge == "top" else (VLINE_TEXT_PAD, "bottom")
+    x_off, halign = (VLINE_TEXT_OFFSET, "left") if side == "right" else (-VLINE_TEXT_OFFSET, "right")
 
     options: dict[str, Any] = {
         "rotation": VLINE_TEXT_ROTATION,
         "fontsize": VLINE_TEXT_FONTSIZE,
         "color": line.get_color(),
-        "ha": "left",
+        "ha": halign,
         "va": valign,
     }
     options.update(text_kwargs)
@@ -386,7 +418,7 @@ def _annotate_vline(axes: Axes, item: dict[str, Any], line: Line2D, spec: tuple[
         text,
         xy=(x, y),
         xycoords=blended_transform_factory(axes.transData, axes.transAxes),
-        xytext=(VLINE_TEXT_OFFSET, 0),
+        xytext=(x_off, 0),
         textcoords="offset points",
         **options,
     )
