@@ -1,3 +1,24 @@
+Version 0.2.32 - released 22-Aug-2026 (Canberra, Australia)
+
+* enhancement
+    - new line_plot() key force_right (default False). When set, every
+      end-of-line annotation is placed at the rightmost data point on the axes
+      and stacked there, instead of first trying to stay at its own line end.
+    - new line_plot() key leader_lines (default False). When set, any
+      annotation that finished more than half its own height away from its
+      line end is joined back to that line end by a thin leader in the line's
+      colour. This covers labels displaced by an ordinary collision nudge as
+      well as those snapped to the right-hand edge.
+
+* bug fix
+    - annotations snapped to the right-hand edge are now stacked in the same
+      vertical order as the line ends they belong to. Previously each label
+      took the nearest free slot as it was placed, and slots already taken
+      were never revisited, so lines that finished close together could have
+      their labels come out in a different order to the lines themselves.
+
+---
+
 Version 0.2.31 - released 22-Jul-2026 (Canberra, Australia)
 
 * enhancement

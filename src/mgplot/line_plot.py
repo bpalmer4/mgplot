@@ -9,7 +9,7 @@ from matplotlib.text import Text
 from pandas import DataFrame, Period, PeriodIndex, Series
 from pandas.api.types import is_numeric_dtype
 
-from mgplot.annotation_utils import register_annotations
+from mgplot.annotation_utils import AnnotationOptions, register_annotations
 from mgplot.axis_utils import map_periodindex, set_labels
 from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import DataT, get_setting
@@ -51,6 +51,8 @@ class LineKwargs(BaseKwargs):
     rotation: NotRequired[Sequence[int | float] | int | float]
     annotate_color: NotRequired[str | Sequence[str] | bool | Sequence[bool] | None]
     near_end: NotRequired[float]
+    force_right: NotRequired[bool]
+    leader_lines: NotRequired[bool]
     plot_from: NotRequired[int | Period | None]
     label_series: NotRequired[bool | Sequence[bool] | None]
     max_ticks: NotRequired[int]
@@ -244,7 +246,11 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
             axes,
             annotations,
             drawn_lines,
-            kwargs_d.get("near_end", DEFAULT_NEAR_END),
+            AnnotationOptions(
+                near_end=kwargs_d.get("near_end", DEFAULT_NEAR_END),
+                force_right=bool(kwargs_d.get("force_right", False)),
+                leader_lines=bool(kwargs_d.get("leader_lines", False)),
+            ),
         )
 
     # --- set the labels

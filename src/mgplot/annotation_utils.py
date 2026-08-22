@@ -18,14 +18,25 @@ Algorithm (everything is computed in display/pixel coordinates):
   label that finds such a slot keeps that local position.
 * A near-end / at-end label that cannot be cleared within that nudge is snapped
   across to the rightmost data point and stacked vertically with the other
-  end-of-axes labels.
+  end-of-axes labels.  The stack keeps the labels in the same vertical order as
+  the line ends they belong to (isotonic placement), so annotations for lines
+  that finish close together never read out of order.
 * An interior label that cannot be cleared keeps the candidate position with the
   most clearance -- overlap is accepted rather than moving it off its line end.
 * Line avoidance never applies to a label sitting at the last data point: its
   text extends into the right margin where there is no line to clear.
+
+Two caller-set flags change the above:
+
+* ``force_right`` sends every label straight to the snapped stack at the
+  rightmost data point, skipping local placement altogether.
+* ``leader_lines`` draws a thin leader from a label's anchor (its own line end)
+  to the label box, for any label that finished more than half its own height
+  away from that anchor.
 """
 
-from math import inf
+from dataclasses import dataclass
+from math import hypot, inf
 from typing import Any, Final
 
 import numpy as np
@@ -46,14 +57,37 @@ _STEP_PX: Final[float] = 1.0  # search step when looking for a clear slot
 _SNAP_LIMIT_PX: Final[float] = 1.0e4  # effectively-unbounded search at the right edge
 _SPAN_SAMPLES: Final[int] = 5  # samples of a line across a label's x-span
 _X_EPS: Final[float] = 1.0e-9  # fraction-of-span tolerance for "at the last point"
+_LEADER_MIN_FRAC: Final[float] = 0.5  # draw a leader once displaced this many label-heights
+_LEADER_LW: Final[float] = 0.7  # leader line width (points)
+_LEADER_ALPHA: Final[float] = 0.5  # leader line alpha
+_LEADER_ZORDER: Final[float] = 1.5  # under the data lines (matplotlib default zorder 2)
 
 
 # --- registration (mirrors the period-axes stash in axis_utils)
+@dataclass(frozen=True)
+class AnnotationOptions:
+    """How end-of-line labels should be laid out on an axes.
+
+    Attributes:
+        near_end: labels whose line end is within this fraction of the data
+            width from the right edge are snapped to the edge when they cannot
+            be placed locally.
+        force_right: place every label at the rightmost data point, without
+            first trying to keep it at its own line end.
+        leader_lines: draw a leader from a displaced label back to its anchor.
+
+    """
+
+    near_end: float
+    force_right: bool = False
+    leader_lines: bool = False
+
+
 def register_annotations(
     axes: Axes,
     pairs: list[tuple[Text, Line2D | None]],
     lines: list[Line2D],
-    near_end: float,
+    options: AnnotationOptions,
 ) -> None:
     """Stash end-of-line annotation artists on an Axes for later de-collision.
 
@@ -61,9 +95,8 @@ def register_annotations(
         axes: the Axes the labels were drawn on.
         pairs: (label Text, the Line2D it annotates) for each annotated series.
         lines: every data Line2D on the axes (obstacles for interior labels).
-        near_end: labels whose line end is within this fraction of the data
-            width from the right edge are snapped to the edge when they cannot
-            be placed locally.
+        options: the layout settings for this axes; the flags of repeated
+            registrations on one axes are OR-ed together.
 
     """
     if not pairs:
@@ -72,7 +105,16 @@ def register_annotations(
     stash["pairs"].extend(pairs)
     known = {id(ln) for ln in stash["lines"]}
     stash["lines"].extend(ln for ln in lines if id(ln) not in known)
-    stash["near_end"] = near_end
+    prior: AnnotationOptions | None = stash.get("options")
+    stash["options"] = (
+        options
+        if prior is None
+        else AnnotationOptions(
+            near_end=options.near_end,
+            force_right=options.force_right or prior.force_right,
+            leader_lines=options.leader_lines or prior.leader_lines,
+        )
+    )
     setattr(axes, _AXES_ANNO_ATTR, stash)
 
 
@@ -146,44 +188,96 @@ def _place_interior(lab: dict[str, Any], placed: list[dict[str, Any]], line_disp
     lab["yc"] = best_yc  # cannot clear within +/- height: accept the best overlap
 
 
-def _free_slot(lab: dict[str, Any], base: float, placed: list[dict[str, Any]]) -> float:
-    """Nearest y to base with no label overlap (used at the snapped right edge)."""
-    if not _hits_label(lab, base, placed):
-        return base
-    off = _STEP_PX
-    while off <= _SNAP_LIMIT_PX:
-        for cand in (base + off, base - off):
-            if not _hits_label(lab, cand, placed):
-                return cand
-        off += _STEP_PX
-    return base
-
-
-def _place_cluster(
+def _place_cluster_local(
     lab: dict[str, Any],
     placed: list[dict[str, Any]],
     line_disps: list[LineDisp],
+) -> bool:
+    """Try to keep a near-end label at its own line end; True when it fits there."""
+    if lab["at_end"]:
+        return False  # already at the right edge: it belongs in the stack
+    base = lab["yc"]
+    if not _hits_line(lab, base, line_disps) and not _hits_label(lab, base, placed):
+        return True
+    off = _STEP_PX
+    while off <= lab["h"]:
+        for cand in (base + off, base - off):
+            if not _hits_line(lab, cand, line_disps) and not _hits_label(lab, cand, placed):
+                lab["yc"] = cand
+                return True
+        off += _STEP_PX
+    return False
+
+
+def _isotonic(values: list[float]) -> list[float]:
+    """Least-squares fit of a non-decreasing sequence to values (pool adjacent violators)."""
+    blocks: list[tuple[float, int]] = []  # (block mean, block size)
+    for val in values:
+        mean, count = val, 1
+        while blocks and blocks[-1][0] > mean:
+            prev_mean, prev_count = blocks.pop()
+            mean = (prev_mean * prev_count + mean * count) / (prev_count + count)
+            count += prev_count
+        blocks.append((mean, count))
+    out: list[float] = []
+    for mean, count in blocks:
+        out.extend([mean] * count)
+    return out
+
+
+def _stack_shift(stack: list[dict[str, Any]], ys: list[float], placed: list[dict[str, Any]]) -> float:
+    """Smallest whole-stack offset that clears the already-placed labels."""
+
+    def clear(off: float) -> bool:
+        return not any(_hits_label(lab, y + off, placed) for lab, y in zip(stack, ys, strict=True))
+
+    if clear(0.0):
+        return 0.0
+    off = _STEP_PX
+    while off <= _SNAP_LIMIT_PX:
+        for cand in (off, -off):
+            if clear(cand):
+                return cand
+        off += _STEP_PX
+    return 0.0
+
+
+def _stack_snapped(
+    stack: list[dict[str, Any]],
+    placed: list[dict[str, Any]],
     right_disp_x: float,
 ) -> None:
-    """Place a near-/at-end label: try local, else snap to the edge and stack."""
-    base = lab["yc"]
-    if not lab["at_end"]:
-        # try to keep it at its own line end, nudging by at most its height
-        if not _hits_line(lab, base, line_disps) and not _hits_label(lab, base, placed):
-            return
-        off = _STEP_PX
-        while off <= lab["h"]:
-            for cand in (base + off, base - off):
-                if not _hits_line(lab, cand, line_disps) and not _hits_label(lab, cand, placed):
-                    lab["yc"] = cand
-                    return
-            off += _STEP_PX
-    # snap across to the rightmost data point and stack clear of placed labels
-    delta = right_disp_x - lab["x0"]
-    lab["x0"] += delta
-    lab["x1"] += delta
-    lab["snapped"] = True
-    lab["yc"] = _free_slot(lab, base, placed)
+    """Snap labels to the rightmost data point, stacked in line-end order.
+
+    The vertical order of the stack matches the order of the line ends it
+    annotates, so labels for lines that finish close together never swap.
+    Within that constraint the labels sit as near their own line end as the
+    minimum separation allows.
+    """
+    if not stack:
+        return
+    for lab in stack:
+        delta = right_disp_x - lab["x0"]
+        lab["x0"] += delta
+        lab["x1"] += delta
+        lab["snapped"] = True
+
+    stack.sort(key=lambda lab: lab["anchor_yc"])  # bottom-most line end first
+    # Subtracting the cumulative minimum separation turns "stay this far apart,
+    # in this order" into plain "non-decreasing", which _isotonic() solves.
+    cums: list[float] = []
+    cum, prev_h = 0.0, None
+    for lab in stack:
+        if prev_h is not None:
+            cum += (prev_h + lab["h"]) / 2.0 + _GAP_PX
+        cums.append(cum)
+        prev_h = lab["h"]
+    fitted = _isotonic([lab["anchor_yc"] - c for lab, c in zip(stack, cums, strict=True)])
+    ys = [f + c for f, c in zip(fitted, cums, strict=True)]
+
+    shift = _stack_shift(stack, ys, placed)
+    for lab, y in zip(stack, ys, strict=True):
+        lab["yc"] = y + shift
 
 
 def _root_figure(axes: Axes) -> Figure:
@@ -262,6 +356,8 @@ def _build_labels(
                 "x1": bb.x1,
                 "yc": (bb.y0 + bb.y1) / 2.0,
                 "h": bb.height,
+                "anchor_x0": bb.x0,  # box left edge before any placement
+                "anchor_yc": (bb.y0 + bb.y1) / 2.0,  # the line end this label belongs to
                 "own": line_index.get(id(own), -1),
                 "at_end": abs(right_x - x_data) <= _X_EPS * span,
                 "near": (right_x - x_data) <= near_end * span,
@@ -269,6 +365,64 @@ def _build_labels(
             },
         )
     return labels
+
+
+def _place_all(
+    labels: list[dict[str, Any]],
+    line_disps: list[LineDisp | None],
+    right_disp_x: float,
+    *,
+    force_right: bool,
+) -> None:
+    """Give every label a final display y: interior first, then the right-edge stack."""
+
+    def others(lab: dict[str, Any]) -> list[LineDisp]:
+        """Return line geometry excluding the label's own line (it ends at the anchor)."""
+        return [ld for i, ld in enumerate(line_disps) if ld is not None and i != lab["own"]]
+
+    placed: list[dict[str, Any]] = []
+    interior = [] if force_right else [lab for lab in labels if not lab["near"]]
+    cluster = [lab for lab in labels if force_right or lab["near"]]
+    for lab in sorted(interior, key=lambda lab: lab["yc"]):
+        _place_interior(lab, placed, others(lab))
+        placed.append(lab)
+
+    stack: list[dict[str, Any]] = []
+    for lab in sorted(cluster, key=lambda lab: (-lab["x_data"], lab["yc"])):
+        if not force_right and _place_cluster_local(lab, placed, others(lab)):
+            placed.append(lab)
+        else:
+            stack.append(lab)  # laid out together below, so their order is kept
+    _stack_snapped(stack, placed, right_disp_x)
+
+
+def _draw_leaders(axes: Axes, labels: list[dict[str, Any]], trans: Transform) -> None:
+    """Join each displaced label back to its own line end with a thin leader.
+
+    A label that barely moved gets no leader: the stub would be shorter than the
+    text is tall and would read as dirt rather than as a connection.
+    """
+    inv = trans.inverted()
+    for lab in labels:
+        if hypot(lab["x0"] - lab["anchor_x0"], lab["yc"] - lab["anchor_yc"]) < lab["h"] * _LEADER_MIN_FRAC:
+            continue
+        x_anchor = float(trans.transform((lab["x_data"], 0.0))[0])
+        x_start, y_start = inv.transform((x_anchor, lab["anchor_yc"]))
+        x_end, y_end = inv.transform((lab["x0"] - _GAP_PX, lab["yc"]))
+        # add_artist() (not add_line()) so the leader cannot disturb the data
+        # limits the labels were just measured against.
+        axes.add_artist(
+            Line2D(
+                [x_start, x_end],
+                [y_start, y_end],
+                lw=_LEADER_LW,
+                color=lab["t"].get_color(),
+                alpha=_LEADER_ALPHA,
+                zorder=_LEADER_ZORDER,
+                clip_on=False,  # snapped stacks can run past ylim
+                label="_nolegend_",
+            ),
+        )
 
 
 # --- public entry point
@@ -295,24 +449,12 @@ def resolve_annotation_collisions(axes: Axes) -> None:
         return
     line_disps, line_index, right_x, span, right_disp_x = geometry
 
-    labels = _build_labels(stash["pairs"], renderer, line_index, (right_x, span, stash["near_end"]))
+    options: AnnotationOptions = stash["options"]
+    labels = _build_labels(stash["pairs"], renderer, line_index, (right_x, span, options.near_end))
     if not labels:
         return
 
-    def others(lab: dict[str, Any]) -> list[LineDisp]:
-        """Return line geometry excluding the label's own line (it ends at the anchor)."""
-        return [ld for i, ld in enumerate(line_disps) if ld is not None and i != lab["own"]]
-
-    # --- place interior labels first, then the right-edge cluster
-    placed: list[dict[str, Any]] = []
-    interior = sorted((lab for lab in labels if not lab["near"]), key=lambda lab: lab["yc"])
-    cluster = sorted((lab for lab in labels if lab["near"]), key=lambda lab: (-lab["x_data"], lab["yc"]))
-    for lab in interior:
-        _place_interior(lab, placed, others(lab))
-        placed.append(lab)
-    for lab in cluster:
-        _place_cluster(lab, placed, others(lab), right_disp_x)
-        placed.append(lab)
+    _place_all(labels, line_disps, right_disp_x, force_right=options.force_right)
 
     # --- write the new positions back in data coordinates
     inv = trans.inverted()
@@ -322,3 +464,6 @@ def resolve_annotation_collisions(axes: Axes) -> None:
         lab["t"].set_y(y_data)
         if lab["snapped"]:
             lab["t"].set_x(right_x)
+
+    if options.leader_lines:
+        _draw_leaders(axes, labels, trans)
