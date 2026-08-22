@@ -1,3 +1,18 @@
+Version 0.2.33 - released 22-Aug-2026 (Canberra, Australia)
+
+* enhancement
+    - the line_plot() key annotate now takes a string as well as a flag, so a
+      line can be labelled with arbitrary text (a vintage such as "26Q2", say)
+      instead of its end-point value. As with color and style, a scalar string
+      broadcasts to every series and a list applies per series. annotate=True
+      still prints the end-point value, and False or the empty string still
+      means no label. A string label is printed as given, so rounding has no
+      effect on it; annotate_color still applies and remains the way to colour
+      the label. String labels de-collide, honour force_right and get
+      leader_lines exactly as value labels do.
+
+---
+
 Version 0.2.32 - released 22-Aug-2026 (Canberra, Australia)
 
 * enhancement

@@ -44,7 +44,7 @@ class LineKwargs(BaseKwargs):
     markersize: NotRequired[float | Sequence[float] | int | None]
     zorder: NotRequired[int | float | Sequence[int | float]]
     dropna: NotRequired[bool | Sequence[bool]]
-    annotate: NotRequired[bool | Sequence[bool]]
+    annotate: NotRequired[bool | str | Sequence[bool | str]]
     rounding: NotRequired[Sequence[int | bool] | int | bool | None]
     fontsize: NotRequired[Sequence[str | int | float] | str | int | float]
     fontname: NotRequired[str | Sequence[str]]
@@ -67,6 +67,7 @@ class AnnotateKwargs(TypedDict):
     fontsize: str | int | float
     fontname: str
     rotation: int | float
+    text: str | None
 
 
 # --- functions
@@ -76,6 +77,11 @@ def annotate_series(
     **kwargs: Unpack[AnnotateKwargs],
 ) -> Text | None:
     """Annotate the right-hand end-point of a line-plotted series.
+
+    The label text is the `text` keyword argument when that is a string,
+    otherwise the end-point value rounded to `rounding` places. Either way the
+    series must have a numeric end-point, which is what the label is anchored
+    to.
 
     Returns the created Text artist (or None if there was nothing to annotate)
     so the caller can register it for end-of-line collision resolution.
@@ -100,8 +106,12 @@ def annotate_series(
     color = kwargs.get("color")
     if color is None:
         raise ValueError("color is required for annotation")
-    rounding = default_rounding(value=y, provided=kwargs.get("rounding"))
-    r_string = f"  {y:.{rounding}f}" if rounding > 0 else f"  {int(y)}"
+    text = kwargs.get("text")
+    if isinstance(text, str):
+        r_string = f"  {text}"
+    else:
+        rounding = default_rounding(value=y, provided=kwargs.get("rounding"))
+        r_string = f"  {y:.{rounding}f}" if rounding > 0 else f"  {int(y)}"
     return axes.text(
         x=x,
         y=y,
@@ -165,6 +175,17 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
     Args:
         data: DataFrame | Series - data to plot
         kwargs: LineKwargs - keyword arguments for the line plot
+
+    The annotate key labels the right-hand end of each line. It takes either a
+    flag or a string, as a scalar broadcast to every series or as a per-series
+    sequence:
+        annotate=True             - label with the end-point value (default
+                                    behaviour)
+        annotate="26Q2"           - label every series with that text
+        annotate=["26Q2", "26Q3"] - label each series with its own text
+        annotate=False (or "")    - no label
+    A string label is printed as given, so rounding has no effect on it;
+    annotate_color still applies and remains the way to colour the label.
 
     Returns:
     - axes: Axes - the axes object for the plot
@@ -236,6 +257,7 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
             fontsize=swce["fontsize"][i],
             fontname=swce["fontname"][i],
             rotation=swce["rotation"][i],
+            text=swce["annotate"][i],
         )
         if text is not None:
             annotations.append((text, lines[0] if lines else None))
