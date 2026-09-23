@@ -142,8 +142,9 @@ def _plot_runs(
 
         # Create annotation text
         rounding = kwargs.get("rounding", DEFAULT_ROUNDING)
+        digits = rounding if isinstance(rounding, int) else DEFAULT_ROUNDING
         total_change = change_points[stretch.index].sum()
-        annotation_text = f"{total_change.round(rounding)} pp"
+        annotation_text = f"{round(float(total_change), digits)} pp"
 
         text = axes.text(
             x=stretch.index.min(),

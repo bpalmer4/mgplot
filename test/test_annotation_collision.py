@@ -4,10 +4,11 @@ Run with: uv run python test/test_annotation_collision.py
 """
 
 import tempfile
+from itertools import pairwise
 
-import matplotlib
+import matplotlib as mpl
 
-matplotlib.use("Agg")
+mpl.use("Agg")
 
 import numpy as np
 import pandas as pd
@@ -39,7 +40,7 @@ def test_colliding_end_labels_are_spread() -> None:
     _finalise(axes, "collision test")
 
     ys = sorted(t.get_position()[1] for t in axes.texts)
-    gaps = [b - a for a, b in zip(ys, ys[1:], strict=False)]
+    gaps = [b - a for a, b in pairwise(ys)]
     assert len(ys) == 4, f"expected 4 labels, got {len(ys)}"
     assert all(g > 0 for g in gaps), f"labels not separated: gaps={gaps}"
     # all four ended at the rightmost data point, so all snap to one x
@@ -86,6 +87,61 @@ def test_stacked_labels_follow_line_end_order() -> None:
     for label, value in zip(order, sorted(ends.values()), strict=True):
         assert abs(float(label) - value) < 0.5, f"label {label} out of order (want ~{value})"
     print("PASS: stacked labels follow line-end order")
+
+
+def test_stack_does_not_jump_locally_placed_labels() -> None:
+    """Labels that fit at their own line end join the stack beside them, keeping order.
+
+    One line runs to the right edge; four end a period earlier, bunched in a
+    wide y-range. Two of those four cannot clear locally, the rest can. Were the
+    local fits left fixed, the stack would jump them as a block and read out of
+    line-end order (the 0.80 label landing above 1.12 and 1.35).
+    """
+    ends = {"black": 1.83, "grey": 0.75, "navy": 0.80, "orange": 1.35, "blue": 1.12}
+    n = len(IDX)
+    df = pd.DataFrame({k: np.full(n, v) for k, v in ends.items()}, index=IDX)
+    df.iloc[5, 0], df.iloc[10, 0] = -4.8, 5.3  # widen the y-range, as in the real chart
+    df.iloc[-1, 1:] = np.nan  # all but "black" end one period short of the right edge
+    axes = line_plot(df, annotate=True, rounding=2, width=1.0)
+    _finalise(axes, "stack beside local labels")
+
+    drawn = [float(t.get_text()) for t in sorted(axes.texts, key=lambda t: t.get_position()[1])]
+    assert drawn == sorted(ends.values()), f"labels out of line-end order: {drawn}"
+    print("PASS: stack does not jump locally placed labels")
+
+
+def test_separate_pile_ups_leave_a_clear_label_alone() -> None:
+    """Two pile-ups resolve independently; a label clear of both does not move.
+
+    Each pile-up has one line at the right edge and two ending a period
+    earlier. The label at 2.50 collides with nothing. It must keep its x and
+    y exactly, each pile-up must read in line-end order, and no label may be
+    dragged more than a couple of label-heights from its own line end.
+    """
+    ends = {"a0": 0.75, "a1": 0.80, "a2": 1.12, "clear": 2.50, "b0": 3.95, "b1": 4.00, "b2": 4.30}
+    at_edge = {"a1", "b1"}
+    n = len(IDX)
+    df = pd.DataFrame({k: np.full(n, v) for k, v in ends.items()}, index=IDX)
+    df.iloc[5, 1], df.iloc[10, 1] = -4.8, 5.3  # widen the y-range, as in the real chart
+    for k in ends:
+        if k not in at_edge:
+            df.loc[IDX[-1], k] = np.nan
+    axes = line_plot(df, annotate=True, rounding=2, width=1.0)
+    clear = next(t for t in axes.texts if t.get_text().strip() == "2.50")
+    clear_before = clear.get_position()
+    _finalise(axes, "separate pile-ups")
+
+    clear_after = clear.get_position()
+    moved = clear_after[0] != clear_before[0] or abs(clear_after[1] - clear_before[1]) > 1e-9
+    assert not moved, f"clear label moved: {clear_before} -> {clear_after}"
+    drawn = [float(t.get_text()) for t in sorted(axes.texts, key=lambda t: t.get_position()[1])]
+    assert drawn == sorted(ends.values()), f"labels out of line-end order: {drawn}"
+    for t in axes.texts:
+        y_px = axes.transData.transform((0.0, t.get_position()[1]))[1]
+        anchor_px = axes.transData.transform((0.0, float(t.get_text())))[1]
+        height = t.get_window_extent().height
+        assert abs(y_px - anchor_px) <= 2 * height, f"{t.get_text()} dragged {y_px - anchor_px:.1f}px"
+    print("PASS: separate pile-ups leave a clear label alone")
 
 
 def test_force_right_snaps_every_label() -> None:
@@ -154,6 +210,8 @@ if __name__ == "__main__":
     test_colliding_end_labels_are_spread()
     test_interior_label_stays_at_its_line_end()
     test_stacked_labels_follow_line_end_order()
+    test_stack_does_not_jump_locally_placed_labels()
+    test_separate_pile_ups_leave_a_clear_label_alone()
     test_force_right_snaps_every_label()
     test_leader_lines_only_for_displaced_labels()
     test_no_annotation_is_a_noop()

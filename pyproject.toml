@@ -1,6 +1,6 @@
 [project]
 name = "mgplot"
-version = "0.2.33"
+version = "0.2.34"
 description = "mgplot is a time-series/PeriodIndex frontend for matplotlib"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -49,6 +49,7 @@ lint.select = [ "ALL" ]  # Aggresively select all rules
 lint.ignore = [
     # --- specific rules to ignore
     "COM812",  # missing or trailing comma - recommended by ruff format
+    "CPY001",  # Missing copyright notice - the LICENSE file carries it
     "D203",    # Incorrect blank line before class - recommended by ruff check
     "D213",    # Multi-line docstring summary should start at the first line - recommended by ruff
     "EM101",   # Exception must not use a string literal
@@ -67,4 +68,9 @@ lint.ignore = [
     "src/mgplot/settings.py" = ["ANN401", "PLW0603"]  # as above
     "src/mgplot/utilities.py" = ["ANN401"]  # as above
     "src/mgplot/multi_plot.py" = ["ANN401"]  # as above
+    "test/**" = [
+        "S101",     # assert is how the tests check results
+        "PLR2004",  # literal expected values are the point of a test
+        "INP001",   # tests are run as scripts, not imported as a package
+    ]
 

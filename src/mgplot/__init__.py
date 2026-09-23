@@ -103,7 +103,6 @@ __all__ = (
     "revision_plot",
     "revision_plot_finalise",
     "run_plot",
-    "run_plot",
     "run_plot_finalise",
     "seastrend_plot",
     "seastrend_plot_finalise",

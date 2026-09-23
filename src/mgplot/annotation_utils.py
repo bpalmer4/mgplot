@@ -21,6 +21,11 @@ Algorithm (everything is computed in display/pixel coordinates):
   end-of-axes labels.  The stack keeps the labels in the same vertical order as
   the line ends they belong to (isotonic placement), so annotations for lines
   that finish close together never read out of order.
+* A near-end label that did fit locally but collides with the stack's layout
+  joins the stack (repeatedly, as each join re-lays it), rather than being
+  jumped over.  Near-end labels nothing collides with are left untouched.
+* Stack labels far enough apart not to touch form separate sub-stacks: each
+  clears any remaining obstacle on its own, so one pile-up never drags another.
 * An interior label that cannot be cleared keeps the candidate position with the
   most clearance -- overlap is accepted rather than moving it off its line end.
 * Line avoidance never applies to a label sitting at the last data point: its
@@ -242,42 +247,52 @@ def _stack_shift(stack: list[dict[str, Any]], ys: list[float], placed: list[dict
     return 0.0
 
 
-def _stack_snapped(
-    stack: list[dict[str, Any]],
-    placed: list[dict[str, Any]],
-    right_disp_x: float,
-) -> None:
-    """Snap labels to the rightmost data point, stacked in line-end order.
+def _snap_x(lab: dict[str, Any], right_disp_x: float) -> None:
+    """Move a label's box across to the rightmost data point."""
+    delta = right_disp_x - lab["x0"]
+    lab["x0"] += delta
+    lab["x1"] += delta
+    lab["snapped"] = True
 
-    The vertical order of the stack matches the order of the line ends it
-    annotates, so labels for lines that finish close together never swap.
-    Within that constraint the labels sit as near their own line end as the
-    minimum separation allows.
+
+def _sep(lower: dict[str, Any], upper: dict[str, Any]) -> float:
+    """Minimum centre-to-centre separation between two stacked labels."""
+    return (lower["h"] + upper["h"]) / 2.0 + _GAP_PX
+
+
+def _stack_layout(stack: list[dict[str, Any]]) -> list[float]:
+    """Sort the stack into line-end order and return each label's ideal centre y.
+
+    The vertical order matches the order of the line ends annotated, so labels
+    for lines that finish close together never swap.  Within that constraint
+    the labels sit as near their own line end as the minimum separation allows.
     """
-    if not stack:
-        return
-    for lab in stack:
-        delta = right_disp_x - lab["x0"]
-        lab["x0"] += delta
-        lab["x1"] += delta
-        lab["snapped"] = True
-
     stack.sort(key=lambda lab: lab["anchor_yc"])  # bottom-most line end first
     # Subtracting the cumulative minimum separation turns "stay this far apart,
     # in this order" into plain "non-decreasing", which _isotonic() solves.
     cums: list[float] = []
-    cum, prev_h = 0.0, None
-    for lab in stack:
-        if prev_h is not None:
-            cum += (prev_h + lab["h"]) / 2.0 + _GAP_PX
+    cum = 0.0
+    for i, lab in enumerate(stack):
+        if i:
+            cum += _sep(stack[i - 1], lab)
         cums.append(cum)
-        prev_h = lab["h"]
     fitted = _isotonic([lab["anchor_yc"] - c for lab, c in zip(stack, cums, strict=True)])
-    ys = [f + c for f, c in zip(fitted, cums, strict=True)]
+    return [f + c for f, c in zip(fitted, cums, strict=True)]
 
-    shift = _stack_shift(stack, ys, placed)
-    for lab, y in zip(stack, ys, strict=True):
-        lab["yc"] = y + shift
+
+def _stack_groups(
+    stack: list[dict[str, Any]],
+    ys: list[float],
+) -> list[tuple[list[dict[str, Any]], list[float]]]:
+    """Split a laid-out stack into runs of touching labels (independent sub-stacks)."""
+    groups: list[tuple[list[dict[str, Any]], list[float]]] = []
+    for i, (lab, y) in enumerate(zip(stack, ys, strict=True)):
+        if i and y - ys[i - 1] <= _sep(stack[i - 1], lab) + _STEP_PX:
+            groups[-1][0].append(lab)
+            groups[-1][1].append(y)
+        else:
+            groups.append(([lab], [y]))
+    return groups
 
 
 def _root_figure(axes: Axes) -> Figure:
@@ -388,12 +403,49 @@ def _place_all(
         placed.append(lab)
 
     stack: list[dict[str, Any]] = []
+    local: list[dict[str, Any]] = []
     for lab in sorted(cluster, key=lambda lab: (-lab["x_data"], lab["yc"])):
         if not force_right and _place_cluster_local(lab, placed, others(lab)):
             placed.append(lab)
+            local.append(lab)
         else:
             stack.append(lab)  # laid out together below, so their order is kept
-    _stack_snapped(stack, placed, right_disp_x)
+    _resolve_stack(stack, local, placed, right_disp_x)
+
+
+def _resolve_stack(
+    stack: list[dict[str, Any]],
+    local: list[dict[str, Any]],
+    placed: list[dict[str, Any]],
+    right_disp_x: float,
+) -> None:
+    """Snap the stack to the right edge, absorbing the local labels it collides with."""
+    for lab in stack:
+        _snap_x(lab, right_disp_x)
+
+    # A local label that the stack's ideal layout collides with joins the stack,
+    # rather than being jumped over (which would read out of line-end order).
+    # Repeat, as each join re-lays the stack.  Local labels nothing collides
+    # with are left exactly where they are.
+    while True:
+        ys = _stack_layout(stack)
+        joins = [p for p in local if any(_hits_label(lab, y, [p]) for lab, y in zip(stack, ys, strict=True))]
+        if not joins:
+            break
+        for p in joins:
+            _snap_x(p, right_disp_x)
+        stack.extend(joins)
+        ids = {id(p) for p in joins}
+        local = [p for p in local if id(p) not in ids]
+        placed = [p for p in placed if id(p) not in ids]
+
+    # Separate pile-ups are separate sub-stacks: each clears any remaining
+    # (interior) obstacle on its own, so one pile-up never drags another.
+    for group, gys in _stack_groups(stack, ys):
+        shift = _stack_shift(group, gys, placed)
+        for lab, y in zip(group, gys, strict=True):
+            lab["yc"] = y + shift
+        placed.extend(group)
 
 
 def _draw_leaders(axes: Axes, labels: list[dict[str, Any]], trans: Transform) -> None:

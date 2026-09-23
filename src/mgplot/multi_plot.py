@@ -214,7 +214,7 @@ def plot_then_finalise(
 def multi_start(
     data: DataT,
     function: Callable | list[Callable],
-    starts: Iterable[None | Period | int],
+    starts: Iterable[Period | int | None],
     **kwargs: Any,
 ) -> None:
     """Create multiple plots with different starting points.

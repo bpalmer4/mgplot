@@ -3,9 +3,9 @@
 Run with: uv run python test/test_axvline_text.py
 """
 
-import matplotlib
+import matplotlib as mpl
 
-matplotlib.use("Agg")
+mpl.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -239,12 +239,13 @@ def test_bad_loc_raises() -> None:
     try:
         finalise_plot(axes, axvline={"x": IDX[12], "text": "x", "loc": "middle"}, dont_save=True)
     except ValueError as e:
-        assert "loc" in str(e), f"Expected a message naming loc, got: {e}"
+        message = str(e)
+    else:
         plt.close()
-        print("PASS: bad loc raises")
-        return
+        raise AssertionError("Expected ValueError for loc='middle'")
     plt.close()
-    raise AssertionError("Expected ValueError for loc='middle'")
+    assert "loc" in message, f"Expected a message naming loc, got: {message}"
+    print("PASS: bad loc raises")
 
 
 def test_loc_without_text_raises() -> None:
@@ -254,12 +255,13 @@ def test_loc_without_text_raises() -> None:
     try:
         finalise_plot(axes, axvline={"x": IDX[12], "loc": "top"}, dont_save=True)
     except ValueError as e:
-        assert "text" in str(e), f"Expected a message naming text, got: {e}"
+        message = str(e)
+    else:
         plt.close()
-        print("PASS: loc without text raises")
-        return
+        raise AssertionError("Expected ValueError for loc without text")
     plt.close()
-    raise AssertionError("Expected ValueError for loc without text")
+    assert "text" in message, f"Expected a message naming text, got: {message}"
+    print("PASS: loc without text raises")
 
 
 def test_bar_plot_is_measurable() -> None:

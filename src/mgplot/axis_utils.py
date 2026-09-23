@@ -19,7 +19,7 @@ from pandas.api.types import is_string_dtype
 from mgplot.settings import DataT
 
 
-def map_stringindex(data: DataT) -> None | tuple[DataT, list[str]]:
+def map_stringindex(data: DataT) -> tuple[DataT, list[str]] | None:
     """Map a string (object) index to an integer RangeIndex.
 
     Returns None if the index is not a string/object type.
@@ -92,12 +92,12 @@ def register_period_axes(axes: Axes, p: PeriodIndex) -> None:
     )
 
 
-def get_period_axes(axes: Axes) -> None | tuple[str, int, int]:
+def get_period_axes(axes: Axes) -> tuple[str, int, int] | None:
     """Return the stashed (freq, min_ordinal, max_ordinal) for an axes, or None."""
     return getattr(axes, _AXES_PERIOD_ATTR, None)
 
 
-def map_periodindex(data: DataT) -> None | tuple[DataT, PeriodIndex]:
+def map_periodindex(data: DataT) -> tuple[DataT, PeriodIndex] | None:
     """Map a PeriodIndex to an integer index."""
     if not isinstance(data.index, PeriodIndex):
         return None

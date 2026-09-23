@@ -6,10 +6,11 @@ Run with: uv run python test/test_annotate_text.py
 import contextlib
 import io
 import tempfile
+from itertools import pairwise
 
-import matplotlib
+import matplotlib as mpl
 
-matplotlib.use("Agg")
+mpl.use("Agg")
 
 import numpy as np
 import pandas as pd
@@ -70,7 +71,7 @@ def test_string_labels_de_collide() -> None:
     _finalise(axes, "string label collision")
 
     ys = sorted(t.get_position()[1] for t in axes.texts)
-    gaps = [b - a for a, b in zip(ys, ys[1:], strict=False)]
+    gaps = [b - a for a, b in pairwise(ys)]
     assert len(ys) == 4, f"expected 4 labels, got {len(ys)}"
     assert all(g > 0 for g in gaps), f"labels not separated: gaps={gaps}"
     assert ys != before, "labels should have been moved apart"

@@ -9,11 +9,13 @@ Covers:
 - labels survive finalise_plot()
 """
 
-import matplotlib
+import matplotlib as mpl
 
-matplotlib.use("Agg")
+mpl.use("Agg")
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.axes import Axes
 
 import mgplot as mg
 
@@ -25,7 +27,7 @@ def make_series() -> pd.Series:
     return pd.Series([5.0, 4.0, 3.0, 2.0, 1.0], index=CATEGORIES, name="test")
 
 
-def y_labels(ax) -> list[str]:
+def y_labels(ax: Axes) -> list[str]:
     """Return the non-empty y tick labels."""
     return [t.get_text() for t in ax.get_yticklabels() if t.get_text()]
 
@@ -47,8 +49,8 @@ def test_horizontal_annotations() -> None:
     texts = [t for t in ax.texts if t.get_text()]
     assert len(texts) == len(CATEGORIES), f"expected {len(CATEGORIES)} annotations, got {len(texts)}"
     assert {t.get_text() for t in texts} == {"5", "4", "3", "2", "1"}
-    assert all(t.get_va() == "center" for t in texts), "annotations not vertically centred"
-    assert all(t.get_ha() == "left" for t in texts), "positive values should be left-aligned"
+    assert all(t.get_verticalalignment() == "center" for t in texts), "annotations not vertically centred"
+    assert all(t.get_horizontalalignment() == "left" for t in texts), "positive values should be left-aligned"
     plt.close("all")
     print("PASS: horizontal end-of-bar annotations")
 
@@ -94,8 +96,6 @@ def test_periodindex_falls_back_to_vertical() -> None:
 
 def test_per_bar_colors() -> None:
     """A single series with one colour per bar paints each bar individually."""
-    import matplotlib.colors as mcolors
-
     colors = ["deepskyblue", "navy", "#c32148", "gold", "seagreen"]
     for horiz in (True, False):
         ax = mg.bar_plot(make_series(), horizontal=horiz, color=colors, annotate=True)

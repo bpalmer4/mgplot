@@ -153,7 +153,7 @@ def sanitize_filename(filename: str, max_length: int = MAX_FILENAME_LENGTH) -> s
     return filename or "untitled"
 
 
-def make_legend(axes: Axes, *, legend: None | bool | dict[str, Any]) -> None:
+def make_legend(axes: Axes, *, legend: bool | dict[str, Any] | None) -> None:
     """Create a legend for the plot."""
     if legend is None or legend is False:
         return

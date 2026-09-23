@@ -1,3 +1,35 @@
+Version 0.2.34 - released 23-Sep-2026 (Canberra, Australia)
+
+* bug fix
+    - end-of-line annotations could read out of order when some near-end
+      labels fitted at their own line end and others had to be snapped to the
+      right-hand edge. The snapped stack was moved as a rigid block to clear
+      the labels already placed, so it could jump over them (a 0.80 label
+      landing above 1.12 and 1.35) and drag unrelated labels well away from
+      their lines. Now a near-end label joins the stack only when the stack
+      would collide with it, and labels nothing collides with are left exactly
+      where they are. Separate pile-ups are resolved as separate stacks, so one
+      no longer moves another.
+    - run_plot() rounded its change annotation with the numpy .round()
+      method, which newer pandas type stubs report as missing (Series.sum()
+      is typed as a plain float). It now uses the built-in round(), with the
+      rounding digits narrowed to an int; the printed label is unchanged.
+
+* minor changes
+    - added two regression tests to test/test_annotation_collision.py: one
+      reproducing the out-of-order stack, and one with two separate pile-ups
+      and a clear label between them that must not move.
+    - ruff: CPY001 (missing copyright notice) is now ignored project-wide, as
+      the LICENSE file carries the notice; S101, PLR2004 and INP001 are
+      ignored under test/.
+    - fixed RUF036 (None not last in a type union, 5 places) and RUF068
+      (duplicate "run_plot" in __all__) in src/.
+    - fixed ruff and pyright warnings in four test files (matplotlib imported
+      as mpl, itertools.pairwise, no asserts inside except blocks, typed
+      helper arguments).
+
+---
+
 Version 0.2.33 - released 22-Aug-2026 (Canberra, Australia)
 
 * enhancement
