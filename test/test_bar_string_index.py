@@ -13,7 +13,7 @@ def test_series_string_index() -> None:
     """Test bar_plot with a string-indexed Series."""
     series = pd.Series([10, 20, 30], index=["Australia", "Canada", "Germany"])
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     bar_plot(series, ax=ax)
 
     patches = ax.patches
@@ -33,7 +33,7 @@ def test_dataframe_string_index_stacked() -> None:
         index=["Australia", "Canada", "Germany"],
     )
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     bar_plot(df, ax=ax, stacked=True)
 
     patches = ax.patches
@@ -53,7 +53,7 @@ def test_dataframe_string_index_grouped() -> None:
         index=["Australia", "Canada", "Germany"],
     )
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     bar_plot(df, ax=ax, stacked=False)
 
     labels = [t.get_text() for t in ax.get_xticklabels()]
@@ -67,7 +67,7 @@ def test_label_rotation() -> None:
     """Test that label_rotation is applied to x-axis tick labels."""
     series = pd.Series([10, 20, 30], index=["Australia", "Canada", "Germany"])
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     bar_plot(series, ax=ax, label_rotation=45)
 
     rotations = [t.get_rotation() for t in ax.get_xticklabels()]
@@ -81,7 +81,7 @@ def test_annotate_string_index() -> None:
     """Test that annotations work with string-indexed data."""
     series = pd.Series([10, 20, 30], index=["Australia", "Canada", "Germany"])
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     bar_plot(series, ax=ax, annotate=True, above=True)
 
     texts = ax.texts

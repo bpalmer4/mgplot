@@ -1,6 +1,6 @@
 """Plot the linear pre-COVID trajectory against the current data."""
 
-from typing import Literal, NotRequired, Unpack, cast
+from typing import Literal, NotRequired, Unpack
 
 from matplotlib.axes import Axes
 from numpy import array, polyfit
@@ -149,10 +149,8 @@ def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
         remove: list[Literal["plot_from", "start_r", "end_r"]] = ["plot_from", "start_r", "end_r"]
         for key in remove:
             kwargs.pop(key, None)
-        return line_plot(
-            data,
-            **cast("LineKwargs", kwargs),
-        )
+        line_kwargs: LineKwargs = kwargs  # start_r, end_r and plot_from removed above
+        return line_plot(data, **line_kwargs)
 
     # --- check the kwargs
     report_kwargs(caller=ME, **kwargs)
@@ -204,10 +202,8 @@ def postcovid_plot(data: DataT, **kwargs: Unpack[PostcovidKwargs]) -> Axes:
     kwargs["color"] = kwargs.pop("color", ("darkblue", "#dd0000"))
     kwargs["dropna"] = kwargs.pop("dropna", False)  # drop NaN values
 
-    return line_plot(
-        combined_data,
-        **cast("LineKwargs", kwargs),
-    )
+    line_kwargs: LineKwargs = kwargs  # start_r, end_r and plot_from removed above
+    return line_plot(combined_data, **line_kwargs)
 
 
 if __name__ == "__main__":

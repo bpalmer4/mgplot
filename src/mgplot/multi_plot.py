@@ -39,7 +39,7 @@ Note: rather than pass the kwargs dict directly, we will re-pack-it
 """
 
 from collections.abc import Callable, Iterable
-from typing import Any, Final, cast
+from typing import Any, Final
 
 from pandas import DataFrame, Period
 
@@ -62,6 +62,7 @@ from mgplot.line_plot import LineKwargs, line_plot
 from mgplot.postcovid_plot import PostcovidKwargs, postcovid_plot
 from mgplot.revision_plot import revision_plot
 from mgplot.run_plot import RunKwargs, run_plot
+from mgplot.scatter_plot import ScatterKwargs, scatter_plot
 from mgplot.seastrend_plot import seastrend_plot
 from mgplot.settings import DataT
 from mgplot.summary_plot import SummaryKwargs, summary_plot
@@ -75,6 +76,7 @@ EXPECTED_CALLABLES: dict[Callable, type[Any]] = {
     postcovid_plot: PostcovidKwargs,
     revision_plot: LineKwargs,
     run_plot: RunKwargs,
+    scatter_plot: ScatterKwargs,
     summary_plot: SummaryKwargs,
     series_growth_plot: SeriesGrowthKwargs,
     growth_plot: GrowthKwargs,
@@ -193,8 +195,7 @@ def plot_then_finalise(
     # --- validate the original kwargs (could not do before now)
     kw_types = (
         # combine the expected kwargs types with the finalise kwargs types
-        dict(cast("dict[str, Any]", expected.__annotations__))
-        | dict(cast("dict[str, Any]", FinaliseKwargs.__annotations__))
+        dict(expected.__annotations__) | dict(FinaliseKwargs.__annotations__)
     )
     validate_kwargs(schema=kw_types, caller=me, **kwargs)
 

@@ -1,3 +1,70 @@
+Version 0.3.0 - released 26-Sep-2026 (Canberra, Australia)
+
+* major changes
+    - added scatter_plot() and scatter_plot_finalise(), with the ScatterKwargs
+      TypedDict. The data is a DataFrame with exactly two numeric columns (x
+      first, y second); the index is not plotted, and need not be a
+      PeriodIndex. A Series raises TypeError; the wrong number of columns, or
+      a non-numeric column, raises ValueError. Rows with a NaN in either
+      column are dropped by default (dropna=True).
+    - the points default to the first colour of the mgplot palette, with
+      size, alpha and marker defaults held as module constants.
+    - three overlays, each taking True for the house style or a dict of
+      matplotlib arguments merged over it: diagonal (the dashed y = x line,
+      spanning the data already on the axes in both directions, labelled
+      "45° (equal)"), fit (an OLS line of best fit across the x-range of the
+      points, in their colour) and highlight_latest (the point with the
+      latest index value, redrawn as a large star labelled "Latest (<index>)").
+    - report_corr=True appends the correlation to the label, as
+      "label (r = 0.83)", or "r = 0.83" when there is no label.
+    - groups (eras in different colours, each with its own fit line) are
+      drawn by repeated calls on the same ax=, then finalise_plot().
+    - plot_from is accepted, so scatter_plot works with multi_start(). It
+      trims a PeriodIndex or integer index; on any other index it prints a
+      warning and plots all the data. plot_from=None means no trimming.
+    - scatter_plot_finalise() turns the legend on by default only when
+      something labelled is drawn (label, report_corr, diagonal or
+      highlight_latest).
+
+* minor changes
+    - scatter_plot is registered with plot_then_finalise(), so it receives
+      only its own keyword arguments.
+    - added test/test_scatter_plot.py. The cases are built so that only the
+      intended behaviour passes: y = 2x + 1 with unsorted x for the fit, a
+      diagonal that must span the y-range as well as the x-range, a shuffled
+      PeriodIndex where the last row, the maximum x and the latest period are
+      three different points, and a known correlation of 0.50 as well as
+      -1.00.
+    - README: scatter_plot_finalise() added to the list of finalisers.
+    - removed the last cast() calls, from growth_plot.py (1) and
+      postcovid_plot.py (2). Each passed a subclass kwargs TypedDict
+      (SeriesGrowthKwargs, PostcovidKwargs) to a function taking its parent,
+      after popping the extra keys. They are now annotated assignments to the
+      parent type (e.g. line_kwargs: LineKwargs = kwargs), which the type
+      checkers verify, where cast() was unchecked.
+    - removed the type overrides from finalisers.py, multi_plot.py and
+      utilities.py. Most were redundant (two cast() calls, a file-level mypy
+      disable, three type: ignore lines and two malformed "# type ignore"
+      comments). Two hid real errors and were fixed: impose_legend() now sets
+      legend only when it is absent, and check_clean_timeseries() trims
+      leading NaN rows by position (index.get_loc then iloc) instead of
+      comparing index labels. Both give identical results to before.
+    - fixed 24 ruff warnings in five test files: unused fig from
+      plt.subplots() renamed to _ (RUF059, 14 places), the ambiguous loop
+      variable l renamed to line (E741, 4), type annotations added to
+      check_ticks_span_data() (ANN001, 3), and matplotlib imported as mpl
+      (ICN001, 1).
+    - fixed 16 pyright errors in test/test_splat_sequences.py. Line2D
+      get_xdata()/get_ydata() are typed as ArrayLike, which does not support
+      len() or indexing, so the results are now wrapped in np.asarray().
+    - three ruff findings in the tests are deliberate and left in place:
+      TRY301 in test_chart_subdir.py (the raise inside chart_subdir() is what
+      tests that the chart directory is restored after an exception) and
+      PT017 twice in test_splat_sequences.py (asserting on the expected
+      ValueError's message is the check).
+
+---
+
 Version 0.2.35 - released 25-Sep-2026 (Canberra, Australia)
 
 * bug fix

@@ -7,7 +7,7 @@ Key functions:
 """
 
 from collections.abc import Callable
-from typing import NotRequired, Unpack, cast
+from typing import NotRequired, Unpack
 
 from matplotlib.axes import Axes
 from numpy import nan
@@ -258,6 +258,7 @@ def series_growth_plot(
         print(f"Did you intend to specify a value for the 'ylabel' in {me}()?")
     ylabel = "Growth (%)" if ylabel is None else ylabel
     growth = calc_growth(data)
-    ax = growth_plot(growth, **cast("GrowthKwargs", kwargs))
+    growth_kwargs: GrowthKwargs = kwargs  # ylabel removed above
+    ax = growth_plot(growth, **growth_kwargs)
     ax.set_ylabel(ylabel)
     return ax

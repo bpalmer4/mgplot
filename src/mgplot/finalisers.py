@@ -1,4 +1,3 @@
-# mypy: disable-error-code="misc"
 """Simple convenience functions to finalise and produce plots.
 
 Key functions are:
@@ -8,6 +7,7 @@ Key functions are:
 - growth_plot_finalise()
 - revision_plot_finalise()
 - run_plot_finalise()
+- scatter_plot_finalise()
 - seastrend_plot_finalise()
 - series_growth_plot_finalise()
 - summary_plot_finalise()
@@ -38,6 +38,7 @@ from mgplot.multi_plot import plot_then_finalise
 from mgplot.postcovid_plot import PostcovidKwargs, postcovid_plot
 from mgplot.revision_plot import revision_plot
 from mgplot.run_plot import RunKwargs, run_plot
+from mgplot.scatter_plot import ScatterKwargs, scatter_plot
 from mgplot.seastrend_plot import seastrend_plot
 from mgplot.settings import DataT
 from mgplot.summary_plot import SummaryKwargs, summary_plot
@@ -58,7 +59,7 @@ class FBPFKwargs(FillBetweenKwargs, FinaliseKwargs):
     """Combined kwargs TypedDict for fill_between_plot_finalise()."""
 
 
-class GrowthPFKwargs(GrowthKwargs, FinaliseKwargs):  # type ignore[misc]
+class GrowthPFKwargs(GrowthKwargs, FinaliseKwargs):
     """Combined kwargs for growth_plot_finalise()."""
 
 
@@ -78,6 +79,10 @@ class RunPFKwargs(RunKwargs, FinaliseKwargs):
     """Combined kwargs for run_plot_finalise()."""
 
 
+class ScatterPFKwargs(ScatterKwargs, FinaliseKwargs):
+    """Combined kwargs for scatter_plot_finalise()."""
+
+
 class SFKwargs(LineKwargs, FinaliseKwargs):
     """Combined kwargs TypedDict for seastrend_plot_finalise()."""
 
@@ -86,7 +91,7 @@ class SGFPKwargs(SeriesGrowthKwargs, FinaliseKwargs):
     """Combined kwargs for series_growth_plot_finalise()."""
 
 
-class SumPFKwargs(SummaryKwargs, FinaliseKwargs):  # type ignore[misc]
+class SumPFKwargs(SummaryKwargs, FinaliseKwargs):
     """Combined kwargs for summary_plot_finalise()."""
 
 
@@ -102,6 +107,7 @@ def impose_legend[
         | PCFKwargs
         | RevPFKwargs
         | RunPFKwargs
+        | ScatterPFKwargs
         | SFKwargs
         | SGFPKwargs
         | SumPFKwargs
@@ -124,10 +130,8 @@ def impose_legend[
         Updated kwargs with legend set appropriately.
 
     """
-    if force or (isinstance(data, DataFrame) and len(data.columns) > 1):
-        kwargs["legend"] = kwargs.get("legend", True)  # type: ignore[typeddict-item,arg-type]
-    else:
-        kwargs["legend"] = kwargs.get("legend", False)  # type: ignore[typeddict-item,arg-type]
+    if "legend" not in kwargs:
+        kwargs["legend"] = force or (isinstance(data, DataFrame) and len(data.columns) > 1)
     return kwargs
 
 
@@ -253,6 +257,26 @@ def run_plot_finalise(
     validate_kwargs(schema=RunPFKwargs, caller="run_plot_finalise", **kwargs)
     kwargs = impose_legend(kwargs=kwargs, force="highlight_label" in kwargs)
     plot_then_finalise(data=data, function=run_plot, **kwargs)
+
+
+def scatter_plot_finalise(
+    data: DataFrame,
+    **kwargs: Unpack[ScatterPFKwargs],
+) -> None:
+    """Call scatter_plot() and finalise_plot().
+
+    Args:
+        data: DataFrame with two numeric columns (x first, y second).
+        kwargs: Combined scatter plot and finalise plot keyword arguments.
+
+    Note:
+        The legend is shown by default only when something labelled is drawn.
+
+    """
+    validate_kwargs(schema=ScatterPFKwargs, caller="scatter_plot_finalise", **kwargs)
+    labelled = any(kwargs.get(k) for k in ("label", "report_corr", "diagonal", "highlight_latest"))
+    kwargs = impose_legend(kwargs=kwargs, force=labelled)
+    plot_then_finalise(data=data, function=scatter_plot, **kwargs)
 
 
 def seastrend_plot_finalise(

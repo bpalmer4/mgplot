@@ -13,7 +13,7 @@ def test_line_plot_zorder() -> None:
     """Test that zorder is applied to line plots."""
     series = pd.Series(range(1, 11), index=pd.period_range("2020-01", periods=10, freq="M"))
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     line_plot(series, ax=ax, zorder=5)
 
     # Check that the line has the correct zorder
@@ -32,7 +32,7 @@ def test_line_plot_zorder_sequence() -> None:
         index=pd.period_range("2020-01", periods=10, freq="M"),
     )
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     line_plot(df, ax=ax, zorder=[3, 7])
 
     lines = ax.get_lines()
@@ -48,7 +48,7 @@ def test_bar_plot_zorder() -> None:
     """Test that zorder is applied to bar plots."""
     series = pd.Series([1, 2, 3, 4], index=pd.period_range("2020Q1", periods=4, freq="Q"))
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     bar_plot(series, ax=ax, zorder=10)
 
     # Bar plots create Rectangle patches
@@ -67,7 +67,7 @@ def test_fill_between_plot_zorder() -> None:
         index=pd.period_range("2020Q1", periods=4, freq="Q"),
     )
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     fill_between_plot(df, ax=ax, zorder=2)
 
     # fill_between creates a PolyCollection
@@ -83,7 +83,7 @@ def test_line_plot_default_zorder() -> None:
     """Test that line plot works without zorder (uses matplotlib default)."""
     series = pd.Series(range(1, 11), index=pd.period_range("2020-01", periods=10, freq="M"))
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     line_plot(series, ax=ax)  # No zorder specified
 
     lines = ax.get_lines()

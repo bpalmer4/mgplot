@@ -4,6 +4,7 @@ Run with: uv run python test/test_splat_sequences.py
 """
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 from mgplot import line_plot
@@ -19,7 +20,11 @@ def test_axhline_single_dict() -> None:
     ax = line_plot(_make_series())
     finalise_plot(ax, axhline={"y": 5, "color": "red"}, dont_save=True, dont_close=True)
 
-    hlines = [l for l in ax.get_lines() if len(l.get_xdata()) == 2 and l.get_ydata()[0] == 5]
+    hlines = [
+        line
+        for line in ax.get_lines()
+        if len(np.asarray(line.get_xdata())) == 2 and np.asarray(line.get_ydata())[0] == 5
+    ]
     assert len(hlines) == 1, f"Expected 1 hline at y=5, found {len(hlines)}"
 
     plt.close()
@@ -36,7 +41,9 @@ def test_axhline_sequence() -> None:
         dont_close=True,
     )
 
-    ys = {l.get_ydata()[0] for l in ax.get_lines() if len(l.get_xdata()) == 2}
+    ys = {
+        np.asarray(line.get_ydata())[0] for line in ax.get_lines() if len(np.asarray(line.get_xdata())) == 2
+    }
     assert 3 in ys, "Expected hline at y=3"
     assert 7 in ys, "Expected hline at y=7"
 
@@ -54,7 +61,9 @@ def test_axvline_sequence() -> None:
         dont_close=True,
     )
 
-    xs = {l.get_xdata()[0] for l in ax.get_lines() if len(l.get_ydata()) == 2}
+    xs = {
+        np.asarray(line.get_xdata())[0] for line in ax.get_lines() if len(np.asarray(line.get_ydata())) == 2
+    }
     assert 2 in xs, "Expected vline at x=2"
     assert 8 in xs, "Expected vline at x=8"
 
@@ -119,7 +128,9 @@ def test_axvline_period() -> None:
         dont_close=True,
     )
 
-    xs = {l.get_xdata()[0] for l in ax.get_lines() if len(l.get_ydata()) == 2}
+    xs = {
+        np.asarray(line.get_xdata())[0] for line in ax.get_lines() if len(np.asarray(line.get_ydata())) == 2
+    }
     assert period.ordinal in xs, f"Expected vline at x={period.ordinal}, got {xs}"
 
     plt.close()

@@ -178,6 +178,7 @@ the plot and finalise steps:
 - `postcovid_plot_finalise()`
 - `revision_plot_finalise()`
 - `run_plot_finalise()`
+- `scatter_plot_finalise()`
 - `seastrend_plot_finalise()`
 - `series_growth_plot_finalise()`
 - `summary_plot_finalise()`

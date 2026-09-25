@@ -81,7 +81,10 @@ def check_clean_timeseries(data: DataT, caller: str = "") -> DataT:
     if start is None:
         return data  # no valid index, return original data
 
-    data = data.loc[data.index >= start]  # type: ignore[operator]
+    position = data.index.get_loc(start)  # an int, as the index is unique
+    if not isinstance(position, int):
+        raise TypeError(f"Unexpected location {position!r} for the first valid index {start!r}.")
+    data = data.iloc[position:]
     missing(data, caller=caller)
     return data
 
@@ -127,7 +130,7 @@ def constrain_data(data: DataT, **kwargs: Any) -> tuple[DataT, dict[str, Any]]:
             "Warning: 'plot_from' must be a Period or an integer. "
             f"Found {type(plot_from)}. No data constrained.",
         )
-    return data, kwargs  # type: ignore[return-value]
+    return data, kwargs
 
 
 def apply_defaults(
@@ -194,14 +197,14 @@ def get_axes(**kwargs: Any) -> tuple[Axes, dict[str, Any]]:
     """Get the axes to plot on."""
     axes: Axes | None = kwargs.pop("ax", None)
     if axes and isinstance(axes, Axes):
-        return axes, kwargs  # type: ignore[return-value]
+        return axes, kwargs
 
     if axes is not None:
         raise TypeError(f"ax must be a matplotlib Axes object, not {type(axes)}")
 
     figsize = kwargs.get("figsize", get_setting("figsize"))
     _fig, axes = subplots(figsize=figsize)
-    return axes, kwargs  # type: ignore[return-value]
+    return axes, kwargs
 
 
 def default_rounding(

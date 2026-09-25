@@ -9,9 +9,9 @@ Covers:
 
 import re
 
-import matplotlib
+import matplotlib as mpl
 
-matplotlib.use("Agg")
+mpl.use("Agg")
 import matplotlib._pylab_helpers as ph
 import matplotlib.pyplot as plt
 import pandas as pd

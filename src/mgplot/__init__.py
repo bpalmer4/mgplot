@@ -30,6 +30,7 @@ from mgplot.finalisers import (
     postcovid_plot_finalise,
     revision_plot_finalise,
     run_plot_finalise,
+    scatter_plot_finalise,
     seastrend_plot_finalise,
     series_growth_plot_finalise,
     summary_plot_finalise,
@@ -46,6 +47,7 @@ from mgplot.multi_plot import multi_column, multi_start, plot_then_finalise
 from mgplot.postcovid_plot import PostcovidKwargs, postcovid_plot
 from mgplot.revision_plot import revision_plot
 from mgplot.run_plot import RunKwargs, run_plot
+from mgplot.scatter_plot import ScatterKwargs, scatter_plot
 from mgplot.seastrend_plot import seastrend_plot
 from mgplot.settings import (
     chart_subdir,
@@ -73,6 +75,7 @@ __all__ = (
     "LineKwargs",
     "PostcovidKwargs",
     "RunKwargs",
+    "ScatterKwargs",
     "SeriesGrowthKwargs",
     "SummaryKwargs",
     "__author__",
@@ -104,6 +107,8 @@ __all__ = (
     "revision_plot_finalise",
     "run_plot",
     "run_plot_finalise",
+    "scatter_plot",
+    "scatter_plot_finalise",
     "seastrend_plot",
     "seastrend_plot_finalise",
     "series_growth_plot",
