@@ -90,7 +90,7 @@ def annotate_series(
     latest: Series = series.dropna()
     if latest.empty or not is_numeric_dtype(latest):
         return None
-    x: int | float = latest.index[-1]  # type: ignore[assignment]
+    x: int | float = latest.index[-1]
     y: int | float = latest.iloc[-1]
     if y is None or math.isnan(y):
         return None
@@ -111,7 +111,7 @@ def annotate_series(
         r_string = f"  {text}"
     else:
         rounding = default_rounding(value=y, provided=kwargs.get("rounding"))
-        r_string = f"  {y:.{rounding}f}" if rounding > 0 else f"  {int(y)}"
+        r_string = f"  {y:.{rounding}f}"
     return axes.text(
         x=x,
         y=y,

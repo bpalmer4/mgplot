@@ -1,3 +1,22 @@
+Version 0.2.35 - released 25-Sep-2026 (Canberra, Australia)
+
+* bug fix
+    - line_plot() end-of-line value labels truncated rather than rounded
+      when rounding=0. The label was formatted with int(y), which truncates
+      toward zero, so 19.77 read "19" and -19.7 read "-19". The label now
+      uses a single f"{y:.{rounding}f}" format for every rounding value, so
+      rounding=0 rounds to the nearest integer (19.77 reads "20"), matching
+      the docstring and the bar_plot() annotations.
+
+* minor changes
+    - added test/test_line_end_rounding.py, with rounding=0 cases that only
+      correct rounding can pass (19.77, 30.92, -19.7) and a rounding=1
+      regression case.
+    - removed a stale "type: ignore" from line_plot.py (mypy reported it as
+      unused).
+
+---
+
 Version 0.2.34 - released 23-Sep-2026 (Canberra, Australia)
 
 * bug fix
