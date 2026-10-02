@@ -1,3 +1,9 @@
+Version 0.3.3 - released 02-Oct-2026 (Canberra, Australia)
+
+* minor changes
+    - default colours changed.
+    - fixed test/test_scatter_plot.py
+
 Version 0.3.2 - released 02-Oct-2026 (Canberra, Australia)
 
 * minor changes
