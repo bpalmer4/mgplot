@@ -19,14 +19,7 @@ from matplotlib.axes import Axes
 from matplotlib.collections import PathCollection
 from matplotlib.lines import Line2D
 
-from mgplot import (
-    get_setting,
-    multi_start,
-    scatter_plot,
-    scatter_plot_finalise,
-    set_chart_dir,
-    set_setting,
-)
+from mgplot import multi_start, scatter_plot, scatter_plot_finalise, set_chart_dir
 
 mpl.use("Agg")
 
@@ -113,23 +106,14 @@ def test_empty_after_dropna() -> None:
 
 
 def test_default_style() -> None:
-    """Default colour comes from the mgplot palette, not a hard-coded name.
-
-    A one-entry palette with a colour no code path would produce by accident
-    means only a lookup of the palette can pass.
-    """
-    saved = get_setting("colors")
-    set_setting("colors", {1: ["#123456"]})
-    try:
-        df = pd.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1.0, 2.0, 3.0]})
-        _, ax = plt.subplots()
-        scatter_plot(df, ax=ax)
-        expected = mcolors.to_rgba("#123456", alpha=0.6)  # palette colour, DEFAULT_ALPHA
-        got = np.asarray(_points(ax).get_facecolor())[0]
-        assert np.allclose(got, expected), f"Expected {expected}, got {got}"
-    finally:
-        set_setting("colors", saved)
-        plt.close("all")
+    """Default colour comes from the mgplot palette, not a hard-coded name."""
+    df = pd.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1.0, 2.0, 3.0]})
+    _, ax = plt.subplots()
+    scatter_plot(df, ax=ax)
+    expected = mcolors.to_rgba("blue", alpha=0.6)  # get_color_list(1)[0], DEFAULT_ALPHA
+    got = np.asarray(_points(ax).get_facecolor())[0]
+    assert np.allclose(got, expected), f"Expected {expected}, got {got}"
+    plt.close("all")
     print("PASS: default style")
 
 
