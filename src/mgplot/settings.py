@@ -63,7 +63,7 @@ mgplot_defaults = DefaultTypes(
     },
     colors={
         1: ["#dd0000"],
-        5: ["blue", "darkorange", "cornflowerblue", "brown", "gray"],
+        5: ["mediumblue", "darkorange", "#83AAF1", "firebrick", "#999999"],
         9: [
             "blue",
             "darkorange",

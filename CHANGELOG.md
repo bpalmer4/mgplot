@@ -1,3 +1,8 @@
+Version 0.3.2 - released 02-Oct-2026 (Canberra, Australia)
+
+* minor changes
+    - default colours changed.
+
 Version 0.3.1 - released 02-Oct-2026 (Canberra, Australia)
 
 * minor changes
