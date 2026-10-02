@@ -143,7 +143,7 @@ def get_style_width_color_etc(
 
     """
     data_point_thresh = 151  # switch from wide to narrow lines
-    force_lines_styles = 4
+    force_lines_styles = 5
 
     line_defaults: dict[str, Any] = {
         "style": ("solid" if item_count <= force_lines_styles else ["solid", "dashed", "dashdot", "dotted"]),

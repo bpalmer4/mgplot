@@ -1,3 +1,9 @@
+Version 0.3.1 - released 02-Oct-2026 (Canberra, Australia)
+
+* minor changes
+    - default colours changed.
+    - line_plot() cycles line styles from 6 series.
+
 Version 0.3.0 - released 26-Sep-2026 (Canberra, Australia)
 
 * major changes
