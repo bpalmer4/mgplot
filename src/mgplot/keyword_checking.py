@@ -212,11 +212,16 @@ def check_peelable(value: Any, expected: type) -> bool:
 def check_type(value: Any, expected: type) -> bool:
     """Check if a value is of the expected type and reports an error if not.
 
+    As in Python typing (PEP 484), an int satisfies float; a bool, though an int
+    subclass, does not.
+
     Args:
         value: The value to check.
         expected: The expected type(s).
 
     """
+    if expected is float and isinstance(value, int) and not isinstance(value, bool):
+        return True
     return expected is Any or isinstance(value, expected)
 
 

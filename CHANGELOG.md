@@ -1,3 +1,13 @@
+Version 0.3.4 - released 04-Oct-2026 (Canberra, Australia)
+
+* minor changes
+    - keyword checking accepts an int where a float is expected (not a bool),
+      e.g. ylim=(0, 1.1) no longer warns.
+    - short PeriodIndex charts (bar and line) no longer gain a stray label and
+      an empty slot for the period before the data: the tick range now rounds
+      the x-limits inwards.
+    - added test/test_int_for_float.py and test/test_bar_annual_ticks.py
+
 Version 0.3.3 - released 02-Oct-2026 (Canberra, Australia)
 
 * minor changes

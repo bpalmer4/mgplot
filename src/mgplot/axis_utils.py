@@ -8,6 +8,7 @@ such as days, months, quarters, and years.
 """
 
 import calendar
+import math
 from collections.abc import Callable
 from enum import Enum
 from typing import Any, Final
@@ -429,8 +430,11 @@ def refresh_period_labels(axes: Axes, max_ticks: int | None = None) -> None:
         stashed = options.get("max_ticks", DEFAULT_REFRESH_TICKS)
         max_ticks = stashed if isinstance(stashed, int) else DEFAULT_REFRESH_TICKS
     xlim = axes.get_xlim()
-    x_min = min(stash_min, int(xlim[0]))
-    x_max = max(stash_max, int(xlim[1]))
+    # round inwards: only periods inside the view get a label. A bar chart's limits sit
+    # half a bar beyond its end bars, and truncating them named the neighbouring period,
+    # whose tick set_xticks then widened the axis to show.
+    x_min = min(stash_min, math.ceil(xlim[0]))
+    x_max = max(stash_max, math.floor(xlim[1]))
 
     full_range = period_range(
         start=Period(ordinal=x_min, freq=freq),
