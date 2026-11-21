@@ -105,6 +105,15 @@ the tick density is chosen to fit within `max_ticks`, and labels show
 the period with years marked at transitions (e.g. a monthly axis shows
 `Feb Mar ... 2024 ... Feb`, a quarterly axis shows `Q2 Q3 2025 Q2`).
 
+Contextual labels cover yearly, quarterly, monthly, weekly, daily and
+intraday (minute, multi-minute such as `5min`, and hourly) frequencies.
+Weekly ticks are labelled by each week's start day, or fall on the first
+week of a month or year for longer spans. Intraday axes show times with
+the date at each new day (`12:00` / `19 Nov 2026`, `15:00`, ... `00:00` /
+`20 Nov`), or days, months or years for longer spans. Points sit at their
+period ordinals, so gaps in the data (closed market hours, weekends) take
+their real width on the axis.
+
 Three keyword arguments control the labels on the period-indexed plot
 functions (`line_plot`, `bar_plot`, `growth_plot`, `fill_between_plot`,
 `run_plot`, and their `*_finalise` variants):

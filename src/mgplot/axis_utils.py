@@ -14,7 +14,7 @@ from enum import Enum
 from typing import Any, Final
 
 from matplotlib.axes import Axes
-from pandas import Index, Period, PeriodIndex, RangeIndex, period_range
+from pandas import Index, Period, PeriodIndex, RangeIndex, Timedelta, Timestamp, date_range, period_range
 from pandas.api.types import is_string_dtype
 
 from mgplot.settings import DataT
@@ -126,11 +126,17 @@ class DateLike(Enum):
     MONTHS = 3
     DAYS = 4
     BAD = 5
+    HOURS = 6
+    MINUTES = 7
+    WEEKS = 8
 
 
 frequencies = {
     # freq: [Periods from smaller to larger]
+    "min": [DateLike.MINUTES, DateLike.HOURS, DateLike.DAYS, DateLike.MONTHS, DateLike.YEARS],
+    "h": [DateLike.HOURS, DateLike.DAYS, DateLike.MONTHS, DateLike.YEARS],
     "D": [DateLike.DAYS, DateLike.MONTHS, DateLike.YEARS],
+    "W": [DateLike.WEEKS, DateLike.MONTHS, DateLike.YEARS],
     "M": [DateLike.MONTHS, DateLike.YEARS],
     "Q": [DateLike.QUARTERS, DateLike.YEARS],
     "Y": [DateLike.YEARS],
@@ -143,7 +149,22 @@ intervals = {
     DateLike.QUARTERS: [1, 2],
     DateLike.MONTHS: [1, 2, 3, 4, 6],
     DateLike.DAYS: [1, 2, 3, 4, 7, 14],
+    DateLike.WEEKS: [1, 2, 4],
+    DateLike.HOURS: [1, 2, 3, 4, 6, 12],  # each divides a day, so ticks repeat at the same times
+    DateLike.MINUTES: [1, 2, 5, 10, 15, 30],  # each divides an hour
 }
+
+INTRADAY: Final[tuple[str, ...]] = ("min", "h")  # base codes of intraday PeriodIndex frequencies
+
+
+def base_freq(p: PeriodIndex) -> str:
+    """Return the base code of a PeriodIndex frequency: "min", "h", or the first letter (D, M, Q, Y ...).
+
+    Intraday frequencies carry a multiple ("5min", "2h"), so they are read from the rule
+    code; the others keep the first letter of freqstr ("Q-DEC" is "Q").
+    """
+    code = p.freq.rule_code if p.freq is not None else ""
+    return code if code in INTRADAY else p.freqstr[0].upper()
 
 
 def get_count(p: PeriodIndex, max_ticks: int) -> tuple[int, DateLike, int]:
@@ -163,7 +184,7 @@ def get_count(p: PeriodIndex, max_ticks: int) -> tuple[int, DateLike, int]:
     error = (0, DateLike.BAD, 0)
     if p.empty:
         return error
-    freq: str = p.freqstr[0].upper()
+    freq: str = base_freq(p)
     if freq not in frequencies:
         print(f"Unrecognised date-like PeriodIndex frequency {freq}")
         return error
@@ -332,6 +353,98 @@ def year_labeller(labels: dict[Period, str]) -> dict[Period, str]:
     return labels
 
 
+def intraday_locator(p: PeriodIndex, date_like: DateLike, interval: int) -> dict[Period, str]:
+    """Select the ticks for an intraday PeriodIndex: round times, as Periods of p's frequency.
+
+    Tick times are generated directly (every interval minutes or hours from midnight, each
+    interval-th day, the first of each interval-th month or year) rather than picked from p,
+    because a multi-minute range rebuilt from axis limits need not fall on round minutes.
+    """
+    first = Timestamp(p.min().start_time)
+    last = Timestamp(p.max().start_time)
+    match date_like:
+        case DateLike.MINUTES:
+            times = date_range(first.ceil(f"{interval}min"), last, freq=f"{interval}min")
+        case DateLike.HOURS:
+            times = date_range(first.ceil(f"{interval}h"), last, freq=f"{interval}h")
+        case DateLike.DAYS:
+            times = date_range(first.ceil("D"), last, freq="D")[::interval]
+        case DateLike.MONTHS:
+            times = date_range(first.ceil("D"), last, freq="MS")
+            times = times[(times.month - 1) % interval == 0]
+        case _:
+            times = date_range(first.ceil("D"), last, freq="YS")
+            times = times[times.year % interval == 0]
+    return {Period(t, freq=p.freqstr): "" for t in times}
+
+
+def intraday_labeller(labels: dict[Period, str]) -> dict[Period, str]:
+    """Label hour or minute ticks with the time, adding the date at each new day.
+
+    The first tick, and the first of each new year, also carry the year.
+    """
+    previous: Period | None = None
+    for period in sorted(labels.keys()):
+        label = f"{period.hour:02d}:{period.minute:02d}"
+        if previous is None or (period.year, period.month, period.day) != (
+            previous.year,
+            previous.month,
+            previous.day,
+        ):
+            label = f"{label}\n{period.day} {calendar.month_abbr[period.month]}"
+            if previous is None or period.year != previous.year:
+                label = f"{label} {period.year}"
+        labels[period] = label
+        previous = period
+    return labels
+
+
+def make_intraday_labels(p: PeriodIndex, date_like: DateLike, interval: int) -> dict[Period, str]:
+    """Select and label the ticks for an intraday PeriodIndex."""
+    labels = intraday_locator(p, date_like, interval)
+    match date_like:
+        case DateLike.MINUTES | DateLike.HOURS:
+            return intraday_labeller(labels)
+        case DateLike.DAYS:
+            return day_labeller(labels)
+        case DateLike.MONTHS:
+            return month_labeller(labels)
+        case _:
+            return year_labeller(labels)
+
+
+def make_weekly_labels(p: PeriodIndex, date_like: DateLike, interval: int) -> dict[Period, str]:
+    """Select and label the ticks for a complete weekly PeriodIndex, by each week's start date.
+
+    Week ticks fall every interval weeks; month and year ticks on the first week starting in
+    each (interval-th) month or year. A weekly Period's day and month attributes describe its
+    last day, so ticks are chosen and labelled from start dates: each chosen week stands in
+    as a daily, monthly or yearly Period for the existing labellers.
+    """
+    starts = p.start_time
+    previous = starts - Timedelta(days=7)
+    match date_like:
+        case DateLike.WEEKS:
+            chosen = list(range(0, len(p), interval))
+            proxy_freq, labeller = "D", day_labeller
+        case DateLike.MONTHS:
+            chosen = [
+                i
+                for i in range(len(p))
+                if starts[i].month != previous[i].month and (starts[i].month - 1) % interval == 0
+            ]
+            proxy_freq, labeller = "M", month_labeller
+        case _:
+            chosen = [
+                i
+                for i in range(len(p))
+                if starts[i].year != previous[i].year and starts[i].year % interval == 0
+            ]
+            proxy_freq, labeller = "Y", year_labeller
+    weeks = {Period(starts[i], freq=proxy_freq): p[i] for i in chosen}
+    return {weeks[proxy]: label for proxy, label in labeller(dict.fromkeys(weeks, "")).items()}
+
+
 def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
     """Provide a dictionary of labels for the date-like PeriodIndex.
 
@@ -351,12 +464,18 @@ def make_labels(p: PeriodIndex, max_ticks: int) -> dict[Period, str]:
     if date_like == DateLike.BAD:
         return labels
 
+    if base_freq(p) in INTRADAY:
+        return make_intraday_labels(p, date_like, interval)
+
     target_freq = r_freqs[date_like]
     try:
         complete = period_range(start=p.min(), end=p.max(), freq=p.freqstr)
     except (ValueError, TypeError) as e:
         print(f"Error creating period range: {e}")
         return labels
+
+    if base_freq(p) == "W":
+        return make_weekly_labels(complete, date_like, interval)
 
     match target_freq:
         case "D":

@@ -1,3 +1,15 @@
+Version 0.3.5 - released 21-Nov-2026 (Canberra, Australia)
+
+* minor changes
+    - intraday PeriodIndex (minute, multi-minute and hourly frequencies) gets date-like
+      x-axis ticks and labels: times ("10:00") with the date at each new day, or days,
+      months or years for longer spans. Points sit at their ordinals, so closed hours take
+      their real time on the axis. Daily, monthly, quarterly and yearly labels are unchanged.
+    - weekly PeriodIndex gets date-like x-axis ticks and labels: weeks (labelled by each
+      week's start day, with the month at each new month), then months on the first week
+      starting in each month, then years.
+    - added test/test_intraday_ticks.py and test/test_weekly_ticks.py
+
 Version 0.3.4 - released 04-Oct-2026 (Canberra, Australia)
 
 * minor changes
