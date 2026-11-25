@@ -63,13 +63,11 @@ def fill_between_plot(data: DataFrame, **kwargs: Unpack[FillBetweenKwargs]) -> A
     data = check_clean_timeseries(data, ME)
     data, kwargs_d = constrain_data(data, **kwargs)
 
-    # --- handle PeriodIndex conversion
-    saved_pi = map_periodindex(data)
+    # --- get axes, then handle PeriodIndex conversion for it
+    axes, kwargs_d = get_axes(**kwargs_d)
+    saved_pi = map_periodindex(data, axes)
     if saved_pi is not None:
         data = saved_pi[0]
-
-    # --- get axes
-    axes, kwargs_d = get_axes(**kwargs_d)
 
     if data.empty or data.isna().all().all():
         print(f"Warning: No data to plot in {ME}().")

@@ -8,6 +8,7 @@ such as days, months, quarters, and years.
 """
 
 import calendar
+import itertools
 import math
 from collections.abc import Callable
 from enum import Enum
@@ -98,11 +99,67 @@ def get_period_axes(axes: Axes) -> tuple[str, int, int] | None:
     return getattr(axes, _AXES_PERIOD_ATTR, None)
 
 
-def map_periodindex(data: DataT) -> tuple[DataT, PeriodIndex] | None:
-    """Map a PeriodIndex to an integer index."""
+# --- bar axes: an OHLC chart puts its bars at x = 0, 1, 2 ... with no space for closed time
+_AXES_BARS_ATTR: Final[str] = "_mgplot_bars"
+
+
+def register_bar_axes(axes: Axes, bars: PeriodIndex) -> None:
+    """Record the bars of an OHLC chart on its Axes: the bar at position i is bars[i].
+
+    Raises ValueError if the axes already holds a chart, as its x-coordinates would mean
+    something else.
+    """
+    if get_bar_axes(axes) is not None or get_period_axes(axes) is not None:
+        raise ValueError("An OHLC chart needs an axes of its own: this axes already holds a chart")
+    setattr(axes, _AXES_BARS_ATTR, bars)
+
+
+def get_bar_axes(axes: Axes) -> PeriodIndex | None:
+    """Return the bars recorded on an OHLC chart's Axes, or None for any other axes."""
+    bars = getattr(axes, _AXES_BARS_ATTR, None)
+    return bars if isinstance(bars, PeriodIndex) else None
+
+
+def refuse_bar_axes(axes: object, caller: str) -> None:
+    """Raise ValueError if axes is an OHLC chart, for plots that cannot be placed on its bars."""
+    if isinstance(axes, Axes) and get_bar_axes(axes) is not None:
+        raise ValueError(f"{caller}() cannot be layered on an OHLC chart")
+
+
+def bar_positions(bars: PeriodIndex, periods: PeriodIndex, caller: str) -> list[int]:
+    """Return the x-position of each period on an OHLC chart with these bars.
+
+    Raises ValueError if the frequencies differ or any period is not one of the bars:
+    only series built on the chart's own bars (a moving average of the closes, say) can
+    be drawn on it.
+    """
+    if periods.freqstr != bars.freqstr:
+        raise ValueError(
+            f"{caller}: data freq {periods.freqstr!r} does not match the OHLC chart's freq {bars.freqstr!r}",
+        )
+    positions = bars.get_indexer(periods)
+    absent = periods[positions < 0]
+    if len(absent):
+        raise ValueError(
+            f"{caller}: {len(absent)} periods are not bars of the OHLC chart (first: {absent[0]})",
+        )
+    return [int(position) for position in positions]
+
+
+def map_periodindex(data: DataT, axes: Axes | None = None) -> tuple[DataT, PeriodIndex] | None:
+    """Map a PeriodIndex to an integer index: Period ordinals, or bar positions on an OHLC chart.
+
+    Raises ValueError for data without a PeriodIndex on an OHLC chart: it has no bars to sit on.
+    """
+    bars = get_bar_axes(axes) if axes is not None else None
     if not isinstance(data.index, PeriodIndex):
+        if bars is not None:
+            raise ValueError("map_periodindex: only data with a PeriodIndex can be drawn on an OHLC chart")
         return None
     og_index = PeriodIndex(data.index.copy())  # mypy
+    if bars is not None:
+        data.index = Index(bar_positions(bars, og_index, "map_periodindex"))
+        return data, og_index
     complete = data.index.max().ordinal - data.index.min().ordinal == len(data.index) - 1
     if complete and (data.index.is_monotonic_decreasing or data.index.is_monotonic_increasing):
         data.index = RangeIndex(
@@ -529,6 +586,110 @@ def make_ilabels(
     return ticks, ticklabels
 
 
+MINUTES_PER_HOUR: Final[int] = 60
+MIN_BAR_TICKS: Final[int] = 4  # fewer ticks than this on an OHLC chart, and a finer unit is used
+MIN_SPACED_TICKS: Final[int] = 2  # an OHLC chart with more ticks than this is checked for crowding
+CROWDED_SHARE: Final[float] = 0.5  # a tick nearer its successor than this share of the usual spacing goes
+BAR_EDGE: Final[float] = 0.5  # half a bar slot: a tick between two bars sits this far left of the later
+
+
+def bar_tick_positions(bars: PeriodIndex, date_like: DateLike, interval: int) -> list[int]:
+    """Select the bars to tick on an OHLC chart, for one tick unit and interval.
+
+    Minute and hour ticks fall on bars at round times of day. Coarser ticks fall on the first
+    bar of each interval-th day, week, month, quarter or year; the first bar's own month,
+    quarter or year is skipped there, as the chart may start part-way through it.
+    """
+    starts = bars.start_time
+    match date_like:
+        case DateLike.MINUTES:
+            minutes = starts.hour * MINUTES_PER_HOUR + starts.minute
+            return [i for i in range(len(bars)) if minutes[i] % interval == 0]
+        case DateLike.HOURS:
+            return [i for i in range(len(bars)) if starts[i].minute == 0 and starts[i].hour % interval == 0]
+        case DateLike.DAYS:
+            keys: list[object] = list(starts.normalize())
+        case DateLike.WEEKS:
+            keys = list(range(len(bars)))  # weekly bars: each bar is its own week
+        case DateLike.MONTHS:
+            keys = list(zip(starts.year, starts.month, strict=True))
+        case DateLike.QUARTERS:
+            keys = list(zip(starts.year, starts.quarter, strict=True))
+        case _:
+            keys = list(starts.year)
+    firsts = [i for i in range(len(bars)) if i == 0 or keys[i] != keys[i - 1]]
+    if date_like in (DateLike.DAYS, DateLike.WEEKS):
+        return firsts[::interval]
+    numbers = {DateLike.MONTHS: starts.month - 1, DateLike.QUARTERS: starts.quarter - 1}.get(
+        date_like,
+        starts.year,
+    )
+    return [i for i in firsts if i > 0 and numbers[i] % interval == 0]
+
+
+def bar_tick_labels(bars: PeriodIndex, positions: list[int], date_like: DateLike) -> list[str]:
+    """Label the ticked bars of an OHLC chart with the existing contextual labellers.
+
+    Each ticked bar stands in as a Period of the tick unit (a minute, day, month ...), so the
+    labellers add the month and year where they change, as on other mgplot date axes.
+    """
+    proxy_freq, labeller = {
+        DateLike.MINUTES: ("min", intraday_labeller),
+        DateLike.HOURS: ("min", intraday_labeller),
+        DateLike.DAYS: ("D", day_labeller),
+        DateLike.WEEKS: ("D", day_labeller),
+        DateLike.MONTHS: ("M", month_labeller),
+        DateLike.QUARTERS: ("Q", qtr_labeller),
+    }.get(date_like, ("Y", year_labeller))
+    proxies = [Period(bars[i].start_time, freq=proxy_freq) for i in positions]
+    labels = labeller(dict.fromkeys(proxies, ""))
+    return [labels[proxy] for proxy in proxies]
+
+
+def make_bar_ilabels(
+    bars: PeriodIndex,
+    max_ticks: int,
+    tick_relabel: Callable[[str], str] | None = None,
+) -> tuple[list[float], list[str]]:
+    """Create the x-ticks and tick labels for an OHLC chart, from its bars.
+
+    The coarsest unit giving MIN_BAR_TICKS to max_ticks ticks wins, at its smallest such
+    interval (a week of hourly bars gets day ticks, one day of minute bars hour ticks); failing
+    that, the finest unit and interval giving no more than max_ticks. Ticks of the bars' own
+    unit (and minute or hour ticks) sit on their bar; coarser ticks sit on the edge before
+    the first bar of their day, month or year, where a session-boundary line usually falls.
+    A tick crowding the next one (a session's last hour against the next session's first) is
+    dropped, keeping the later.
+    """
+    if bars.empty:
+        return [], []
+    units = frequencies.get(base_freq(bars), frequencies["D"])
+    candidates = [(unit, interval) for unit in units for interval in intervals[unit]]
+    counts = {candidate: len(bar_tick_positions(bars, *candidate)) for candidate in candidates}
+    fitting = [candidate for candidate in candidates if counts[candidate] <= max_ticks]
+    enough = [candidate for candidate in fitting if counts[candidate] >= MIN_BAR_TICKS]
+    if enough:
+        coarsest = max(units.index(unit) for unit, _ in enough)
+        date_like, interval = next(c for c in enough if units.index(c[0]) == coarsest)
+    else:
+        date_like, interval = fitting[0] if fitting else candidates[-1]
+    positions = bar_tick_positions(bars, date_like, interval)
+    if len(positions) > MIN_SPACED_TICKS:
+        # closed time takes no space, so a session's last tick can crowd the next session's
+        # first: drop a tick closer than CROWDED_SHARE of the usual spacing to the next tick
+        spacings = sorted(b - a for a, b in itertools.pairwise(positions))
+        crowded = CROWDED_SHARE * spacings[len(spacings) // 2]
+        positions = [
+            a for a, b in zip(positions, [*positions[1:], None], strict=True) if b is None or b - a >= crowded
+        ]
+    labels = bar_tick_labels(bars, positions, date_like)
+    on_bar = date_like in (DateLike.MINUTES, DateLike.HOURS, units[0])
+    ticks = [float(i) if on_bar else i - BAR_EDGE for i in positions]
+    if tick_relabel is not None:
+        labels = [tick_relabel(label) for label in labels]
+    return ticks, labels
+
+
 def refresh_period_labels(axes: Axes, max_ticks: int | None = None) -> None:
     """Regenerate x-axis tick labels from the stashed period range and current xlim.
 
@@ -539,15 +700,23 @@ def refresh_period_labels(axes: Axes, max_ticks: int | None = None) -> None:
     Label options (max_ticks, rotation, tick_relabel) stashed by set_labels()
     are honoured, so a refresh reproduces what the plot function originally
     built. An explicit max_ticks argument overrides the stashed value.
+
+    An OHLC chart's labels come from its bars instead (see make_bar_ilabels()).
     """
-    stash = get_period_axes(axes)
-    if stash is None:
-        return
-    freq, stash_min, stash_max = stash
     options = get_label_options(axes)
     if max_ticks is None:
         stashed = options.get("max_ticks", DEFAULT_REFRESH_TICKS)
         max_ticks = stashed if isinstance(stashed, int) else DEFAULT_REFRESH_TICKS
+    bars = get_bar_axes(axes)
+    if bars is not None:
+        bar_ticks, bar_labels = make_bar_ilabels(bars, max_ticks, options.get("tick_relabel"))
+        axes.set_xticks(bar_ticks)
+        axes.set_xticklabels(bar_labels, rotation=options.get("rotation", 0), ha="center")
+        return
+    stash = get_period_axes(axes)
+    if stash is None:
+        return
+    freq, stash_min, stash_max = stash
     xlim = axes.get_xlim()
     # round inwards: only periods inside the view get a label. A bar chart's limits sit
     # half a bar beyond its end bars, and truncating them named the neighbouring period,
@@ -579,7 +748,8 @@ def set_labels(
     Registers the PeriodIndex on the axes (see register_period_axes()). When
     multiple series are plotted on the same axes, the stashed ordinal range is
     the union of everything plotted so far, so ticks always span the full
-    extent of all plotted data.
+    extent of all plotted data. On an OHLC chart nothing is registered: its
+    labels come from its bars.
 
     The label options are stashed on the axes so that later refreshes
     (including the one in finalise_plot()) reproduce them.
@@ -594,6 +764,7 @@ def set_labels(
             digits).
 
     """
-    register_period_axes(axes, p)
+    if get_bar_axes(axes) is None:  # an OHLC chart is labelled from its bars, not p
+        register_period_axes(axes, p)
     register_label_options(axes, max_ticks=max_ticks, rotation=rotation, tick_relabel=tick_relabel)
     refresh_period_labels(axes)

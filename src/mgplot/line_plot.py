@@ -200,8 +200,9 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
     df = DataFrame(data)  # we are only plotting DataFrames
     df, kwargs_d = constrain_data(df, **kwargs)
 
-    # --- convert PeriodIndex to Integer Index
-    saved_pi = map_periodindex(df)
+    # --- get the axes to plot on, then convert PeriodIndex to Integer Index for it
+    axes, kwargs_d = get_axes(**kwargs_d)
+    saved_pi = map_periodindex(df, axes)
     if saved_pi is not None:
         df = saved_pi[0]
 
@@ -209,7 +210,6 @@ def line_plot(data: DataT, **kwargs: Unpack[LineKwargs]) -> Axes:
         print("Internal error: data is still a PeriodIndex - come back here and fix it")
 
     # --- Let's plot
-    axes, kwargs_d = get_axes(**kwargs_d)  # get the axes to plot on
     if df.empty or df.isna().all().all():
         # Note: finalise plot should ignore an empty axes object
         print(f"Warning: No data to plot in {ME}().")

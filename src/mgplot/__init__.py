@@ -27,6 +27,7 @@ from mgplot.finalisers import (
     fill_between_plot_finalise,
     growth_plot_finalise,
     line_plot_finalise,
+    ohlc_plot_finalise,
     postcovid_plot_finalise,
     revision_plot_finalise,
     run_plot_finalise,
@@ -44,6 +45,7 @@ from mgplot.growth_plot import (
 )
 from mgplot.line_plot import LineKwargs, line_plot
 from mgplot.multi_plot import multi_column, multi_start, plot_then_finalise
+from mgplot.ohlc_plot import OhlcKwargs, ohlc_plot, share_bars
 from mgplot.postcovid_plot import PostcovidKwargs, postcovid_plot
 from mgplot.revision_plot import revision_plot
 from mgplot.run_plot import RunKwargs, run_plot
@@ -73,6 +75,7 @@ __all__ = (
     "FinaliseKwargs",
     "GrowthKwargs",
     "LineKwargs",
+    "OhlcKwargs",
     "PostcovidKwargs",
     "RunKwargs",
     "ScatterKwargs",
@@ -100,6 +103,8 @@ __all__ = (
     "line_plot_finalise",
     "multi_column",
     "multi_start",
+    "ohlc_plot",
+    "ohlc_plot_finalise",
     "plot_then_finalise",
     "postcovid_plot",
     "postcovid_plot_finalise",
@@ -115,6 +120,7 @@ __all__ = (
     "series_growth_plot_finalise",
     "set_chart_dir",
     "set_setting",
+    "share_bars",
     "state_abbrs",
     "state_names",
     "summary_plot",

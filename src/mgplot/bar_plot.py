@@ -276,6 +276,7 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     df = DataFrame(data)  # really we are only plotting DataFrames
     df, kwargs_d = constrain_data(df, **kwargs)
     item_count = len(df.columns)
+    axes, kwargs_d = get_axes(**kwargs_d)  # before mapping: an OHLC chart maps to its bars
 
     # --- deal with string indices
     saved_strings = map_stringindex(df)
@@ -283,7 +284,7 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
         df = saved_strings[0]
 
     # --- deal with complete PeriodIndex indices
-    saved_pi = map_periodindex(df)
+    saved_pi = map_periodindex(df, axes)
     if saved_pi is not None:
         df = saved_pi[0]  # extract the reindexed DataFrame from the PeriodIndex
 
@@ -329,10 +330,9 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
         "color": kwargs_d.get("annotate_color", "black" if above else "white"),
         "above": above,
     }
-    bar_args, remaining_kwargs = apply_defaults(item_count, bar_defaults, kwargs_d)
+    bar_args, _ = apply_defaults(item_count, bar_defaults, kwargs_d)
 
     # --- plot the data
-    axes, remaining_kwargs = get_axes(**dict(remaining_kwargs))
     if chart_args["stacked"]:
         stacked(axes, df, anno_args, horizontal=horizontal, **bar_args)
     else:

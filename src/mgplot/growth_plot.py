@@ -13,7 +13,7 @@ from matplotlib.axes import Axes
 from numpy import nan
 from pandas import DataFrame, Period, PeriodIndex, Series, period_range
 
-from mgplot.axis_utils import map_periodindex, set_labels
+from mgplot.axis_utils import map_periodindex, refuse_bar_axes, set_labels
 from mgplot.bar_plot import bar_plot
 from mgplot.keyword_checking import (
     BaseKwargs,
@@ -185,6 +185,7 @@ def growth_plot(
     me = "growth_plot"
     report_kwargs(caller=me, **kwargs)
     validate_kwargs(GrowthKwargs, caller=me, **kwargs)
+    refuse_bar_axes(kwargs.get("ax"), me)
 
     # --- data checks
     data = check_clean_timeseries(data, me)

@@ -1,3 +1,25 @@
+Version 0.3.6 - unreleased
+
+* minor changes
+    - added ohlc_plot() and ohlc_plot_finalise(): red/green candles from Open, High, Low and
+      Close columns on a PeriodIndex of any frequency. Each bar takes one slot on the x-axis,
+      so closed hours, weekends and holidays take no space; a light grey line marks each
+      session boundary (wherever the next bar starts later than this one ends, which includes
+      gaps in the data); a chart with more than max_boundaries of them (default 50, e.g.
+      a year or more of daily bars) gets none. Ticks come from the bars: times within a session, then days, months
+      or years, with coarser ticks on the session edges; a session's last tick that would crowd
+      the next session's first is dropped. There are no x-gridlines, so every
+      vertical line is a session boundary.
+    - line_plot(), bar_plot() and fill_between_plot() layered on an OHLC chart with ax= place
+      each point on its bar (a moving average of the closes, volume); data with periods that
+      are not bars, another frequency or no PeriodIndex raises ValueError. growth_plot() and
+      run_plot() refuse an OHLC chart's axes. A Period in axvline, axvspan, xlim or xticks
+      lands on its bar. Charts without OHLC are unchanged.
+    - added share_bars(): makes a second axes a panel on an OHLC chart's bars, with the same
+      session boundaries, for an indicator under the candles (MACD, volume). Finalise the
+      candle panel with axes_only=True and save from the bottom panel (filename= names it).
+    - added test/test_ohlc_plot.py
+
 Version 0.3.5 - released 21-Nov-2026 (Canberra, Australia)
 
 * minor changes

@@ -7,7 +7,7 @@ from matplotlib import patheffects as pe
 from matplotlib.axes import Axes
 from pandas import Series, concat
 
-from mgplot.axis_utils import map_periodindex, set_labels
+from mgplot.axis_utils import map_periodindex, refuse_bar_axes, set_labels
 from mgplot.keyword_checking import (
     limit_kwargs,
     report_kwargs,
@@ -172,6 +172,7 @@ def run_plot(data: DataT, **kwargs: Unpack[RunKwargs]) -> Axes:
     # --- validate inputs
     report_kwargs(caller=ME, **kwargs)
     validate_kwargs(schema=RunKwargs, caller=ME, **kwargs)
+    refuse_bar_axes(kwargs.get("ax"), ME)
 
     series = check_clean_timeseries(data, ME)
     if not isinstance(series, Series):

@@ -59,6 +59,7 @@ from mgplot.keyword_checking import (
     validate_kwargs,
 )
 from mgplot.line_plot import LineKwargs, line_plot
+from mgplot.ohlc_plot import OhlcKwargs, ohlc_plot
 from mgplot.postcovid_plot import PostcovidKwargs, postcovid_plot
 from mgplot.revision_plot import revision_plot
 from mgplot.run_plot import RunKwargs, run_plot
@@ -72,6 +73,7 @@ EXPECTED_CALLABLES: dict[Callable, type[Any]] = {
     line_plot: LineKwargs,
     bar_plot: BarKwargs,
     fill_between_plot: FillBetweenKwargs,
+    ohlc_plot: OhlcKwargs,
     seastrend_plot: LineKwargs,
     postcovid_plot: PostcovidKwargs,
     revision_plot: LineKwargs,

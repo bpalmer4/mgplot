@@ -16,7 +16,13 @@ from matplotlib.transforms import blended_transform_factory
 from pandas import Period, PeriodIndex
 
 from mgplot.annotation_utils import resolve_annotation_collisions
-from mgplot.axis_utils import get_period_axes, refresh_period_labels, register_period_axes
+from mgplot.axis_utils import (
+    bar_positions,
+    get_bar_axes,
+    get_period_axes,
+    refresh_period_labels,
+    register_period_axes,
+)
 from mgplot.keyword_checking import BaseKwargs, report_kwargs, validate_kwargs
 from mgplot.settings import get_setting
 
@@ -226,16 +232,20 @@ def _convert_period_coords(axes: Axes, method_name: str, item: dict[str, Any]) -
     If the axes was period-mapped by mgplot, the Period's freq must match the
     axes' stashed freq — otherwise the ordinals live in different spaces.
     On an axes with no stash we trust the programmer and just take .ordinal.
+    On an OHLC chart a Period becomes the position of its bar.
     """
     keys = _PERIOD_COORD_KEYS.get(method_name)
     if not keys:
         return item
     stash = get_period_axes(axes)
     stashed_freq = stash[0] if stash is not None else None
+    bars = get_bar_axes(axes)
     converted = dict(item)
     for key in keys:
         val = converted.get(key)
-        if isinstance(val, Period):
+        if isinstance(val, Period) and bars is not None:
+            converted[key] = bar_positions(bars, PeriodIndex([val]), method_name)[0]
+        elif isinstance(val, Period):
             if stashed_freq is not None and val.freqstr != stashed_freq:
                 raise ValueError(
                     f"{method_name} Period freq {val.freqstr!r} does not match axes freq {stashed_freq!r}",
@@ -259,15 +269,19 @@ def _convert_period_value(axes: Axes, setting: str, value: object) -> object:
     xlim is a 2-tuple and xticks a list; either may contain Periods when the
     caller describes the axis in calendar terms. On a period-mapped axes the
     Period freq must match the axes' stashed freq (see register_period_axes).
-    Non-x settings, None, and non-Period entries pass through unchanged.
+    Non-x settings, None, and non-Period entries pass through unchanged. On an
+    OHLC chart a Period becomes the position of its bar.
     """
     if setting not in _PERIOD_X_VALUE_KWARGS or not isinstance(value, (tuple, list)):
         return value
     stash = get_period_axes(axes)
     stashed_freq = stash[0] if stash is not None else None
+    bars = get_bar_axes(axes)
     converted: list[object] = []
     for val in value:
-        if isinstance(val, Period):
+        if isinstance(val, Period) and bars is not None:
+            converted.append(bar_positions(bars, PeriodIndex([val]), setting)[0])
+        elif isinstance(val, Period):
             if stashed_freq is not None and val.freqstr != stashed_freq:
                 raise ValueError(
                     f"{setting} Period freq {val.freqstr!r} does not match axes freq {stashed_freq!r}",

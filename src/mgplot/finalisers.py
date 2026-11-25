@@ -35,6 +35,7 @@ from mgplot.growth_plot import (
 from mgplot.keyword_checking import validate_kwargs
 from mgplot.line_plot import LineKwargs, line_plot
 from mgplot.multi_plot import plot_then_finalise
+from mgplot.ohlc_plot import OhlcKwargs, ohlc_plot
 from mgplot.postcovid_plot import PostcovidKwargs, postcovid_plot
 from mgplot.revision_plot import revision_plot
 from mgplot.run_plot import RunKwargs, run_plot
@@ -65,6 +66,10 @@ class GrowthPFKwargs(GrowthKwargs, FinaliseKwargs):
 
 class LPFKwargs(LineKwargs, FinaliseKwargs):
     """Combined kwargs for line_plot_finalise()."""
+
+
+class OhlcPFKwargs(OhlcKwargs, FinaliseKwargs):
+    """Combined kwargs for ohlc_plot_finalise()."""
 
 
 class PCFKwargs(PostcovidKwargs, FinaliseKwargs):
@@ -209,6 +214,24 @@ def line_plot_finalise(
     validate_kwargs(schema=LPFKwargs, caller="line_plot_finalise", **kwargs)
     kwargs = impose_legend(kwargs=kwargs, data=data)
     plot_then_finalise(data, function=line_plot, **kwargs)
+
+
+def ohlc_plot_finalise(
+    data: DataFrame,
+    **kwargs: Unpack[OhlcPFKwargs],
+) -> None:
+    """Call ohlc_plot() then finalise_plot().
+
+    No legend is imposed: the candles explain themselves, and the frame's four price
+    columns are not separate series.
+
+    Args:
+        data: DataFrame with Open, High, Low and Close columns on a PeriodIndex.
+        kwargs: Combined ohlc plot and finalise plot keyword arguments.
+
+    """
+    validate_kwargs(schema=OhlcPFKwargs, caller="ohlc_plot_finalise", **kwargs)
+    plot_then_finalise(data, function=ohlc_plot, **kwargs)
 
 
 def postcovid_plot_finalise(
