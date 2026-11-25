@@ -1,3 +1,12 @@
+Version 0.3.7 - unreleased
+
+* minor changes
+    - axis tick labels default to "small" (9.2 points; were 11), and axis titles (xlabel and
+      ylabel) to "medium" (11 points; were 13.2). A legend passed as a dict
+      without a fontsize defaults to "x-small" (7.6 points; was 11), as legend=True already did.
+    - bar and line annotations default to "x-small" (7.6 points; were 9.2), including those on
+      the charts built from them (growth, seastrend, postcovid and revision plots).
+
 Version 0.3.6 - unreleased
 
 * minor changes

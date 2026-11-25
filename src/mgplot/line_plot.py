@@ -96,9 +96,9 @@ def annotate_series(
         return None
 
     # --- extract fontsize - could be None, bool, int or str.
-    fontsize = kwargs.get("fontsize", "small")
+    fontsize = kwargs.get("fontsize", "x-small")
     if fontsize is None or isinstance(fontsize, bool):
-        fontsize = "small"
+        fontsize = "x-small"
     fontname = kwargs.get("fontname", "Helvetica")
     rotation = kwargs.get("rotation", 0)
 
@@ -159,7 +159,7 @@ def get_style_width_color_etc(
         "dropna": True,
         "annotate": False,
         "rounding": True,
-        "fontsize": "small",
+        "fontsize": "x-small",
         "fontname": "Helvetica",
         "rotation": 0,
         "annotate_color": True,

@@ -323,7 +323,7 @@ def bar_plot(data: DataT, **kwargs: Unpack[BarKwargs]) -> Axes:
     above = kwargs_d.get("above", False)
     anno_args: AnnoKwargs = {
         "annotate": kwargs_d.get("annotate", False),
-        "fontsize": kwargs_d.get("fontsize", "small"),
+        "fontsize": kwargs_d.get("fontsize", "x-small"),
         "fontname": kwargs_d.get("fontname", "Helvetica"),
         "rotation": kwargs_d.get("rotation", 0),
         "rounding": kwargs_d.get("rounding", True),

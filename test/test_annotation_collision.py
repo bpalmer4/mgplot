@@ -3,6 +3,7 @@
 Run with: uv run python test/test_annotation_collision.py
 """
 
+import math
 import tempfile
 from itertools import pairwise
 
@@ -202,7 +203,8 @@ def test_single_label_unchanged() -> None:
     y_before = axes.texts[0].get_position()[1]
     _finalise(axes, "single label")
     y_after = axes.texts[0].get_position()[1]
-    assert y_before == y_after, f"single label moved: {y_before} -> {y_after}"
+    # the round trip through display coordinates is exact only to floating-point rounding
+    assert math.isclose(y_before, y_after, abs_tol=1e-9), f"single label moved: {y_before} -> {y_after}"
     print("PASS: single label unchanged")
 
 

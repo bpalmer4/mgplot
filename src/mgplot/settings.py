@@ -22,6 +22,10 @@ DEFAULT_MAX_TICKS: Final[int] = 13  # Reasonable default for x-axis ticks
 # --- global plot settings
 plt.style.use("fivethirtyeight")
 mpl.rcParams["font.size"] = 11
+mpl.rcParams["axes.labelsize"] = "medium"
+mpl.rcParams["xtick.labelsize"] = "small"
+mpl.rcParams["ytick.labelsize"] = "small"
+mpl.rcParams["legend.fontsize"] = "x-small"  # also for a legend dict that sets no fontsize
 
 
 # --- default settings
